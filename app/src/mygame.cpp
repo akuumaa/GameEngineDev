@@ -61,7 +61,7 @@ namespace App
         InputHandler::registerKeyAction("reset", GLFW_KEY_SPACE);
         InputHandler::registerButtonAction("reset", GLFW_GAMEPAD_BUTTON_START);
 
-        InputHandler::registerKeyAxis("yaw", GLFW_KEY_E, GLFW_KEY_Q);
+        InputHandler::registerKeyAxis("yaw", GLFW_KEY_Q, GLFW_KEY_E);
         InputHandler::registerKeyAxis("pitch", GLFW_KEY_S, GLFW_KEY_W);
         InputHandler::registerKeyAxis("pitch", GLFW_KEY_DOWN, GLFW_KEY_UP);
         InputHandler::registerKeyAxis("roll", GLFW_KEY_A, GLFW_KEY_D);
