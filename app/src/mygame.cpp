@@ -58,8 +58,10 @@ namespace App
             }
         }
 
+        InputHandler::registerButtonAction("quit", GLFW_GAMEPAD_BUTTON_START);
+
         InputHandler::registerKeyAction("reset", GLFW_KEY_SPACE);
-        InputHandler::registerButtonAction("reset", GLFW_GAMEPAD_BUTTON_START);
+        InputHandler::registerButtonAction("reset", GLFW_GAMEPAD_BUTTON_A);
 
         InputHandler::registerKeyAxis("yaw", GLFW_KEY_Q, GLFW_KEY_E);
         InputHandler::registerKeyAxis("pitch", GLFW_KEY_S, GLFW_KEY_W);
@@ -69,6 +71,7 @@ namespace App
 
         InputHandler::registerStickAxis("yaw", GLFW_GAMEPAD_AXIS_RIGHT_X, false);
         InputHandler::registerStickAxis("pitch", GLFW_GAMEPAD_AXIS_RIGHT_Y, true);
+        InputHandler::registerGamepadAxis("roll", GLFW_GAMEPAD_BUTTON_LEFT_BUMPER, GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER);
         InputHandler::registerTriggerAxis("roll", GLFW_GAMEPAD_AXIS_LEFT_TRIGGER, GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER);
 
 

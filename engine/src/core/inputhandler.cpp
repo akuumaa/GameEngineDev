@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <istream>
 #include <sstream>
+#include <cmath>
 
 
 namespace Engine::Core
@@ -81,7 +82,8 @@ namespace Engine::Core
 
     void InputHandler::registerButtonAction(const std::string &action, uint32_t button)
     {
-        buttonActions[button].push_back(action);
+        if (button >= gamepadState.size()) return;
+        gamepadActions[button].push_back(action);
     }
 
     void InputHandler::registerStickAxis(const std::string &axis, uint32_t stickAxis, bool inverted)
@@ -90,10 +92,17 @@ namespace Engine::Core
         stickAxes[axis].push_back({stickAxis, inverted});
     }
 
+    void InputHandler::registerGamepadAxis(const std::string &axis, uint32_t negativeButton, uint32_t positiveButton)
+    {
+        if (negativeButton >= gamepadState.size()) return;
+        if (positiveButton >= gamepadState.size()) return;
+        gamepadAxes[axis].push_back({negativeButton, positiveButton});
+    }
+
     void InputHandler::registerTriggerAxis(const std::string &axis, uint32_t negativeTrigger, uint32_t positiveTrigger)
     {
-        if (negativeTrigger >= GLFW_GAMEPAD_BUTTON_LAST) return;
-        if (positiveTrigger >= GLFW_GAMEPAD_BUTTON_LAST) return;
+        if (negativeTrigger > GLFW_GAMEPAD_AXIS_LAST) return;
+        if (positiveTrigger > GLFW_GAMEPAD_AXIS_LAST) return;
         triggerAxes[axis].push_back({negativeTrigger, positiveTrigger});
     }
 
@@ -125,10 +134,37 @@ namespace Engine::Core
             }
         }
 
+        auto previous = gamepadState;
+        gamepadState.fill(false);
+
         GLFWgamepadstate gamepad = {};
         if (glfwGetGamepadState(GLFW_JOYSTICK_1, &gamepad)) {
 
             constexpr double stickDeadzone = 0.15;
+
+            for (uint32_t i = 0; i < gamepadState.size(); ++i)
+            {
+                gamepadState[i] = gamepad.buttons[i] == GLFW_PRESS;
+            }
+
+            for (const auto &[button, actions] : gamepadActions)
+            {
+                if (gamepadState[button] && !previous[button])
+                {
+                     for (const auto &action : actions)
+                        fireAction(action);
+                }
+            }
+
+            for (const auto &[axis, mappings] : gamepadAxes)
+        {
+                for (auto [negativeButton, positiveButton] : mappings)
+                {
+                    if (gamepadState[positiveButton]) axes[axis] += 1.0;
+                    if (gamepadState[negativeButton]) axes[axis] -= 1.0;
+                }
+        }
+        
 
             for (const auto &[axis, mappings] : stickAxes)
             {
