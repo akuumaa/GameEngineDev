@@ -129,7 +129,6 @@ namespace Engine::Core
         if (glfwGetGamepadState(GLFW_JOYSTICK_1, &gamepad)) {
 
             constexpr double stickDeadzone = 0.15;
-            constexpr double gamepadTriggerDeadzone = 0.05;
 
             for (const auto &[axis, mappings] : stickAxes)
             {
@@ -142,10 +141,9 @@ namespace Engine::Core
                 }
             }
 
-            auto readTrigger = [&](uint32_t button) -> double
+            auto readTrigger = [&](uint32_t trigger) -> double
             {
-                double value = (gamepad.axes[button] + 1.0) / 2.0;
-                return value < gamepadTriggerDeadzone ? 0.0 : value;
+                return (gamepad.axes[trigger] + 1.0) / 2.0;
             };
 
             for (const auto &[axis, mappings] : triggerAxes)
