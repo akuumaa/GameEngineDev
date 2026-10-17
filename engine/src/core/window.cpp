@@ -70,11 +70,13 @@ namespace Engine::Core
             if (action == GLFW_REPEAT) return;
             InputHandler::keyCallback(key, scancode, mods, action == GLFW_PRESS);
         });
-
-        InputHandler::onKeyPress(GLFW_KEY_ESCAPE, [this]()
+        
+        InputHandler::registerKeyAction("quit", GLFW_KEY_ESCAPE);
+        InputHandler::onAction("quit", [this]()
         {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         });
+
     }
 
     Window::~Window()
