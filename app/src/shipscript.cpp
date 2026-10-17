@@ -22,14 +22,31 @@
 #include "engine/src/math/quaternion.h"
 #include "engine/src/sim/entity.h"
 
+#include "engine/src/core/inputhandler.h"
+#include "engine/src/math/vector3.h"
+
 using Engine::Math::Quaternion;
+using Engine::Math::Vector3;
+
+using Engine::Core::InputHandler;
 
 namespace App
 {
     void ShipScript::update(Entity &entity, double dt, double t)
     {
+        double rollInput = InputHandler::getAxis("roll");
+        double pitchInput = InputHandler::getAxis("pitch");
+        double yawInput = InputHandler::getAxis("yaw");
+
+        double rollStep = rollInput * 1.5 * dt;
+        double pitchStep = pitchInput * 1.0 * dt;
+        double yawStep = yawInput * 0.8 * dt;
+
         Quaternion rotation = entity.getRotation();
-        rotation = rotation * Quaternion(0.25 * dt, 0.0, 0.0);
+        rotation = rotation
+            * Quaternion(Vector3::forward, rollStep)
+            * Quaternion(Vector3::left, pitchStep)
+            * Quaternion(Vector3::up, yawStep);
         entity.setRotation(rotation);
     }
 }
