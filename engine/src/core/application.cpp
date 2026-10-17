@@ -18,6 +18,7 @@
  */
 
 #include "engine/src/core/application.h"
+#include "engine/src/core/inputhandler.h"
 
 #include <chrono>
 #include <exception>
@@ -107,6 +108,8 @@ namespace Engine::Core
                 double t = utc.count();
 
                 double dt = frameTime.count();
+
+                InputHandler::update();
 
                 simulation->update(dt, t);
                 std::swap(frontCommandBuffer, backCommandBuffer);
