@@ -56,7 +56,14 @@ namespace Engine::Sim
     void Simulation::update(double dt, double t)
     {
         elapsedTime += dt;
+        for (auto &[entityId, entity] : entities)
+        {
+            entity->update(dt, t);
+        }
+    }
 
+    void Simulation::commit()
+    {
         float phase = static_cast<float>(elapsedTime) * 2.0f * std::numbers::pi_v<float> / 6.0f;
 
         commandBuffer->reset();
@@ -66,12 +73,7 @@ namespace Engine::Sim
 
         commandBuffer->viewMatrix = camera.getViewMatrix();
 
-        for (auto &[entityId, entity] : entities)
-        {
-            entity->update(dt, t);
-        }
-
-        for (const auto &[entityId, entity] : entities)
+        for (const auto &[entitiyId, entity] : entities)
         {
             entity->commit(*commandBuffer);
         }

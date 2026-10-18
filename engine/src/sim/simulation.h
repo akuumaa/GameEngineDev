@@ -43,6 +43,7 @@ namespace Engine::Sim
         bool unloadEntity(size_t entityId);
 
         void update(double dt, double t);
+        void commit();
 
       private:
         std::unique_ptr<CommandBuffer> &commandBuffer;

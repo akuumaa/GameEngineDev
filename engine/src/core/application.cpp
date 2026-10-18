@@ -25,6 +25,7 @@
 #include <fstream>
 #include <iostream>
 #include <utility>
+#include <algorithm>
 
 namespace Engine::Core
 {
@@ -88,6 +89,9 @@ namespace Engine::Core
             std::chrono::steady_clock::time_point lastFrame = std::chrono::steady_clock::now();
             double fpsTime = 0.0;
             int fpsFrames = 0;
+            constexpr double fixedDt = 1.0 / 60.0;
+            // 60 ticks per second
+            double accumulator = 0.0;
 
             while (window->processEvents())
             {
@@ -109,9 +113,18 @@ namespace Engine::Core
 
                 double dt = frameTime.count();
 
-                InputHandler::update();
+                accumulator += std::min(frameTime.count(), 02.5);
 
-                simulation->update(dt, t);
+                InputHandler::update();
+                
+                while (accumulator >= fixedDt)
+                {
+                    simulation->update(fixedDt, t);
+                    accumulator -= fixedDt;
+                    t += fixedDt;
+                }
+
+                simulation->commit();
                 std::swap(frontCommandBuffer, backCommandBuffer);
                 renderer->draw();
                 window->present();
