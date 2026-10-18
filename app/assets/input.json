@@ -1,0 +1,37 @@
+{
+  "$schema": "../../engine/schemas/input.schema",
+  "actions": {
+    "reset": {
+      "keys": [32],
+      "buttons": [0]
+    }
+  },
+  "axes": {
+    "yaw": {
+      "keys": [
+        { "negative": 69, "positive": 81 }
+      ],
+      "gamepad": [
+        { "axis": 2, "invert": true }
+      ]
+    },
+    "pitch": {
+      "keys": [
+        { "negative": 83, "positive": 87 },
+        { "negative": 264, "positive": 265 }
+      ],
+      "gamepad": [
+        { "axis": 1, "invert": true }
+      ]
+    },
+    "roll": {
+      "keys": [
+        { "negative": 65, "positive": 68 },
+        { "negative": 263, "positive": 262 }
+      ],
+      "gamepad": [
+        { "axis": 0 }
+      ]
+    }
+  }
+}

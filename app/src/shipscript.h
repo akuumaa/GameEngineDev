@@ -30,5 +30,7 @@ namespace App
     {
       public:
         void update(Entity &entity, double dt, double t) override;
+
+        double rotationSpeed = 2.0;
     };
 }

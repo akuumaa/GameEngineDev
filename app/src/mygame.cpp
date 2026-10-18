@@ -20,11 +20,14 @@
 #include "app/src/mygame.h"
 
 #include "app/src/shipscript.h"
+#include "engine/src/core/inputMapper.h"
+#include "engine/src/core/inputhandler.h"
 #include "engine/src/math/vector3.h"
 
 #include <chrono>
 #include <iostream>
 
+using Engine::Core::InputHandler;
 using Engine::Math::Vector3;
 
 namespace App
@@ -42,8 +45,15 @@ namespace App
         bool ok = Application::init();
         if (!ok) return false;
 
+        Engine::Core::InputMapper::loadMappings("input.json");
+
         ship = simulation->loadEntity("entities/ship.entity");
         if (!ship) return false;
+
+        InputHandler::onAction("reset", [this]()
+        {
+            ship->setRotation({});
+        });
 
         ship->setPosition(Vector3(0.0, 0.0, 0.0));
         ship->addScript(std::make_unique<ShipScript>());

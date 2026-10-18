@@ -1,0 +1,125 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Input Map",
+  "description": "Maps keyboard keys and gamepad buttons to actions and axes.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "actions": {
+      "type": "object",
+      "description": "Action names and the keyboard keys or gamepad buttons that trigger them.",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "keys": {
+            "type": "array",
+            "description": "GLFW keyboard key codes.",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 348
+            }
+          },
+          "buttons": {
+            "type": "array",
+            "description": "GLFW gamepad button codes.",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 14
+            }
+          }
+        },
+        "additionalProperties": false,
+        "anyOf": [
+          {
+            "required": ["keys"],
+            "properties": {
+              "keys": { "minItems": 1 }
+            }
+          },
+          {
+            "required": ["buttons"],
+            "properties": {
+              "buttons": { "minItems": 1 }
+            }
+          }
+        ]
+      }
+    },
+    "axes": {
+      "type": "object",
+      "description": "Named axes that combine keyboard key pairs and gamepad stick axes.",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "keys": {
+            "type": "array",
+            "description": "Keyboard key pairs. Holding the negative key decreases the axis; holding the positive key increases it.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "negative": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 348
+                },
+                "positive": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 348
+                }
+              },
+              "additionalProperties": false,
+              "required": ["negative", "positive"]
+            },
+            "minItems": 1
+          },
+          "gamepad": {
+            "type": "array",
+            "description": "Gamepad stick axes to combine for this axis.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "axis": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 5
+                },
+                "invert": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false,
+              "required": ["axis"]
+            },
+            "minItems": 1
+          }
+        },
+        "additionalProperties": false,
+        "anyOf": [
+          {
+            "required": ["keys"],
+            "properties": {
+              "keys": { "minItems": 1 }
+            }
+          },
+          {
+            "required": ["gamepad"],
+            "properties": {
+              "gamepad": { "minItems": 1 }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": ["$schema"],
+  "anyOf": [
+    { "required": ["actions"] },
+    { "required": ["axes"] }
+  ]
+}
