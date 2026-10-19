@@ -17,10 +17,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <cstdlib>
+#define GLFW_INCLUDE_NONE
+
+#include <GLFW/glfw3.h>
+
+#include <istream>
+#include <sstream>
+
 #include "engine/src/core/inputhandler.h"
 
 #include <utility>
 #include <algorithm>
+#include <cmath>
+
 
 namespace Engine::Core
 {
@@ -86,6 +96,19 @@ namespace Engine::Core
         }
     }
 
+
+    void InputHandler::registerButtonAction(const std::string &action, uint32_t button)
+    {
+        if (button >= gamepadState.size()) return;
+        gamepadActions[button].push_back(action);
+    }
+
+    void InputHandler::registerStickAxis(const std::string &axis, uint32_t input, bool inverted)
+    {
+        if (input > GLFW_GAMEPAD_AXIS_LAST) return;
+        gamepadAxes[axis].push_back({input, inverted});
+    }
+
     void InputHandler::update()
     {
         for (auto &[name, value] : axes)
@@ -100,6 +123,42 @@ namespace Engine::Core
                 if (keyboardState[negativeKey]) axes[axis] -= 1.0;
             }
         }
+
+        GLFWgamepadstate gamepad = {};
+        if (glfwGetGamepadState(GLFW_JOYSTICK_1, &gamepad))
+        {
+            constexpr double gamepadDeadzone = 0.15;
+            for ( const auto &[axis, mappings]: gamepadAxes)
+            {
+                for (auto [index, inverted]: mappings)
+                {
+                    float stickValue = gamepad.axes[index];
+                    
+                    if (std::abs(stickValue) >= gamepadDeadzone) {
+                        float invertedCheckStickValue = (inverted) ? -stickValue : stickValue;
+
+                        float valueWithDeadzone = std::copysign(1.0, invertedCheckStickValue) * ((std::abs(invertedCheckStickValue) - gamepadDeadzone) / (1 - gamepadDeadzone));
+                        axes[axis] += valueWithDeadzone;
+                    }
+                }
+            }
+
+            for (const auto &[button, actions]: gamepadActions) {
+                bool currentState = gamepad.buttons[button];
+                bool storedState = gamepadState[button];
+
+                gamepadState[button] = currentState;
+
+                if (currentState && !storedState)
+                {
+                    for (const auto &action : actions)
+                    {
+                        fireAction(action);
+                    }
+                }
+            }
+        }
+
         for (auto &[name, value] : axes)
         {
             value = std::clamp(value, -1.0, 1.0);
@@ -109,5 +168,12 @@ namespace Engine::Core
     void InputHandler::onKeyPress(uint32_t code, std::function<void()> callback)
     {
         keyCallbacks[code].push_back(std::move(callback));
+    }
+
+    void InputHandler::loadGamepadMappings(std::istream &mappings)
+    {
+        std::ostringstream text;
+        text << mappings.rdbuf();
+        glfwUpdateGamepadMappings(text.str().c_str());
     }
 }
