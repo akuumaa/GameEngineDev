@@ -26,6 +26,7 @@
 #include <string>
 #include <array>
 #include <utility>
+#include <iosfwd>
 
 namespace Engine::Core
 {
@@ -42,6 +43,11 @@ namespace Engine::Core
 
         static void registerKeyAxis(const std::string &axis, uint32_t negativeKey, uint32_t positiveKey);
         static double getAxis(const std::string &axis);
+
+        static void registerButtonAction(const std::string &action, uint32_t button);
+        static void registerStickAxis(const std::string &axis, uint32_t input, bool invert = false);
+        static void loadGamepadMappings(std::istream &mappings);
+
         static void update();
 
       private:
@@ -52,5 +58,9 @@ namespace Engine::Core
         static inline std::unordered_map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> keyboardAxes = {};
         static inline std::array<bool, 349> keyboardState = {};
         static inline std::unordered_map<std::string, double> axes = {};
+
+        static inline std::unordered_map<uint32_t, std::vector<std::string>> gamepadActions = {};
+        static inline std::unordered_map<std::string, std::vector<std::pair<uint32_t, bool>>> gamepadAxes = {};
+        static inline std::array<bool, 15> gamepadState = {};
     };
 }

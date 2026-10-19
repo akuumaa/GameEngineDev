@@ -72,6 +72,7 @@ namespace Engine::Core
         });
         
         InputHandler::registerKeyAction("quit", GLFW_KEY_ESCAPE);
+        InputHandler::registerButtonAction("quit", GLFW_GAMEPAD_BUTTON_START);
         InputHandler::onAction("quit", [this]()
         {
             glfwSetWindowShouldClose(window, GLFW_TRUE);

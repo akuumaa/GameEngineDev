@@ -62,11 +62,15 @@ namespace App
         }
 
         InputHandler::registerKeyAction("reset", GLFW_KEY_SPACE);
-        InputHandler::registerKeyAxis("yaw", GLFW_KEY_E, GLFW_KEY_Q);
+        InputHandler::registerKeyAxis("yaw", GLFW_KEY_A, GLFW_KEY_D);
         InputHandler::registerKeyAxis("pitch", GLFW_KEY_S, GLFW_KEY_W);
-        InputHandler::registerKeyAxis("pitch", GLFW_KEY_DOWN, GLFW_KEY_UP);
-        InputHandler::registerKeyAxis("roll", GLFW_KEY_A, GLFW_KEY_D);
-        InputHandler::registerKeyAxis("roll", GLFW_KEY_LEFT, GLFW_KEY_RIGHT);
+        InputHandler::registerKeyAxis("roll", GLFW_KEY_Q, GLFW_KEY_E);
+
+        InputHandler::registerButtonAction("reset", GLFW_GAMEPAD_BUTTON_A);
+        InputHandler::registerStickAxis("yaw", GLFW_GAMEPAD_AXIS_RIGHT_X, true);
+        InputHandler::registerStickAxis("pitch", GLFW_GAMEPAD_AXIS_LEFT_Y, true);
+        InputHandler::registerStickAxis("roll", GLFW_GAMEPAD_AXIS_LEFT_X);
+
         InputHandler::onAction("reset", [this]()
         {
             ship->setRotation({});
