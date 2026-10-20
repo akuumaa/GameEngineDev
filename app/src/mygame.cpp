@@ -32,7 +32,7 @@ namespace App
     MyGame::MyGame(int argc, char *argv[])
         : Application(argc, argv)
     {
-        settings.title = "My Game";
+        settings.title = "Yannick Kissel";
     }
 
     bool MyGame::init()
