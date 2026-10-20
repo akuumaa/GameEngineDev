@@ -38,5 +38,7 @@ namespace Engine::Core
 
       private:
         GLFWwindow *window = nullptr;
+        double mouseLastX = 0.0;
+        double mouseLastY = 0.0;
     };
 }

@@ -44,18 +44,75 @@ namespace Engine::Core
             }
         }
 
-        if (auto actions = keyboardActions.find(key); pressed && actions != keyboardActions.end())
+        if (auto actions = keyboardActions.find(key); actions != keyboardActions.end())
         {
             for (const auto &action : actions->second)
             {
+                updateActionState(action, (uint64_t{1} << 32) | key, pressed);
+            }
+        }
+    }
+
+    void InputHandler::mouseButtonCallback(uint32_t button, bool pressed)
+    {
+        if (auto actions = mouseButtonActions.find(button); actions != mouseButtonActions.end())
+        {
+            for (const auto &action : actions->second)
+            {
+                updateActionState(action, (uint64_t{2} << 32) | button, pressed);
+            }
+        }
+    }
+
+    void InputHandler::updateActionState(const std::string &action, uint64_t source, bool pressed)
+    {
+        auto &sources = activeActionSources[action];
+
+        if (pressed)
+        {
+            const bool sourceWasAdded = sources.insert(source).second;
+            const bool isFirstActiveSource = sourceWasAdded && sources.size() == 1;
+
+            if (isFirstActiveSource)
+            {
                 fireAction(action);
             }
+        }
+        else if (sources.erase(source) > 0 && sources.empty())
+        {
+            fireActionRelease(action);
         }
     }
 
     void InputHandler::onKeyPress(uint32_t code, std::function<void()> callback)
     {
         keyCallbacks[code].push_back(std::move(callback));
+    }
+
+    void InputHandler::onMouseMoved(std::function<void(double deltaX, double deltaY)> callback)
+    {
+        mouseMoveCallbacks.push_back(std::move(callback));
+    }
+
+    void InputHandler::mouseMoved(double deltaX, double deltaY)
+    {
+        mouseDeltaX += deltaX;
+        mouseDeltaY += deltaY;
+
+        // Mouse callbacks are given the delta values
+        // Not used yet, but could be useful for future features
+        for (const auto &callback : mouseMoveCallbacks)
+        {
+            callback(deltaX, deltaY);
+        }
+    }
+
+    std::pair<double, double> InputHandler::consumeMouseDelta()
+    {
+        const auto delta = std::pair{mouseDeltaX, mouseDeltaY};
+        mouseDeltaX = 0.0;
+        mouseDeltaY = 0.0;
+        return delta;
     }
 
     void InputHandler::registerKeyAction(const std::string &action, uint32_t key)
@@ -68,9 +125,25 @@ namespace Engine::Core
         actionCallbacks[action].push_back(std::move(callback));
     }
 
+    void InputHandler::onActionRelease(const std::string &action, std::function<void()> callback)
+    {
+        actionReleaseCallbacks[action].push_back(std::move(callback));
+    }
+
     void InputHandler::fireAction(const std::string &action)
     {
         if (auto entry = actionCallbacks.find(action); entry != actionCallbacks.end())
+        {
+            for (const auto &callback : entry->second)
+            {
+                callback();
+            }
+        }
+    }
+
+    void InputHandler::fireActionRelease(const std::string &action)
+    {
+        if (auto entry = actionReleaseCallbacks.find(action); entry != actionReleaseCallbacks.end())
         {
             for (const auto &callback : entry->second)
             {
@@ -95,6 +168,11 @@ namespace Engine::Core
     void InputHandler::registerButtonAction(const std::string &action, uint32_t button)
     {
         gamepadActions[button].push_back(action);
+    }
+
+    void InputHandler::registerMouseButtonAction(const std::string &action, uint32_t button)
+    {
+        mouseButtonActions[button].push_back(action);
     }
 
     void InputHandler::registerStickAxis(const std::string &axis, uint32_t input, bool invert)
@@ -149,15 +227,32 @@ namespace Engine::Core
                 if (button >= GLFW_GAMEPAD_BUTTON_LAST + 1) continue;
 
                 bool pressed = gamepad.buttons[button] == GLFW_PRESS;
-                if (pressed && !gamepadState[button])
+                if (pressed != gamepadState[button])
                 {
                     for (const auto &action : actions)
                     {
-                        fireAction(action);
+                        updateActionState(action, (uint64_t{3} << 32) | button, pressed);
                     }
                 }
 
                 gamepadState[button] = pressed;
+            }
+        }
+        else
+        {
+            for (size_t button = 0; button < gamepadState.size(); ++button)
+            {
+                if (!gamepadState[button]) continue;
+
+                if (auto actions = gamepadActions.find(static_cast<uint32_t>(button)); actions != gamepadActions.end())
+                {
+                    for (const auto &action : actions->second)
+                    {
+                        updateActionState(action, (uint64_t{3} << 32) | button, false);
+                    }
+                }
+
+                gamepadState[button] = false;
             }
         }
 

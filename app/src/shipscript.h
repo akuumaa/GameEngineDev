@@ -32,5 +32,6 @@ namespace App
         void update(Entity &entity, double dt, double t) override;
 
         double rotationSpeed = 2.0;
+        bool rotateWithMouse = false;
     };
 }

@@ -48,6 +48,13 @@ namespace Engine::Core
                     InputHandler::registerKeyAction(action, key.get<uint32_t>());
                 }
             }
+            if (binding.contains("mouseButtons"))
+            {
+                for (const auto &button : binding["mouseButtons"])
+                {
+                    InputHandler::registerMouseButtonAction(action, button.get<uint32_t>());
+                }
+            }
             if (binding.contains("buttons"))
             {
                 for (const auto &button : binding["buttons"])

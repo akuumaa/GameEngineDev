@@ -27,7 +27,7 @@ namespace Engine::Core
         return true;
     }
 
-    // Validate the action binding arrays and their GLFW key/button code ranges.
+    // Validate the action binding arrays and their GLFW input code ranges.
     bool InputMappingValidator::validateActions(const Json &actions)
     {
         if (!actions.is_object())
@@ -45,11 +45,11 @@ namespace Engine::Core
             }
 
             bool hasBindings = false;
-            for (const std::string name : {"keys", "buttons"})
+            for (const std::string name : {"keys", "buttons", "mouseButtons"})
             {
                 if (!binding.contains(name)) continue;
                 const auto &codes = binding[name];
-                const uint32_t maximum = name == "keys" ? 348 : 14;
+                const uint32_t maximum = name == "keys" ? 348 : name == "buttons" ? 14 : 7;
                 if (!codes.is_array())
                 {
                     std::cout << "! Failed to read input mapping for " << action << ": " << name << " must be an array" << std::endl;
@@ -70,7 +70,7 @@ namespace Engine::Core
             // Reject empty actions so they do not silently register as no-ops.
             if (!hasBindings)
             {
-                std::cout << "! Failed to read input mapping for " << action << ": no keys or buttons" << std::endl;
+                std::cout << "! Failed to read input mapping for " << action << ": no key, gamepad button, or mouse button" << std::endl;
                 return false;
             }
         }

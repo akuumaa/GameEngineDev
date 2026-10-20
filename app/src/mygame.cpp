@@ -35,7 +35,7 @@ namespace App
     MyGame::MyGame(int argc, char *argv[])
         : Application(argc, argv)
     {
-        settings.title = "My Game";
+        settings.title = "Awesome Game";
     }
 
     bool MyGame::init()
@@ -56,7 +56,20 @@ namespace App
         });
 
         ship->setPosition(Vector3(0.0, 0.0, 0.0));
-        ship->addScript(std::make_unique<ShipScript>());
+
+        auto shipScript = std::make_unique<ShipScript>();
+        ShipScript *shipScriptPtr = shipScript.get();
+        ship->addScript(std::move(shipScript));
+
+        InputHandler::onAction("rotationStart", [shipScriptPtr]()
+        {
+            shipScriptPtr->rotateWithMouse = true;
+        });
+
+        InputHandler::onActionRelease("rotationStart", [shipScriptPtr]()
+        {
+            shipScriptPtr->rotateWithMouse = false;
+        });
 
         for (const Vector3 &position : {Vector3::forward * 25.0, Vector3::forward * -25.0, Vector3::left * 25.0, Vector3::left * -25.0, Vector3::up * 25.0, Vector3::up * -25.0})
         {

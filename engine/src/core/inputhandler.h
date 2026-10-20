@@ -23,6 +23,7 @@
 #include <cstdint>
 #include <functional>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 #include <iosfwd>
@@ -35,22 +36,36 @@ namespace Engine::Core
         InputHandler() = delete;
 
         static void keyCallback(uint32_t key, uint32_t scancode, uint32_t mods, bool pressed);
+        static void mouseButtonCallback(uint32_t button, bool pressed);
         static void onKeyPress(uint32_t code, std::function<void()> callback);
+        static void onMouseMoved(std::function<void(double deltaX, double deltaY)> callback);
+        static void mouseMoved(double deltaX, double deltaY);
         static void registerKeyAction(const std::string &action, uint32_t key);
         static void onAction(const std::string &action, std::function<void()> callback);
+        static void onActionRelease(const std::string &action, std::function<void()> callback);
         static void fireAction(const std::string &action);
+        static void fireActionRelease(const std::string &action);
         static void registerKeyAxis(const std::string &axis, uint32_t negativeKey, uint32_t positiveKey);
         static double getAxis(const std::string &axis);
         static void update();
         static void registerButtonAction(const std::string &action, uint32_t button);
+        static void registerMouseButtonAction(const std::string &action, uint32_t button);
         static void registerStickAxis(const std::string &axis, uint32_t input, bool invert = false);
         static void loadGamepadMappings(std::istream &mappings);
 
+        static std::pair<double, double> consumeMouseDelta();
+
       private:
+        static void updateActionState(const std::string &action, uint64_t source, bool pressed);
+
         static inline std::unordered_map<uint32_t, std::vector<std::function<void()>>> keyCallbacks = {};
         static inline std::unordered_map<std::string, std::vector<std::function<void()>>> actionCallbacks = {};
+        static inline std::unordered_map<std::string, std::vector<std::function<void()>>> actionReleaseCallbacks = {};
+        static inline std::unordered_map<std::string, std::unordered_set<uint64_t>> activeActionSources = {};
+        static inline std::vector<std::function<void(double deltaX, double deltaY)>> mouseMoveCallbacks = {};
 
         static inline std::unordered_map<uint32_t, std::vector<std::string>> keyboardActions = {};
+        static inline std::unordered_map<uint32_t, std::vector<std::string>> mouseButtonActions = {};
         static inline std::unordered_map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> keyboardAxes = {};
 
         static inline std::array<bool, 349> keyboardState = {};
@@ -59,5 +74,8 @@ namespace Engine::Core
         static inline std::unordered_map<uint32_t, std::vector<std::string>> gamepadActions = {};
         static inline std::unordered_map<std::string, std::vector<std::pair<uint32_t, bool>>> gamepadAxes = {};
         static inline std::array<bool, 15> gamepadState = {};
+
+        static inline double mouseDeltaX = 0.0;
+        static inline double mouseDeltaY = 0.0;
     };
 }

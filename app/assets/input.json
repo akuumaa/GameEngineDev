@@ -4,6 +4,9 @@
     "reset": {
       "keys": [32],
       "buttons": [0]
+    },
+    "rotationStart": {
+      "mouseButtons": [0]
     }
   },
   "axes": {

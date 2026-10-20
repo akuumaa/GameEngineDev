@@ -71,12 +71,31 @@ namespace Engine::Core
             InputHandler::keyCallback(key, scancode, mods, action == GLFW_PRESS);
         });
 
+        glfwSetMouseButtonCallback(window, [](GLFWwindow *window, int button, int action, int mods)
+        {
+            InputHandler::mouseButtonCallback(button, action == GLFW_PRESS);
+        });
+
         InputHandler::registerKeyAction("quit", GLFW_KEY_ESCAPE);
         InputHandler::registerButtonAction("quit", GLFW_GAMEPAD_BUTTON_START);
 
         InputHandler::onAction("quit", [this]()
         {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
+        });
+
+        glfwGetCursorPos(window, &mouseLastX, &mouseLastY);
+        glfwSetCursorPosCallback(window, [](GLFWwindow *window, double xPosition, double yPosition)
+        {
+            Window *self = static_cast<Window *>(glfwGetWindowUserPointer(window));
+
+            double deltaX = xPosition - self->mouseLastX;
+            double deltaY = yPosition - self->mouseLastY;
+
+            self->mouseLastX = xPosition;
+            self->mouseLastY = yPosition;
+
+            InputHandler::mouseMoved(deltaX, deltaY);
         });
     }
 

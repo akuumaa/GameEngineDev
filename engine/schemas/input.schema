@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "Input Map",
-  "description": "Maps keyboard keys and gamepad buttons to actions and axes.",
+  "description": "Maps keyboard keys, gamepad buttons, and mouse buttons to actions and axes.",
   "type": "object",
   "properties": {
     "$schema": {
@@ -20,7 +20,8 @@
               "type": "integer",
               "minimum": 0,
               "maximum": 348
-            }
+            },
+            "minItems": 1
           },
           "buttons": {
             "type": "array",
@@ -29,24 +30,22 @@
               "type": "integer",
               "minimum": 0,
               "maximum": 14
-            }
+            },
+            "minItems": 1
+          },
+          "mouseButtons": {
+            "type": "array",
+            "description": "GLFW mouse button codes.",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 7
+            },
+            "minItems": 1
           }
         },
         "additionalProperties": false,
-        "anyOf": [
-          {
-            "required": ["keys"],
-            "properties": {
-              "keys": { "minItems": 1 }
-            }
-          },
-          {
-            "required": ["buttons"],
-            "properties": {
-              "buttons": { "minItems": 1 }
-            }
-          }
-        ]
+        "minProperties": 1
       }
     },
     "axes": {
