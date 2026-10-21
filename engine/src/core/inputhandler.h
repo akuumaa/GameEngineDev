@@ -21,6 +21,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <sys/types.h>
 #include <unordered_map>
 #include <vector>
 #include <string>
@@ -34,6 +35,10 @@ namespace Engine::Core
     {
       public:
         InputHandler() = delete;
+        enum Mouse {
+          MOUSE_X = 0,
+          MOUSE_Y = 1
+        };
 
         static void keyCallback(uint32_t key, uint32_t scancode, uint32_t mods, bool pressed);
         static void onKeyPress(uint32_t code, std::function<void()> callback);
@@ -47,6 +52,11 @@ namespace Engine::Core
         static void registerButtonAction(const std::string &action, uint32_t button);
         static void registerStickAxis(const std::string &axis, uint32_t input, bool invert = false);
         static void loadGamepadMappings(std::istream &mappings);
+
+        static void registerMouseAxis(const std::string &axis, uint32_t input, bool invert = false);
+        static void mouseCursorCallback(double xpos, double ypos);
+        static void mouseButtonCallback(uint32_t button, bool pressed, uint32_t mods);
+
 
         static void update();
 
@@ -62,5 +72,17 @@ namespace Engine::Core
         static inline std::unordered_map<uint32_t, std::vector<std::string>> gamepadActions = {};
         static inline std::unordered_map<std::string, std::vector<std::pair<uint32_t, bool>>> gamepadAxes = {};
         static inline std::array<bool, 15> gamepadState = {};
+
+        static inline std::unordered_map<uint32_t, std::vector<std::string>> mouseActions = {};
+        static inline std::unordered_map<std::string, std::vector<std::pair<uint32_t, bool>>> mouseAxes = {};
+        static inline struct
+        {
+          bool isInitialized;
+          std::array<double, 2> previous;
+          std::array<double, 2> current;
+        } mouseCursorPositions = {};
+
+        static inline std::unordered_map<uint32_t, std::vector<std::function<void()>>> mouseButtonCallbacks = {};
+        static inline std::array<bool, 7> mouseButtonState = {};
     };
 }

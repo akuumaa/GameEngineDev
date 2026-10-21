@@ -17,7 +17,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <cstdint>
 #include <cstdlib>
+#include <string>
 #define GLFW_INCLUDE_NONE
 
 #include <GLFW/glfw3.h>
@@ -58,6 +60,39 @@ namespace Engine::Core
             }
         }
 
+    }
+
+    void InputHandler::mouseButtonCallback(uint32_t button, bool pressed, uint32_t mods)
+    {
+        if (button < mouseButtonState.size()) 
+        {
+            mouseButtonState[button] = pressed;
+        }
+
+        if (auto entry = mouseButtonCallbacks.find(button); pressed && entry != mouseButtonCallbacks.end())
+        {
+            for (const auto &callback : entry->second) 
+            {
+                callback();
+            }
+        }
+
+        if (auto actions = mouseActions.find(button); pressed && actions != mouseActions.end())
+        {
+            for (const auto &action : actions->second) 
+            {
+                fireAction(action);
+            }
+        }
+    }
+
+    void InputHandler:: mouseCursorCallback(double xpos, double ypos)
+    {
+        if (!mouseCursorPositions.isInitialized) {
+            mouseCursorPositions.previous = {xpos, ypos};
+            mouseCursorPositions.isInitialized = true;
+        }
+        mouseCursorPositions.current = {xpos, ypos};
     }
 
     void InputHandler::registerKeyAxis(const std::string &axis, uint32_t negativeKey, uint32_t positiveKey)
@@ -109,6 +144,12 @@ namespace Engine::Core
         gamepadAxes[axis].push_back({input, inverted});
     }
 
+    void InputHandler::registerMouseAxis(const std::string &axis, uint32_t input, bool inverted)
+    {
+        if (input >= mouseCursorPositions.current.size()) return;
+         mouseAxes[axis].push_back({input, inverted});
+    }
+
     void InputHandler::update()
     {
         for (auto &[name, value] : axes)
@@ -158,6 +199,21 @@ namespace Engine::Core
                 }
             }
         }
+
+        for (const auto &[axis, mappings]: mouseAxes)
+        {
+            for (auto [index, inverted]: mappings)
+            {
+                float mouseMovement = (mouseCursorPositions.current[index] - mouseCursorPositions.previous[index]) / 10.0;
+                float invertedMouseMovement = (inverted) ? -mouseMovement : mouseMovement;
+
+                axes[axis] += invertedMouseMovement;
+
+            }
+        }
+        mouseCursorPositions.previous = mouseCursorPositions.current;
+        // TODO Mouse Button Loop
+
 
         for (auto &[name, value] : axes)
         {

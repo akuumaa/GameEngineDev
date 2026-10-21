@@ -120,10 +120,9 @@ namespace Engine::Core
 
                 accumulator += std::min(frameTime.count(), 02.5);
 
-                InputHandler::update();
-                
                 while (accumulator >= fixedDt)
                 {
+                    InputHandler::update();
                     simulation->update(fixedDt, t);
                     accumulator -= fixedDt;
                     t += fixedDt;

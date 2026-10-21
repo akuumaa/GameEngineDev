@@ -71,6 +71,9 @@ namespace App
         InputHandler::registerStickAxis("pitch", GLFW_GAMEPAD_AXIS_LEFT_Y, true);
         InputHandler::registerStickAxis("roll", GLFW_GAMEPAD_AXIS_LEFT_X);
 
+        InputHandler::registerMouseAxis("yaw", InputHandler::MOUSE_X, true);
+        InputHandler::registerMouseAxis("pitch", InputHandler::MOUSE_Y, true);
+
         InputHandler::onAction("reset", [this]()
         {
             ship->setRotation({});

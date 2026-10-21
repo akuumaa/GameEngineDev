@@ -19,6 +19,7 @@
 
 #include "engine/src/core/window.h"
 
+#include "GLFW/glfw3.h"
 #include "engine/src/core/inputhandler.h"
 
 #include <iostream>
@@ -70,7 +71,22 @@ namespace Engine::Core
             if (action == GLFW_REPEAT) return;
             InputHandler::keyCallback(key, scancode, mods, action == GLFW_PRESS);
         });
-        
+
+        glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos) 
+        {
+            InputHandler::mouseCursorCallback(xpos, ypos);
+        });
+
+        glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods) {
+            InputHandler::mouseButtonCallback(button, action == GLFW_PRESS, mods);
+        });
+
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        if (glfwRawMouseMotionSupported())
+        {
+            glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+        }
+
         InputHandler::registerKeyAction("quit", GLFW_KEY_ESCAPE);
         InputHandler::registerButtonAction("quit", GLFW_GAMEPAD_BUTTON_START);
         InputHandler::onAction("quit", [this]()
