@@ -19,13 +19,60 @@
 
 #include "engine/src/core/inputhandler.h"
 
+#include <algorithm>
 #include <utility>
 
 namespace Engine::Core
 {
     void InputHandler::keyCallback(uint32_t key, uint32_t scancode, uint32_t mods, bool pressed)
     {
+
+        if (key < keyboardState.size())
+        {
+            keyboardState[key] = pressed;
+        }
+
         if (auto entry = keyCallbacks.find(key); pressed && entry != keyCallbacks.end())
+        {
+            for (const auto &callback : entry->second)
+            {
+                callback();
+            }
+        }
+
+        if (auto actions = keyboardActions.find(key); pressed && actions != keyboardActions.end())
+        {
+            for (const auto &action : actions->second)
+            {
+                fireAction(action);
+            }
+        }
+    }
+
+    void InputHandler::onKeyPress(uint32_t code, std::function<void()> callback)
+    {
+        keyCallbacks[code].push_back(std::move(callback));
+    }
+
+    /**
+     * Registriert eine Aktion für eine bestimmte Taste.
+     *
+     * @param action Name der Aktion, die registriert werden soll.
+     * @param key Tastencode, der mit der Aktion verknüpft wird.
+     */
+    void InputHandler::registerKeyAction(const std::string &action, uint32_t key)
+    {
+        keyboardActions[key].push_back(action);
+    }
+
+    void InputHandler::onAction(const std::string &action, std::function<void()> callback)
+    {
+        actionCallbacks[action].push_back(std::move(callback));
+    }
+
+    void InputHandler::fireAction(const std::string &action)
+    {
+        if (auto entry = actionCallbacks.find(action); entry != actionCallbacks.end())
         {
             for (const auto &callback : entry->second)
             {
@@ -34,8 +81,38 @@ namespace Engine::Core
         }
     }
 
-    void InputHandler::onKeyPress(uint32_t code, std::function<void()> callback)
+    void InputHandler::registerKeyAxis(const std::string &axis, uint32_t negativeKey, uint32_t positiveKey)
     {
-        keyCallbacks[code].push_back(std::move(callback));
+        if (negativeKey >= keyboardState.size()) return;
+        if (positiveKey >= keyboardState.size()) return;
+
+        keyboardAxes[axis].push_back({negativeKey, positiveKey});
+    }
+
+    double InputHandler::getAxis(const std::string &axis)
+    {
+        return axes[axis];
+    }
+
+    void InputHandler::update()
+    {
+        for (auto &[name, value] : axes)
+        {
+            value = 0.0;
+        }
+
+        for (const auto &[axis, mappings] : keyboardAxes)
+        {
+            for (auto [negativeKey, positiveKey] : mappings)
+            {
+                if (keyboardState[positiveKey]) axes[axis] += 1.0;
+                if (keyboardState[negativeKey]) axes[axis] -= 1.0;
+            }
+        }
+
+        for (auto &[name, value] : axes)
+        {
+            value = std::clamp(value, -1.0, 1.0);
+        }
     }
 }

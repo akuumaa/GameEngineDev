@@ -19,17 +19,73 @@
 
 #include "app/src/shipscript.h"
 
+#include "engine/src/core/inputhandler.h"
 #include "engine/src/math/quaternion.h"
+#include "engine/src/math/vector3.h"
 #include "engine/src/sim/entity.h"
+
+#include <cmath>
+#include <iomanip>
+#include <iostream>
+
+using Engine::Core::InputHandler;
+using Engine::Math::Vector3;
 
 using Engine::Math::Quaternion;
 
+
+
 namespace App
 {
+
+    
     void ShipScript::update(Entity &entity, double dt, double t)
     {
+        
+        // Aktuelle Rotationsgeschwindigkeiten
+        double rollVelocity = 0.0;
+        double pitchVelocity = 0.0;
+        double yawVelocity = 0.0;
+
+
+        double rollInput = InputHandler::getAxis("roll");
+        double pitchInput = InputHandler::getAxis("pitch");
+        double yawInput = InputHandler::getAxis("yaw");
+
+       
+        double rollStep = rollVelocity;
+        double pitchStep = pitchVelocity;
+        double yawStep = yawVelocity;
+
+        std::cout << std::fixed << std::setprecision(4)
+          << "\rRoll: " << rollVelocity
+          << " | Pitch: " << pitchVelocity
+          << " | Yaw: " << yawVelocity
+          << " | Gesamt: " << std::sqrt(
+                 rollVelocity * rollVelocity +
+                 pitchVelocity * pitchVelocity +
+                 yawVelocity * yawVelocity)
+          << "     " << std::flush;
+        /**
+         * ! Hier wird die Rotationslogik angepasst damit sich das schiff schwammiger und wasser "simuliert" bewegt.
+         */
+
+        // TODO: rollStep, pitchStep und yawStep berechnen.
+
+        /* Rotationsgeschwindigkeit in Radiant pro Sekunde
+        constexpr double rotationFactor = 0.02;
+
+        double rollStep = rollInput * rotationFactor;
+        double pitchStep = pitchInput * rotationFactor;
+        double yawStep = yawInput * rotationFactor;
+        */
+
         Quaternion rotation = entity.getRotation();
-        rotation = rotation * Quaternion(0.25 * dt, 0.0, 0.0);
+        rotation = rotation * Quaternion(Vector3::forward, rollStep) * Quaternion(Vector3::left, pitchStep) * Quaternion(Vector3::up, yawStep);
+
+        rotation = Quaternion::normalize(rotation);
+
         entity.setRotation(rotation);
     }
+
 }

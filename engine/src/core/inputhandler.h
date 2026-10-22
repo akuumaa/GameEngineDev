@@ -19,9 +19,12 @@
 
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <functional>
+#include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace Engine::Core
@@ -31,10 +34,43 @@ namespace Engine::Core
       public:
         InputHandler() = delete;
 
+        /**
+         * Registriert eine Aktion für eine bestimmte Taste.
+         *
+         * @param _action_ Name der Aktion, die registriert werden soll.
+         * @param key Tastencode, der mit der Aktion verknüpft wird.
+         */
         static void keyCallback(uint32_t key, uint32_t scancode, uint32_t mods, bool pressed);
         static void onKeyPress(uint32_t code, std::function<void()> callback);
+        static void registerKeyAction(const std::string &action, uint32_t key);
+        static void onAction(const std::string &action, std::function<void()> callback);
+        static void fireAction(const std::string &action);
+
+        static void registerKeyAxis(const std::string &axis, uint32_t negativeKey, uint32_t positiveKey);
+        static double getAxis(const std::string &axis);
+        static void update();
 
       private:
         static inline std::unordered_map<uint32_t, std::vector<std::function<void()>>> keyCallbacks = {};
+
+        /**
+         * Speichert Callback-Funktionen für verschiedene Aktionen.
+         *
+         * - static: Die Map ist innerhalb einer Klasse für alle Instanzen gemeinsam verfügbar.
+         * - inline: Ermöglicht die direkte Definition in einer Header-Datei (ab C++17).
+         * - unordered_map: Ordnet jeder Aktion (std::string) eine Liste von Callbacks zu.
+         * - vector: Ermöglicht mehrere Callbacks pro Aktion.
+         * - function<void()>: Speichert Funktionen ohne Parameter und Rückgabewert.
+         * - = {}: Initialisiert die Map leer.
+         *
+         * Beim Auslösen einer Aktion können alle zugehörigen Callbacks ausgeführt werden.
+         */
+        static inline std::unordered_map<std::string, std::vector<std::function<void()>>> actionCallbacks = {};
+        static inline std::unordered_map<uint32_t, std::vector<std::string>> keyboardActions = {};
+
+        static inline std::unordered_map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> keyboardAxes = {};
+
+        static inline std::array<bool, 349> keyboardState = {};
+        static inline std::unordered_map<std::string, double> axes = {};
     };
 }

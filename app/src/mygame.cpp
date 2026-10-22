@@ -20,10 +20,14 @@
 #include "app/src/mygame.h"
 
 #include "app/src/shipscript.h"
+#include "engine/src/core/inputhandler.h"
 #include "engine/src/math/vector3.h"
 
+#include <GLFW/glfw3.h>
 #include <chrono>
 #include <iostream>
+
+using Engine::Core::InputHandler;
 
 using Engine::Math::Vector3;
 
@@ -38,6 +42,14 @@ namespace App
     bool MyGame::init()
     {
         std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+
+        InputHandler::registerKeyAction("reset", GLFW_KEY_SPACE);
+
+        InputHandler::registerKeyAxis("yaw", GLFW_KEY_E, GLFW_KEY_Q);
+        InputHandler::registerKeyAxis("pitch", GLFW_KEY_S, GLFW_KEY_W);
+        InputHandler::registerKeyAxis("pitch", GLFW_KEY_DOWN, GLFW_KEY_UP);
+        InputHandler::registerKeyAxis("roll", GLFW_KEY_A, GLFW_KEY_D);
+        InputHandler::registerKeyAxis("roll", GLFW_KEY_LEFT, GLFW_KEY_RIGHT);
 
         bool ok = Application::init();
         if (!ok) return false;
@@ -55,6 +67,11 @@ namespace App
                 cube->setPosition(position);
             }
         }
+
+        InputHandler::onAction("reset", [this]()
+        {
+            ship->setRotation({});
+        });
 
         std::chrono::duration<double> startupTime = std::chrono::steady_clock::now() - start;
         std::cout << "+ Startup time: " << startupTime.count() << " s" << std::endl;
