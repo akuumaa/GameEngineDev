@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
+ * Copyright © 2026 Alexander Hancharenka
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,9 +21,11 @@
 #pragma once
 
 #include "engine/src/sim/script.h"
+#include "engine/src/sim/entity.h"
 
 using Engine::Sim::Entity;
 using Engine::Sim::Script;
+
 
 namespace App
 {

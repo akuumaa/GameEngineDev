@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
+ * Copyright © 2026 Alexander Hancharenka
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +19,7 @@
  */
 
 #include "engine/src/core/application.h"
+#include "engine/src/core/inputhandler.h"
 
 #include <chrono>
 #include <exception>
@@ -107,7 +109,7 @@ namespace Engine::Core
                 double t = utc.count();
 
                 double dt = frameTime.count();
-
+                InputHandler::update();
                 simulation->update(dt, t);
                 std::swap(frontCommandBuffer, backCommandBuffer);
                 renderer->draw();

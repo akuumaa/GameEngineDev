@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
+ * Copyright © 2026 Alexander Hancharenka
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,10 +72,13 @@ namespace Engine::Core
             InputHandler::keyCallback(key, scancode, mods, action == GLFW_PRESS);
         });
 
-        InputHandler::onKeyPress(GLFW_KEY_ESCAPE, [this]()
+        InputHandler::registerKeyAction("quit", GLFW_KEY_ESCAPE);
+
+        InputHandler::onAction("quit", [this]()
         {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         });
+
     }
 
     Window::~Window()

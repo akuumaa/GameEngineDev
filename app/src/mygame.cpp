@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
+ * Copyright © 2026 Alexander Hancharenka
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,18 +22,23 @@
 
 #include "app/src/shipscript.h"
 #include "engine/src/math/vector3.h"
+#include "engine/src/core/inputhandler.h"
 
 #include <chrono>
 #include <iostream>
 
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+
 using Engine::Math::Vector3;
+using Engine::Core::InputHandler;
 
 namespace App
 {
     MyGame::MyGame(int argc, char *argv[])
         : Application(argc, argv)
     {
-        settings.title = "My Game";
+        settings.title = "Cheeseburger";
     }
 
     bool MyGame::init()
@@ -47,6 +53,20 @@ namespace App
 
         ship->setPosition(Vector3(0.0, 0.0, 0.0));
         ship->addScript(std::make_unique<ShipScript>());
+
+        /**taste registrieren und dann action hinzufügen */
+        InputHandler::registerKeyAction("reset", GLFW_KEY_SPACE);
+
+        InputHandler::registerKeyAxis("yaw", GLFW_KEY_A, GLFW_KEY_D);
+        InputHandler::registerKeyAxis("pitch", GLFW_KEY_S, GLFW_KEY_W);
+        InputHandler::registerKeyAxis("pitch", GLFW_KEY_DOWN, GLFW_KEY_UP);
+        InputHandler::registerKeyAxis("roll", GLFW_KEY_Q, GLFW_KEY_E);
+        InputHandler::registerKeyAxis("roll", GLFW_KEY_LEFT, GLFW_KEY_RIGHT);
+
+        InputHandler::onAction("reset", [this]()
+        {
+            ship->setRotation({});
+        });
 
         for (const Vector3 &position : {Vector3::forward * 25.0, Vector3::forward * -25.0, Vector3::left * 25.0, Vector3::left * -25.0, Vector3::up * 25.0, Vector3::up * -25.0})
         {

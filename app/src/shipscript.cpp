@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
+ * Copyright © 2026 Alexander Hancharenka
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,15 +22,37 @@
 
 #include "engine/src/math/quaternion.h"
 #include "engine/src/sim/entity.h"
+#include "engine/src/core/inputhandler.h"
+#include "engine/src/math/quaternion.h"
+#include "engine/src/math/vector3.h"
 
 using Engine::Math::Quaternion;
+using Engine::Core::InputHandler;
+using Engine::Math::Vector3;
 
 namespace App
 {
     void ShipScript::update(Entity &entity, double dt, double t)
     {
+        //nase heck -> flügel kippen seitlich
+        double rollInput = InputHandler::getAxis("roll");
+        // querachse -> nase hoch runter
+        double pitchInput = InputHandler::getAxis("pitch");
+        //
+        double yawInput = InputHandler::getAxis("yaw");
+
+        /**mit delta zeit, damit es unabhängig von der frame rate ist  */
+        double rollStep = rollInput * 1.5 * dt;
+        double pitchStep = pitchInput * 1.5 * dt;
+        double yawStep = yawInput * 1.5 * dt;
+
+      
         Quaternion rotation = entity.getRotation();
-        rotation = rotation * Quaternion(0.25 * dt, 0.0, 0.0);
+        rotation = rotation
+                   * Quaternion(Vector3::forward, rollStep)
+                   * Quaternion(Vector3::left, pitchStep)
+                   * Quaternion(Vector3::up, yawStep);
+        rotation = Quaternion::normalize(rotation);
         entity.setRotation(rotation);
     }
 }
