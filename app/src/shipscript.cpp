@@ -37,11 +37,12 @@ namespace App
         double pitchInput = InputHandler::getAxis("pitch");
         double yawInput = InputHandler::getAxis("yaw");
 
-        constexpr double angularSpeed = 1.2;
+        // ROLL SPEED CALCULATION
+        constexpr double rollSpeed = 1.2;
         
-        double rollStep = rollInput * angularSpeed * dt;
-        double pitchStep = pitchInput * angularSpeed * dt;
-        double yawStep = yawInput * angularSpeed * dt;
+        double rollStep = rollInput * rollSpeed * dt;
+        double pitchStep = pitchInput * rollSpeed * dt;
+        double yawStep = yawInput * rollSpeed * dt;
         
         Quaternion rotation = entity.getRotation();
         rotation = rotation

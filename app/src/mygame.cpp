@@ -61,6 +61,7 @@ namespace App
             }
         }
 
+        // SHIP ACTION REGISTRATION
         InputHandler::registerKeyAction("reset", GLFW_KEY_SPACE);
         InputHandler::registerKeyAxis("yaw", GLFW_KEY_A, GLFW_KEY_D);
         InputHandler::registerKeyAxis("pitch", GLFW_KEY_S, GLFW_KEY_W);

@@ -69,6 +69,7 @@ namespace Engine::Core
 
             window.emplace(settings);
 
+            // LOADING OF GAMEPAD MAPPINGS
             if (std::unique_ptr<std::istream> mappings = load("gamecontrollerdb.txt"))
             {
                 InputHandler::loadGamepadMappings(*mappings);
@@ -114,6 +115,7 @@ namespace Engine::Core
 
                 double dt = frameTime.count();
 
+                // InputHandler Updating
                 InputHandler::update();
 
                 simulation->update(dt, t);

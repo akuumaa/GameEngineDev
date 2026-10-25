@@ -34,6 +34,24 @@
 
 namespace Engine::Core
 {
+    /* BEGIN ACTION FUNCTIONS */
+    void InputHandler::onAction(const std::string &action, std::function<void()> callback)
+    {
+        actionCallbacks[action].push_back(std::move(callback));
+    }
+
+    void InputHandler::fireAction(const std::string &action)
+    {
+        if (auto entry = actionCallbacks.find(action); entry != actionCallbacks.end())
+        {
+            for (const auto &callback : entry->second)
+            {
+                callback();
+            }
+        }
+    }
+
+    /* BEGIN KEYBOARD FUNCTIONS */
     void InputHandler::keyCallback(uint32_t key, uint32_t scancode, uint32_t mods, bool pressed)
     {
 
@@ -60,6 +78,11 @@ namespace Engine::Core
 
     }
 
+     void InputHandler::onKeyPress(uint32_t code, std::function<void()> callback)
+    {
+        keyCallbacks[code].push_back(std::move(callback));
+    }
+
     void InputHandler::registerKeyAxis(const std::string &axis, uint32_t negativeKey, uint32_t positiveKey)
     {
         if (negativeKey >= keyboardState.size()) return;
@@ -68,35 +91,12 @@ namespace Engine::Core
         keyboardAxes[axis].push_back({negativeKey, positiveKey});
     }
 
-    double InputHandler::getAxis(const std::string &axis)
-    {
-        return axes[axis];
-    }
-
-
-
     void InputHandler::registerKeyAction(const std::string &action, uint32_t key)
     {
         keyboardActions[key].push_back(action);
     }
 
-    void InputHandler::onAction(const std::string &action, std::function<void()> callback)
-    {
-        actionCallbacks[action].push_back(std::move(callback));
-    }
-
-    void InputHandler::fireAction(const std::string &action)
-    {
-        if (auto entry = actionCallbacks.find(action); entry != actionCallbacks.end())
-        {
-            for (const auto &callback : entry->second)
-            {
-                callback();
-            }
-        }
-    }
-
-
+    /* BEGIN GAMEPAD FUNCTIONS */
     void InputHandler::registerButtonAction(const std::string &action, uint32_t button)
     {
         if (button >= gamepadState.size()) return;
@@ -109,8 +109,22 @@ namespace Engine::Core
         gamepadAxes[axis].push_back({input, inverted});
     }
 
+    void InputHandler::loadGamepadMappings(std::istream &mappings)
+    {
+        std::ostringstream text;
+        text << mappings.rdbuf();
+        glfwUpdateGamepadMappings(text.str().c_str());
+    }
+
+    /* BEGIN GENERAL FUNCTIONS */
+     double InputHandler::getAxis(const std::string &axis)
+    {
+        return axes[axis];
+    }
+
     void InputHandler::update()
     {
+        // Keyboard Axis Updating
         for (auto &[name, value] : axes)
         {
             value = 0.0;
@@ -124,6 +138,7 @@ namespace Engine::Core
             }
         }
 
+        // Gamepad Axis Updating
         GLFWgamepadstate gamepad = {};
         if (glfwGetGamepadState(GLFW_JOYSTICK_1, &gamepad))
         {
@@ -142,7 +157,8 @@ namespace Engine::Core
                     }
                 }
             }
-
+            
+            // Gamepad Button Updating
             for (const auto &[button, actions]: gamepadActions) {
                 bool currentState = gamepad.buttons[button];
                 bool storedState = gamepadState[button];
@@ -163,17 +179,5 @@ namespace Engine::Core
         {
             value = std::clamp(value, -1.0, 1.0);
         }
-    }
-    
-    void InputHandler::onKeyPress(uint32_t code, std::function<void()> callback)
-    {
-        keyCallbacks[code].push_back(std::move(callback));
-    }
-
-    void InputHandler::loadGamepadMappings(std::istream &mappings)
-    {
-        std::ostringstream text;
-        text << mappings.rdbuf();
-        glfwUpdateGamepadMappings(text.str().c_str());
     }
 }

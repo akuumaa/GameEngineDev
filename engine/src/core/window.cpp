@@ -70,7 +70,8 @@ namespace Engine::Core
             if (action == GLFW_REPEAT) return;
             InputHandler::keyCallback(key, scancode, mods, action == GLFW_PRESS);
         });
-        
+
+        // KEY & BUTTON ACTION REGISTRATION
         InputHandler::registerKeyAction("quit", GLFW_KEY_ESCAPE);
         InputHandler::registerButtonAction("quit", GLFW_GAMEPAD_BUTTON_START);
         InputHandler::onAction("quit", [this]()

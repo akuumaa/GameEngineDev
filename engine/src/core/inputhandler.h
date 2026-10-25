@@ -19,14 +19,14 @@
 
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <functional>
-#include <unordered_map>
-#include <vector>
-#include <string>
-#include <array>
-#include <utility>
 #include <iosfwd>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 namespace Engine::Core
 {
@@ -35,32 +35,43 @@ namespace Engine::Core
       public:
         InputHandler() = delete;
 
-        static void keyCallback(uint32_t key, uint32_t scancode, uint32_t mods, bool pressed);
-        static void onKeyPress(uint32_t code, std::function<void()> callback);
-        static void registerKeyAction(const std::string &action, uint32_t key);
+        // General
+        static void update();
+        static double getAxis(const std::string &axis);
+
+
+        // Action Handling
         static void onAction(const std::string &action, std::function<void()> callback);
         static void fireAction(const std::string &action);
 
+        // Keyboard Support
+        static void keyCallback(uint32_t key, uint32_t scancode, uint32_t mods, bool pressed);
+        static void onKeyPress(uint32_t code, std::function<void()> callback);
         static void registerKeyAxis(const std::string &axis, uint32_t negativeKey, uint32_t positiveKey);
-        static double getAxis(const std::string &axis);
+        static void registerKeyAction(const std::string &action, uint32_t key);
 
-        static void registerButtonAction(const std::string &action, uint32_t button);
-        static void registerStickAxis(const std::string &axis, uint32_t input, bool invert = false);
+
+        // Gamepad Support
         static void loadGamepadMappings(std::istream &mappings);
-
-        static void update();
+        static void registerStickAxis(const std::string &axis, uint32_t input, bool invert = false);
+        static void registerButtonAction(const std::string &action, uint32_t button);
 
       private:
-        static inline std::unordered_map<uint32_t, std::vector<std::function<void()>>> keyCallbacks = {};
-        static inline std::unordered_map<std::string, std::vector<std::function<void()>>> actionCallbacks = {};
-        static inline std::unordered_map<uint32_t, std::vector<std::string>> keyboardActions = {};
-
-        static inline std::unordered_map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> keyboardAxes = {};
-        static inline std::array<bool, 349> keyboardState = {};
+        // General
         static inline std::unordered_map<std::string, double> axes = {};
 
-        static inline std::unordered_map<uint32_t, std::vector<std::string>> gamepadActions = {};
-        static inline std::unordered_map<std::string, std::vector<std::pair<uint32_t, bool>>> gamepadAxes = {};
+        // Action Handling
+        static inline std::unordered_map<std::string, std::vector<std::function<void()>>> actionCallbacks = {};
+
+        // Keyboard Support
+        static inline std::array<bool, 349> keyboardState = {};
+        static inline std::unordered_map<uint32_t, std::vector<std::function<void()>>> keyCallbacks = {};
+        static inline std::unordered_map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> keyboardAxes = {};
+        static inline std::unordered_map<uint32_t, std::vector<std::string>> keyboardActions = {};
+
+        // Gamepad Support
         static inline std::array<bool, 15> gamepadState = {};
+        static inline std::unordered_map<std::string, std::vector<std::pair<uint32_t, bool>>> gamepadAxes = {};
+        static inline std::unordered_map<uint32_t, std::vector<std::string>> gamepadActions = {};
     };
 }
