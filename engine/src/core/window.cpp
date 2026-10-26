@@ -71,6 +71,19 @@ namespace Engine::Core
             InputHandler::keyCallback(key, scancode, mods, action == GLFW_PRESS);
         });
 
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+        // Mouse Callback registration
+        glfwSetCursorPosCallback(window, [](GLFWwindow *window, double x, double y)
+        {
+            InputHandler::cursorPosCallback(x, y);
+        });
+
+        glfwSetScrollCallback(window, [](GLFWwindow *window, double x, double y)
+        {
+            InputHandler::scrollCallback(x, y);
+        });
+
         // KEY & BUTTON ACTION REGISTRATION
         InputHandler::registerKeyAction("quit", GLFW_KEY_ESCAPE);
         InputHandler::registerButtonAction("quit", GLFW_GAMEPAD_BUTTON_START);
@@ -78,7 +91,6 @@ namespace Engine::Core
         {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         });
-
     }
 
     Window::~Window()

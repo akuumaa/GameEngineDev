@@ -20,17 +20,14 @@
 #include <cstdlib>
 #define GLFW_INCLUDE_NONE
 
-#include <GLFW/glfw3.h>
-
-#include <istream>
-#include <sstream>
-
 #include "engine/src/core/inputhandler.h"
 
-#include <utility>
+#include <GLFW/glfw3.h>
 #include <algorithm>
 #include <cmath>
-
+#include <istream>
+#include <sstream>
+#include <utility>
 
 namespace Engine::Core
 {
@@ -75,10 +72,9 @@ namespace Engine::Core
                 fireAction(action);
             }
         }
-
     }
 
-     void InputHandler::onKeyPress(uint32_t code, std::function<void()> callback)
+    void InputHandler::onKeyPress(uint32_t code, std::function<void()> callback)
     {
         keyCallbacks[code].push_back(std::move(callback));
     }
@@ -116,8 +112,31 @@ namespace Engine::Core
         glfwUpdateGamepadMappings(text.str().c_str());
     }
 
+    /* BEGIN MOUSE FUNCTIONS */
+    void InputHandler::cursorPosCallback(double x, double y)
+    {
+        static double cursorX = 0.0;
+        static double cursorY = 0.0;
+        static bool cursorKnown = false;
+
+        if (cursorKnown)
+        {
+            mouseMovementX += x - cursorX;
+            mouseMovementY += y - cursorY;
+        }
+
+        cursorX = x;
+        cursorY = y;
+        cursorKnown = true;
+    }
+
+    void InputHandler::scrollCallback(double x, double y)
+    {
+        mouseMovementZ += y;
+    }
+
     /* BEGIN GENERAL FUNCTIONS */
-     double InputHandler::getAxis(const std::string &axis)
+    double InputHandler::getAxis(const std::string &axis)
     {
         return axes[axis];
     }
@@ -143,13 +162,14 @@ namespace Engine::Core
         if (glfwGetGamepadState(GLFW_JOYSTICK_1, &gamepad))
         {
             constexpr double gamepadDeadzone = 0.15;
-            for ( const auto &[axis, mappings]: gamepadAxes)
+            for (const auto &[axis, mappings] : gamepadAxes)
             {
-                for (auto [index, inverted]: mappings)
+                for (auto [index, inverted] : mappings)
                 {
                     float stickValue = gamepad.axes[index];
-                    
-                    if (std::abs(stickValue) >= gamepadDeadzone) {
+
+                    if (std::abs(stickValue) >= gamepadDeadzone)
+                    {
                         float invertedCheckStickValue = (inverted) ? -stickValue : stickValue;
 
                         float valueWithDeadzone = std::copysign(1.0, invertedCheckStickValue) * ((std::abs(invertedCheckStickValue) - gamepadDeadzone) / (1 - gamepadDeadzone));
@@ -157,9 +177,10 @@ namespace Engine::Core
                     }
                 }
             }
-            
+
             // Gamepad Button Updating
-            for (const auto &[button, actions]: gamepadActions) {
+            for (const auto &[button, actions] : gamepadActions)
+            {
                 bool currentState = gamepad.buttons[button];
                 bool storedState = gamepadState[button];
 
@@ -174,6 +195,15 @@ namespace Engine::Core
                 }
             }
         }
+
+        // Mouse Delta
+        mouseDeltaX = mouseMovementX;
+        mouseDeltaY = mouseMovementY;
+        mouseDeltaZ = mouseMovementZ;
+
+        mouseMovementX = 0.0;
+        mouseMovementY = 0.0;
+        mouseMovementZ = 0.0;
 
         for (auto &[name, value] : axes)
         {

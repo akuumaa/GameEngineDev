@@ -64,7 +64,6 @@ namespace Engine::Sim
         commandBuffer->clear.green = 0.36f + 0.20f * std::sin(phase + 2.0f);
         commandBuffer->clear.blue = 0.40f + 0.20f * std::sin(phase + 4.0f);
 
-        commandBuffer->viewMatrix = camera.getViewMatrix();
 
         for (auto &[entityId, entity] : entities)
         {

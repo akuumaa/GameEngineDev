@@ -20,16 +20,15 @@
 #include "app/src/mygame.h"
 
 #include "app/src/shipscript.h"
+#include "engine/src/core/inputhandler.h"
 #include "engine/src/math/vector3.h"
 
+#include <GLFW/glfw3.h>
 #include <chrono>
 #include <iostream>
 
-#include "engine/src/core/inputhandler.h"
-#include <GLFW/glfw3.h>
-
-using Engine::Math::Vector3;
 using Engine::Core::InputHandler;
+using Engine::Math::Vector3;
 namespace App
 {
     MyGame::MyGame(int argc, char *argv[])
@@ -47,7 +46,7 @@ namespace App
         if (!ok) return false;
 
         ship = simulation->loadEntity("entities/ship.entity");
-        
+
         if (!ship) return false;
 
         ship->setPosition(Vector3(0.0, 0.0, 0.0));
@@ -61,20 +60,35 @@ namespace App
             }
         }
 
+        // SHIP CAMERA FOCUS
+        ship->setFocus(true);
+
         // SHIP ACTION REGISTRATION
         InputHandler::registerKeyAction("reset", GLFW_KEY_SPACE);
         InputHandler::registerKeyAxis("yaw", GLFW_KEY_A, GLFW_KEY_D);
         InputHandler::registerKeyAxis("pitch", GLFW_KEY_S, GLFW_KEY_W);
         InputHandler::registerKeyAxis("roll", GLFW_KEY_Q, GLFW_KEY_E);
+        InputHandler::registerKeyAction("nextCamera", GLFW_KEY_C);
 
         InputHandler::registerButtonAction("reset", GLFW_GAMEPAD_BUTTON_A);
-        InputHandler::registerStickAxis("yaw", GLFW_GAMEPAD_AXIS_RIGHT_X, true);
         InputHandler::registerStickAxis("pitch", GLFW_GAMEPAD_AXIS_LEFT_Y, true);
         InputHandler::registerStickAxis("roll", GLFW_GAMEPAD_AXIS_LEFT_X);
+        InputHandler::registerButtonAction("nextCamera", GLFW_GAMEPAD_BUTTON_BACK);
+        InputHandler::registerStickAxis("cameraYaw", GLFW_GAMEPAD_AXIS_RIGHT_X, true);
+        InputHandler::registerStickAxis("cameraPitch", GLFW_GAMEPAD_AXIS_RIGHT_Y, true);
+
+        InputHandler::registerKeyAxis("cameraYaw", GLFW_KEY_L, GLFW_KEY_J);
+        InputHandler::registerKeyAxis("cameraPitch", GLFW_KEY_I, GLFW_KEY_K);
+        InputHandler::registerKeyAxis("cameraZoom", GLFW_KEY_U, GLFW_KEY_O);
 
         InputHandler::onAction("reset", [this]()
         {
             ship->setRotation({});
+        });
+
+        InputHandler::onAction("nextCamera", [this]()
+        {
+            ship->nextCamera();
         });
 
         std::chrono::duration<double> startupTime = std::chrono::steady_clock::now() - start;
