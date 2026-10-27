@@ -18,11 +18,34 @@
  */
 
 #include "engine/src/sim/camera.h"
+#include "engine/src/math/number.h"
+
+#include <cmath>
+#include <json.hpp>
 
 namespace Engine::Sim
 {
-    Matrix Camera::getViewMatrix() const
+    Camera Camera::create(const Json &config)
     {
-        return Matrix::lookAt(position, target);
+        Camera camera = {};
+
+        camera.name = config.value("name", "");
+
+        if (config.contains("offset")) camera.offset = {config["offset"][0].get<double>(), config["offset"][1].get<double>(), config["offset"][2].get<double>()};
+
+        if (config.contains("rotation"))
+        {
+            camera.yaw = Math::Number::toRadians(config["rotation"][0].get<double>());
+            camera.pitch = Math::Number::toRadians(config["rotation"][1].get<double>());
+        }
+
+        return camera;
+    }
+
+    Matrix Camera::getViewMatrix(const Vector3 &position, const Quaternion &rotation) const
+    {
+        Vector3 direction = {std::cos(pitch) * std::cos(yaw), std::cos(pitch) * std::sin(yaw), -std::sin(pitch)};
+
+        return Matrix::lookAt(offset, offset + direction) * (-rotation).toMatrix() * Matrix::translation(-position);
     }
 }

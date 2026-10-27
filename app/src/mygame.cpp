@@ -46,14 +46,21 @@ namespace App
         bool ok = Application::init();
         if (!ok) return false;
 
-        Engine::Core::InputMapper::loadMappings("input.json");
+        if (!Engine::Core::InputMapper::loadMappings("input.json")) return false;
 
         ship = simulation->loadEntity("entities/ship.entity");
         if (!ship) return false;
 
+        ship->setFocus(true);
+
         InputHandler::onAction("reset", [this]()
         {
             ship->setRotation({});
+        });
+
+        InputHandler::onAction("nextCamera", [this]()
+        {
+            ship->nextCamera();
         });
 
         ship->setPosition(Vector3(0.0, 0.0, 0.0));

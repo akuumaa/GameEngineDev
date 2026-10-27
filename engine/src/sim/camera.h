@@ -21,19 +21,33 @@
 
 #include "engine/src/math/matrix.h"
 #include "engine/src/math/vector3.h"
+#include "engine/src/math/quaternion.h"
+
+#include <json_fwd.hpp>
+#include <string>
 
 using Engine::Math::Matrix;
 using Engine::Math::Vector3;
+using Engine::Math::Quaternion;
+
+using Json = nlohmann::json;
 
 namespace Engine::Sim
 {
     class Camera
     {
       public:
-        Matrix getViewMatrix() const;
+        static Camera create(const Json &config);
+        
+        Matrix getViewMatrix(const Vector3 &position, const Quaternion &rotation) const;
+
+        const std::string &getName() const { return name; }
 
       private:
-        Vector3 position = {7.3589, -6.9258, 4.9583};
-        Vector3 target = {0.0, 0.0, 0.0};
+        std::string name = {};
+        Vector3 offset = {};
+
+        double yaw = 0.0;
+        double pitch = 0.0;
     };
 }
