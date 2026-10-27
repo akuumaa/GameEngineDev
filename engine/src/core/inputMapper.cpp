@@ -1,3 +1,7 @@
+/*
+* Copyright © 2026 Tom Kertels
+*/
+
 #include "inputMapper.h"
 #include "inputhandler.h"
 #include "inputMappingValidator.h"

@@ -1,3 +1,6 @@
+/*
+* Copyright © 2026 Tom Kertels
+*/
 
 #include <istream>
 #include <json.hpp>

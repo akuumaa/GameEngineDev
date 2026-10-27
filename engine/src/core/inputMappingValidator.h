@@ -1,3 +1,7 @@
+/*
+* Copyright © 2026 Tom Kertels
+*/
+
 #pragma once
 
 #include <cstdint>
