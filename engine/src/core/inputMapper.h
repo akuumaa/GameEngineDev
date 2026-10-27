@@ -1,10 +1,11 @@
 /*
-* Copyright © 2026 Tom Kertels
-*/
+ * Copyright © 2026 Tom Kertels
+ */
+
+#pragma once
 
 #include <istream>
-#include <json.hpp>
-#include <json.hpp>
+#include <string>
 
 namespace Engine::Core
 {
@@ -13,11 +14,8 @@ namespace Engine::Core
       public:
         InputMapper() = delete;
 
-        static void loadMappings(const std::string &filename);
-        static void loadMappings(std::istream &mappings);
-
-      private:
-        static void loadActions(const nlohmann::json &actions);
-        static void loadAxes(const nlohmann::json &axes);
+        // Call once per input setup; registrations accumulate in InputHandler.
+        static bool loadMappings(const std::string &filename);
+        static bool loadMappings(std::istream &mappings);
     };
 }

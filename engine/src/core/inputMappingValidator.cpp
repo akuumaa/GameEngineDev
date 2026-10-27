@@ -1,11 +1,15 @@
 /*
-* Copyright © 2026 Tom Kertels
-*/
+ * Copyright © 2026 Tom Kertels
+ */
 
 #include "inputMappingValidator.h"
 
+#define GLFW_INCLUDE_NONE
+
+#include <GLFW/glfw3.h>
 #include <iostream>
 #include <string>
+#include <string_view>
 
 using Json = nlohmann::json;
 
@@ -16,13 +20,13 @@ namespace Engine::Core
     {
         if (!config.is_object())
         {
-            std::cout << "! Failed to read input mappings: expected an object" << std::endl;
+            std::cerr << "! Failed to read input mappings: expected an object" << std::endl;
             return false;
         }
 
         if (!config.contains("actions") && !config.contains("axes"))
         {
-            std::cout << "! Failed to read input mappings: expected actions or axes" << std::endl;
+            std::cerr << "! Failed to read input mappings: expected actions or axes" << std::endl;
             return false;
         }
 
@@ -36,7 +40,7 @@ namespace Engine::Core
     {
         if (!actions.is_object())
         {
-            std::cout << "! Failed to read input mappings: actions must be an object" << std::endl;
+            std::cerr << "! Failed to read input mappings: actions must be an object" << std::endl;
             return false;
         }
 
@@ -44,27 +48,29 @@ namespace Engine::Core
         {
             if (!binding.is_object())
             {
-                std::cout << "! Failed to read input mapping for " << action << ": expected an object" << std::endl;
+                std::cerr << "! Failed to read input mapping for " << action << ": expected an object" << std::endl;
                 return false;
             }
 
             bool hasBindings = false;
-            for (const std::string name : {"keys", "buttons", "mouseButtons"})
+            for (const char *name : {"keys", "buttons", "mouseButtons"})
             {
                 if (!binding.contains(name)) continue;
                 const auto &codes = binding[name];
-                const uint32_t maximum = name == "keys" ? 348 : name == "buttons" ? 14 : 7;
                 if (!codes.is_array())
                 {
-                    std::cout << "! Failed to read input mapping for " << action << ": " << name << " must be an array" << std::endl;
+                    std::cerr << "! Failed to read input mapping for " << action << ": " << name << " must be an array" << std::endl;
                     return false;
                 }
 
                 for (const auto &code : codes)
                 {
-                    if (!isCodeInRange(code, maximum))
+                    const bool valid = std::string_view(name) == "keys"
+                                           ? isKeyBinding(code)
+                                           : isCodeInRange(code, std::string_view(name) == "buttons" ? GLFW_GAMEPAD_BUTTON_LAST : GLFW_MOUSE_BUTTON_LAST);
+                    if (!valid)
                     {
-                        std::cout << "! Failed to read input mapping for " << action << ": invalid " << name << " code" << std::endl;
+                        std::cerr << "! Failed to read input mapping for " << action << ": invalid " << name << " code or key name" << std::endl;
                         return false;
                     }
                 }
@@ -74,7 +80,7 @@ namespace Engine::Core
             // Reject empty actions so they do not silently register as no-ops.
             if (!hasBindings)
             {
-                std::cout << "! Failed to read input mapping for " << action << ": no key, gamepad button, or mouse button" << std::endl;
+                std::cerr << "! Failed to read input mapping for " << action << ": no key, gamepad button, or mouse button" << std::endl;
                 return false;
             }
         }
@@ -87,7 +93,7 @@ namespace Engine::Core
     {
         if (!axes.is_object())
         {
-            std::cout << "! Failed to read input mappings: axes must be an object" << std::endl;
+            std::cerr << "! Failed to read input mappings: axes must be an object" << std::endl;
             return false;
         }
 
@@ -95,7 +101,7 @@ namespace Engine::Core
         {
             if (!binding.is_object())
             {
-                std::cout << "! Failed to read input axis " << axis << ": expected an object" << std::endl;
+                std::cerr << "! Failed to read input axis " << axis << ": expected an object" << std::endl;
                 return false;
             }
 
@@ -105,17 +111,17 @@ namespace Engine::Core
                 const auto &keyPairs = binding["keys"];
                 if (!keyPairs.is_array())
                 {
-                    std::cout << "! Failed to read input axis " << axis << ": keys must be an array" << std::endl;
+                    std::cerr << "! Failed to read input axis " << axis << ": keys must be an array" << std::endl;
                     return false;
                 }
 
                 for (const auto &pair : keyPairs)
                 {
                     if (!pair.is_object() ||
-                        !pair.contains("negative") || !isCodeInRange(pair["negative"], 348) ||
-                        !pair.contains("positive") || !isCodeInRange(pair["positive"], 348))
+                        !pair.contains("negative") || !isKeyBinding(pair["negative"]) ||
+                        !pair.contains("positive") || !isKeyBinding(pair["positive"]))
                     {
-                        std::cout << "! Failed to read input axis " << axis << ": key pairs need valid negative and positive codes" << std::endl;
+                        std::cerr << "! Failed to read input axis " << axis << ": key pairs need valid negative and positive codes" << std::endl;
                         return false;
                     }
                 }
@@ -127,17 +133,17 @@ namespace Engine::Core
                 const auto &gamepadAxes = binding["gamepad"];
                 if (!gamepadAxes.is_array())
                 {
-                    std::cout << "! Failed to read input axis " << axis << ": gamepad must be an array" << std::endl;
+                    std::cerr << "! Failed to read input axis " << axis << ": gamepad must be an array" << std::endl;
                     return false;
                 }
 
                 for (const auto &mapping : gamepadAxes)
                 {
                     if (!mapping.is_object() ||
-                        !mapping.contains("axis") || !isCodeInRange(mapping["axis"], 5) ||
+                        !mapping.contains("axis") || !isCodeInRange(mapping["axis"], GLFW_GAMEPAD_AXIS_LAST) ||
                         (mapping.contains("invert") && !mapping["invert"].is_boolean()))
                     {
-                        std::cout << "! Failed to read input axis " << axis << ": invalid gamepad axis mapping" << std::endl;
+                        std::cerr << "! Failed to read input axis " << axis << ": invalid gamepad axis mapping" << std::endl;
                         return false;
                     }
                 }
@@ -147,7 +153,7 @@ namespace Engine::Core
             // Every declared axis must have at least one usable input source.
             if (!hasBindings)
             {
-                std::cout << "! Failed to read input axis " << axis << ": no key or gamepad mappings" << std::endl;
+                std::cerr << "! Failed to read input axis " << axis << ": no key or gamepad mappings" << std::endl;
                 return false;
             }
         }
@@ -163,5 +169,10 @@ namespace Engine::Core
 
         const auto number = code.get<int64_t>();
         return number >= 0 && number <= maximum;
+    }
+
+    bool InputMappingValidator::isKeyBinding(const Json &key)
+    {
+        return key.is_string() ? !key.get_ref<const std::string &>().empty() : isCodeInRange(key, GLFW_KEY_LAST);
     }
 }

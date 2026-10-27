@@ -2,17 +2,21 @@
   "$schema": "../../engine/schemas/input.schema",
   "actions": {
     "reset": {
-      "keys": [32],
+      "keys": ["SPACE"],
       "buttons": [0]
     },
     "rotationStart": {
       "mouseButtons": [0]
+    },
+    "nextCamera": {
+      "keys": ["C"],
+      "buttons": [6]
     }
   },
   "axes": {
     "yaw": {
       "keys": [
-        { "negative": 69, "positive": 81 }
+        { "negative": "E", "positive": "Q" }
       ],
       "gamepad": [
         { "axis": 2, "invert": true }
@@ -20,8 +24,8 @@
     },
     "pitch": {
       "keys": [
-        { "negative": 83, "positive": 87 },
-        { "negative": 264, "positive": 265 }
+        { "negative": "S", "positive": "W" },
+        { "negative": "DOWN", "positive": "UP" }
       ],
       "gamepad": [
         { "axis": 1, "invert": true }
@@ -29,8 +33,8 @@
     },
     "roll": {
       "keys": [
-        { "negative": 65, "positive": 68 },
-        { "negative": 263, "positive": 262 }
+        { "negative": "A", "positive": "D" },
+        { "negative": "LEFT", "positive": "RIGHT" }
       ],
       "gamepad": [
         { "axis": 0 }

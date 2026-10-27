@@ -3,6 +3,21 @@
   "title": "Input Map",
   "description": "Maps keyboard keys, gamepad buttons, and mouse buttons to actions and axes.",
   "type": "object",
+  "definitions": {
+    "key": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^([A-Z]|[0-9]|SPACE|APOSTROPHE|COMMA|MINUS|PERIOD|SLASH|SEMICOLON|EQUAL|LEFT_BRACKET|BACKSLASH|RIGHT_BRACKET|GRAVE_ACCENT|WORLD_[12]|ESCAPE|ENTER|TAB|BACKSPACE|INSERT|DELETE|RIGHT|LEFT|DOWN|UP|PAGE_UP|PAGE_DOWN|HOME|END|CAPS_LOCK|SCROLL_LOCK|NUM_LOCK|PRINT_SCREEN|PAUSE|F([1-9]|1[0-9]|2[0-5])|KP_([0-9]|DECIMAL|DIVIDE|MULTIPLY|SUBTRACT|ADD|ENTER|EQUAL)|LEFT_SHIFT|LEFT_CONTROL|LEFT_ALT|LEFT_SUPER|RIGHT_SHIFT|RIGHT_CONTROL|RIGHT_ALT|RIGHT_SUPER|MENU)$"
+        },
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 348
+        }
+      ]
+    }
+  },
   "properties": {
     "$schema": {
       "type": "string"
@@ -15,11 +30,9 @@
         "properties": {
           "keys": {
             "type": "array",
-            "description": "GLFW keyboard key codes.",
+            "description": "Keyboard key names such as C, SPACE, TAB, LEFT, and F1.",
             "items": {
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 348
+              "$ref": "#/definitions/key"
             },
             "minItems": 1
           },
@@ -61,14 +74,10 @@
               "type": "object",
               "properties": {
                 "negative": {
-                  "type": "integer",
-                  "minimum": 0,
-                  "maximum": 348
+                  "$ref": "#/definitions/key"
                 },
                 "positive": {
-                  "type": "integer",
-                  "minimum": 0,
-                  "maximum": 348
+                  "$ref": "#/definitions/key"
                 }
               },
               "additionalProperties": false,
@@ -116,7 +125,6 @@
     }
   },
   "additionalProperties": false,
-  "required": ["$schema"],
   "anyOf": [
     { "required": ["actions"] },
     { "required": ["axes"] }
