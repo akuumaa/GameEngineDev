@@ -61,14 +61,18 @@ namespace Engine::Core
 
     bool Application::init()
     {
-        assetRoot = settings.assetRoot;
-
         try
-        {
+        {   
+            assetRoot = settings.assetRoot;
             frontCommandBuffer = std::make_unique<CommandBuffer>();
             backCommandBuffer = std::make_unique<CommandBuffer>();
 
             window.emplace(settings);
+
+            if (std::unique_ptr<std::istream> mappings = load("gamecontrollerdb.txt"))
+            {
+                InputHandler::loadGamepadMappings(*mappings);
+            }
 
             renderer.emplace(frontCommandBuffer, *window, settings);
             simulation.emplace(backCommandBuffer, *renderer);
@@ -84,6 +88,7 @@ namespace Engine::Core
 
     bool Application::run()
     {
+
         try
         {
             std::chrono::steady_clock::time_point lastFrame = std::chrono::steady_clock::now();

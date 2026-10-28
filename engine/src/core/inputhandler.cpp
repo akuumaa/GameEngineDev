@@ -16,14 +16,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
+#define GLFW_INCLUDE_NONE
 #include "engine/src/core/inputhandler.h"
 
+#include <GLFW/glfw3.h>
 #include <algorithm>
+#include <cmath>
+#include <istream>
+#include <sstream>
 #include <utility>
 
 namespace Engine::Core
 {
+
+
+     void InputHandler::loadGamepadMappings(std::istream &mappings)
+    {
+        std::ostringstream text;
+        text << mappings.rdbuf();
+        glfwUpdateGamepadMappings(text.str().c_str());
+    }
+
     void InputHandler::keyCallback(uint32_t key, uint32_t scancode, uint32_t mods, bool pressed)
     {
 
@@ -114,5 +127,93 @@ namespace Engine::Core
         {
             value = std::clamp(value, -1.0, 1.0);
         }
+
+        GLFWgamepadstate gamepad = {};
+        if (glfwGetGamepadState(GLFW_JOYSTICK_1, &gamepad))
+        {
+            constexpr double gamepadDeadzone = 0.15;
+
+            // Registrierte Gamepad-Achsen auswerten
+            for (const auto &[axis, bindings] : gamepadAxes)
+            {
+                for (const auto &[input, invert] : bindings)
+                {
+                    double value = gamepad.axes[input];
+
+                    // Deadzone anwenden
+                    if (std::abs(value) < gamepadDeadzone)
+                    {
+                        value = 0.0;
+                    }
+
+                    // Achse bei Bedarf invertieren
+                    if (invert)
+                    {
+                        value = -value;
+                    }
+
+                    // Wert zur registrierten Achse addieren
+                    axes[axis] += value;
+                }
+            }
+
+            // Alle Gamepad-Buttons auswerten
+            for (uint32_t button = 0;
+                 button <= GLFW_GAMEPAD_BUTTON_LAST;
+                 ++button)
+            {
+                bool pressed =
+                    gamepad.buttons[button] == GLFW_PRESS;
+
+                // Aktion nur beim Übergang von losgelassen zu gedrückt
+                if (pressed && !gamepadState[button])
+                {
+                    auto it = gamepadActions.find(button);
+
+                    if (it != gamepadActions.end())
+                    {
+                        for (const auto &action : it->second)
+                        {
+                            fireAction(action);
+                        }
+                    }
+                }
+
+                // Aktuellen Buttonstatus speichern
+                gamepadState[button] = pressed;
+            }
+        }
+
+        // Bestehende Begrenzung, jetzt nach Tastatur und Controller
+        for (auto &[name, value] : axes)
+        {
+            value = std::clamp(value, -1.0, 1.0);
+        }
     }
+
+   
+    void InputHandler::registerButtonAction(const std::string &action, uint32_t button)
+    {
+        // Ungültige Button-Indizes abweisen
+        if (button > GLFW_GAMEPAD_BUTTON_LAST)
+        {
+            return;
+        }
+
+        // Aktion für den Button registrieren
+        gamepadActions[button].push_back(action);
+    }
+
+    void InputHandler::registerStickAxis(const std::string &axis, uint32_t input, bool invert)
+    {
+        // Ungültige Achsen-Indizes abweisen
+        if (input > GLFW_GAMEPAD_AXIS_LAST)
+        {
+            return;
+        }
+
+        // Stick-Achse und Invertierung registrieren
+        gamepadAxes[axis].push_back({input, invert});
+    }
+
 }

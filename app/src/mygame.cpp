@@ -51,6 +51,12 @@ namespace App
         InputHandler::registerKeyAxis("roll", GLFW_KEY_A, GLFW_KEY_D);
         InputHandler::registerKeyAxis("roll", GLFW_KEY_LEFT, GLFW_KEY_RIGHT);
 
+        InputHandler::registerButtonAction("reset", GLFW_GAMEPAD_BUTTON_A);
+
+        InputHandler::registerStickAxis("yaw", GLFW_GAMEPAD_AXIS_RIGHT_X, true);
+        InputHandler::registerStickAxis("pitch", GLFW_GAMEPAD_AXIS_LEFT_Y, true);
+        InputHandler::registerStickAxis("roll", GLFW_GAMEPAD_AXIS_LEFT_X);
+
         bool ok = Application::init();
         if (!ok) return false;
 

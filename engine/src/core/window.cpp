@@ -26,6 +26,9 @@
 
 namespace Engine::Core
 {
+
+    void testController(); // Vorwärtsdeklaration
+
     Window::Window(const Settings &settings)
     {
         glfwSetErrorCallback([](int error, const char *description)
@@ -37,6 +40,10 @@ namespace Engine::Core
         {
             throw std::runtime_error("Failed to initialize GLFW");
         }
+
+        testController();
+
+        InputHandler::registerButtonAction("quit", GLFW_GAMEPAD_BUTTON_START);
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -100,4 +107,48 @@ namespace Engine::Core
     {
         glfwGetFramebufferSize(window, &width, &height);
     }
+
+    void testController()
+    {
+        for (int id = GLFW_JOYSTICK_1;
+             id <= GLFW_JOYSTICK_LAST;
+             ++id)
+        {
+            if (!glfwJoystickPresent(id))
+            {
+                continue;
+            }
+
+            std::cout << "\nController: "
+                      << glfwGetJoystickName(id)
+                      << std::endl;
+
+            const char *guid = glfwGetJoystickGUID(id);
+
+            std::cout << "GUID: "
+                      << (guid ? guid : "Unbekannt")
+                      << std::endl;
+
+            std::cout << "Mapping: "
+                      << (glfwJoystickIsGamepad(id) ? "JA" : "NEIN")
+                      << std::endl;
+
+            std::cout << "GLFW Version: "
+                      << glfwGetVersionString()
+                      << std::endl;
+
+            int axisCount = 0;
+            const float *axisValues = glfwGetJoystickAxes(
+                id, &axisCount
+            );
+
+            for (int i = 0; i < axisCount; ++i)
+            {
+                std::cout << "Achse " << i
+                          << ": " << axisValues[i]
+                          << std::endl;
+            }
+        }
+    }
+
 }
