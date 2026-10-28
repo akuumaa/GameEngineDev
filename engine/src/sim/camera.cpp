@@ -39,6 +39,7 @@ namespace Engine::Sim
         camera.type = config.value("type", "fixed") == "orbit" ? CameraType::Orbit : CameraType::Fixed;
 
         camera.distance = config.value("distance", 8.0);
+        camera.distanceStart = camera.distance;
 
         if (config.contains("offset")) camera.offset = {config["offset"][0].get<double>(), config["offset"][1].get<double>(), config["offset"][2].get<double>()};
 
@@ -46,6 +47,9 @@ namespace Engine::Sim
         {
             camera.yaw = Math::Number::toRadians(config["rotation"][0].get<double>());
             camera.pitch = Math::Number::toRadians(config["rotation"][1].get<double>());
+
+            camera.yawStart = camera.yaw;
+            camera.pitchStart = camera.pitch;
         }
 
         if (config.contains("yawLimit"))
@@ -72,13 +76,18 @@ namespace Engine::Sim
 
     void Camera::update(double dt)
     {
-        yaw += InputHandler::getAxis("cameraYaw") * lookRate * dt;
-        pitch += InputHandler::getAxis("cameraPitch") * lookRate * dt;
-        distance -= InputHandler::getAxis("cameraZoom") * distance * zoomRate * dt;
+        yawTarget += InputHandler::getAxis("cameraYaw") * lookRate;
+        pitchTarget += InputHandler::getAxis("cameraPitch") * lookRate;
+        distanceTarget -= InputHandler::getAxis("cameraZoom") * distance * zoomRate;
 
-        yaw -= InputHandler::getMouseDeltaX() * mouseSensitivity;
-        pitch += InputHandler::getMouseDeltaY() * mouseSensitivity;
-        distance -= InputHandler::getMouseDeltaZ() * distance * zoomStep;
+        yawTarget -= InputHandler::getMouseDeltaX() * mouseSensitivity;
+        pitchTarget += InputHandler::getMouseDeltaY() * mouseSensitivity;
+        distanceTarget -= InputHandler::getMouseDeltaZ() * distance * zoomStep;
+
+
+        yaw = yaw + (yawTarget - yaw) * lookRate * dt;
+        pitch = pitch + (pitchTarget - pitch) * lookRate * dt;
+        distance = distance + (distanceTarget - distance) * zoomRate * dt;
 
         clampToLimits();
     }
@@ -88,6 +97,18 @@ namespace Engine::Sim
         yaw = yawLimited ? std::clamp(yaw, yawMin, yawMax) : std::remainder(yaw, 2.0 * std::numbers::pi);
         pitch = std::clamp(pitch, pitchMin, pitchMax);
         distance = std::clamp(distance, distanceMin, distanceMax);
+    }
+
+    void Camera::reset()
+    {
+        yaw = yawStart;
+        pitch = pitchStart;
+        distance = distanceStart;
+        yawTarget = yawStart;
+        pitchTarget = pitchStart;
+        distanceTarget = distanceStart;
+
+        clampToLimits();
     }
 
     Matrix Camera::getViewMatrix(const Vector3 &position, const Quaternion &rotation) const

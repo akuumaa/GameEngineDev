@@ -49,6 +49,8 @@ namespace Engine::Sim
 
         void update(double dt);
 
+        void reset();
+
         const std::string &getName() const { return name; }
 
       private:
@@ -70,6 +72,12 @@ namespace Engine::Sim
         double yaw = 0.0;
         double pitch = 0.0;
         double distance = 8.0;
+        double yawTarget = 0.0;
+        double pitchTarget = 0.0;
+        double distanceTarget = 8.0;
+        double yawStart = 0.0;
+        double pitchStart = 0.0;
+        double distanceStart = 8.0;
 
         double distanceMin = 1.5;
         double distanceMax = 200.0;

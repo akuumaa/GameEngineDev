@@ -143,6 +143,7 @@ namespace Engine::Sim
     {
         if (cameras.empty()) return;
         activeCamera = (activeCamera + 1) % cameras.size();
+        cameras[activeCamera].reset();
     }
 
     Camera *Entity::getActiveCamera()
