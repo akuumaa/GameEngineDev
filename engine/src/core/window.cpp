@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
+ * Copyright © 2026 Alexander Mutig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,6 +75,18 @@ namespace Engine::Core
         InputHandler::onAction("quit", [this]()
         {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
+        });
+
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+        glfwSetCursorPosCallback(window, [](GLFWwindow *window, double x, double y)
+        {
+            InputHandler::cursorPosCallback(x, y);
+        });
+
+        glfwSetScrollCallback(window, [](GLFWwindow *window, double x, double y)
+        {
+            InputHandler::scrollCallback(x, y);
         });
     }
 

@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
+ * Copyright © 2026 Alexander Mutig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -114,6 +115,18 @@ namespace Engine::Sim
         {
             script->update(*this, dt, t);
         }
+
+        if (Camera *camera = getActiveCamera())
+        {
+            camera->update(dt);
+        }
+    }
+
+    Camera *Entity::getActiveCamera()
+    {
+        if (cameras.empty()) return nullptr;
+
+        return &cameras[activeCamera];
     }
 
     void Entity::commit(CommandBuffer &commandBuffer) const

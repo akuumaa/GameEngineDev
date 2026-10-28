@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
+ * Copyright © 2026 Alexander Mutig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +26,6 @@
 
 #include <json_fwd.hpp>
 #include <string>
-
 
 using Engine::Math::Matrix;
 using Engine::Math::Quaternion;
@@ -51,7 +51,18 @@ namespace Engine::Sim
 
         const std::string &getName() const { return name; }
 
+        void update(double dt);
+
       private:
+        void clampToLimits();
+        bool yawLimited = false;
+        double yawMin = 0.0;
+        double yawMax = 0.0;
+        double pitchMin = -1.55;
+        double pitchMax = 1.55;
+        double lookRate = 2.0;
+        double mouseSensitivity = 1.0 / 256.0;
+
         CameraType type = CameraType::Fixed;
         std::string name = {};
         Vector3 offset = {};
@@ -59,7 +70,18 @@ namespace Engine::Sim
         double yaw = 0.0;
         double pitch = 0.0;
         double distance = 8.0;
+
+        double targetYaw = 0.0;
+        double targetPitch = 0.0;
+        double targetDistance = 8.0;
+        double smoothingSpeed = 5.0;
+
         Vector3 position = {7.3589, -6.9258, 4.9583};
         Vector3 target = {0.0, 0.0, 0.0};
+
+        double distanceMin = 1.5;
+        double distanceMax = 200.0;
+        double zoomRate = 1.5;
+        double zoomStep = 0.1;
     };
 }

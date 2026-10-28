@@ -21,14 +21,15 @@
 #include "app/src/mygame.h"
 
 #include "app/src/shipscript.h"
-#include "engine/src/math/vector3.h"
 #include "engine/src/core/inputhandler.h"
+#include "engine/src/math/vector3.h"
+
 #include <GLFW/glfw3.h>
 #include <chrono>
 #include <iostream>
 
-using Engine::Math::Vector3;
 using Engine::Core::InputHandler;
+using Engine::Math::Vector3;
 
 namespace App
 {
@@ -72,11 +73,16 @@ namespace App
         InputHandler::registerKeyAxis("roll", GLFW_KEY_A, GLFW_KEY_D);
         InputHandler::registerKeyAxis("roll", GLFW_KEY_LEFT, GLFW_KEY_RIGHT);
 
-        InputHandler::registerStickAxis("yaw", GLFW_GAMEPAD_AXIS_RIGHT_X, false);
+        // Camera controls
+        InputHandler::registerKeyAxis("cameraYaw", GLFW_KEY_L, GLFW_KEY_J);
+        InputHandler::registerKeyAxis("cameraPitch", GLFW_KEY_I, GLFW_KEY_K);
+        InputHandler::registerKeyAxis("cameraZoom", GLFW_KEY_U, GLFW_KEY_O);
+
+        InputHandler::registerStickAxis("cameraYaw", GLFW_GAMEPAD_AXIS_RIGHT_X, true);
+        InputHandler::registerStickAxis("cameraPitch", GLFW_GAMEPAD_AXIS_RIGHT_Y, true);
         InputHandler::registerStickAxis("pitch", GLFW_GAMEPAD_AXIS_RIGHT_Y, true);
         InputHandler::registerGamepadAxis("roll", GLFW_GAMEPAD_BUTTON_LEFT_BUMPER, GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER);
         InputHandler::registerTriggerAxis("roll", GLFW_GAMEPAD_AXIS_LEFT_TRIGGER, GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER);
-
 
         InputHandler::onAction("reset", [this]()
         {
@@ -89,7 +95,6 @@ namespace App
         });
 
         ship->setFocus(true);
-        
 
         std::chrono::duration<double> startupTime = std::chrono::steady_clock::now() - start;
         std::cout << "+ Startup time: " << startupTime.count() << " s" << std::endl;

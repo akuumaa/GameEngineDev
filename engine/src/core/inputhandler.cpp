@@ -190,10 +190,16 @@ namespace Engine::Core
                     axes[axis] += readTrigger(positiveTrigger) - readTrigger(negativeTrigger);
                 }
             }
+
         }
 
-            
+        mouseDeltaX = mouseMovementX;
+        mouseDeltaY = mouseMovementY;
+        mouseDeltaZ = mouseMovementZ;
 
+        mouseMovementX = 0.0;
+        mouseMovementY = 0.0;
+        mouseMovementZ = 0.0;
 
         for (auto &[name, value] : axes)
         {
@@ -206,5 +212,27 @@ namespace Engine::Core
         std::ostringstream text;
         text << mappings.rdbuf();
         glfwUpdateGamepadMappings(text.str().c_str());
+    }
+
+    void InputHandler::cursorPosCallback(double x, double y)
+    {
+       static double cursorX = 0.0;
+       static double cursorY = 0.0;
+       static bool cursorKnown = false;
+
+       if (cursorKnown)
+        {
+            mouseMovementX += x - cursorX;
+            mouseMovementY += y - cursorY;
+        }
+
+        cursorX = x;
+        cursorY = y;
+        cursorKnown = true;
+    }
+
+    void InputHandler::scrollCallback(double x, double y)
+    {
+        mouseMovementZ += y;
     }
 }
