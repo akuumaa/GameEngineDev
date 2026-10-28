@@ -34,6 +34,12 @@ using Json = nlohmann::json;
 
 namespace Engine::Sim
 {
+    enum class CameraType
+    {
+        Fixed,
+        Orbit
+    };
+
     class Camera
     {
       public:
@@ -46,8 +52,10 @@ namespace Engine::Sim
       private:
         std::string name = {};
         Vector3 offset = {};
+        CameraType type = CameraType::Fixed;
 
         double yaw = 0.0;
         double pitch = 0.0;
+        double distance = 8.0;
     };
 }

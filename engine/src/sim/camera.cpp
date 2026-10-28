@@ -31,6 +31,10 @@ namespace Engine::Sim
 
         camera.name = config.value("name", "");
 
+        camera.type = config.value("type", "fixed") == "orbit" ? CameraType::Orbit : CameraType::Fixed;
+
+        camera.distance = config.value("distance", 8.0);
+
         if (config.contains("offset")) camera.offset = {config["offset"][0].get<double>(), config["offset"][1].get<double>(), config["offset"][2].get<double>()};
 
         if (config.contains("rotation"))
@@ -46,6 +50,20 @@ namespace Engine::Sim
     {
         Vector3 direction = {std::cos(pitch) * std::cos(yaw), std::cos(pitch) * std::sin(yaw), -std::sin(pitch)};
 
-        return Matrix::lookAt(offset, offset + direction) * (-rotation).toMatrix() * Matrix::translation(-position);
+        Vector3 eye = {};
+        Vector3 target = {};
+
+        if (type == CameraType::Fixed)
+        {
+            eye = position + offset;
+            target = position + offset + direction;
+        } 
+        else if (type == CameraType::Orbit)
+        {
+            eye = position + offset - direction * distance;
+            target = position + offset;
+        }
+
+        return Matrix::lookAt(eye, target) * (-rotation).toMatrix() * Matrix::translation(-position);
     }
 }
