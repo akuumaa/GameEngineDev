@@ -19,10 +19,77 @@
 
 #include "engine/src/sim/camera.h"
 
+#include "engine/src/math/number.h"
+
+#include <cmath>
+#include <json.hpp>
+
 namespace Engine::Sim
 {
+
+    Camera Camera::create(const Json &config)
+    {
+        Camera camera = {};
+
+        // "type" einlesen
+        std::string type = config.value("type", std::string("fixed"));
+
+        if (type == "orbit")
+        {
+            camera.type = CameraType::Orbit;
+        }
+        else
+        {
+            camera.type = CameraType::Fixed;
+        }
+
+        // "distance" einlesen, falls vorhanden
+        camera.distance = config.value("distance", camera.distance);
+
+        camera.name = config.value("name", "");
+
+        if (config.contains("offset")) camera.offset = {config["offset"][0].get<double>(), config["offset"][1].get<double>(), config["offset"][2].get<double>()};
+
+        if (config.contains("rotation"))
+        {
+            camera.yaw = Math::Number::toRadians(config["rotation"][0].get<double>());
+            camera.pitch = Math::Number::toRadians(config["rotation"][1].get<double>());
+        }
+
+        return camera;
+    }
+
+    Matrix Camera::getViewMatrix(
+        const Vector3 &position,
+        const Quaternion &rotation
+    ) const
+    {
+        Vector3 direction = {
+            std::cos(pitch) * std::cos(yaw),
+            std::cos(pitch) * std::sin(yaw),
+            -std::sin(pitch)
+        };
+
+        Vector3 eye = {};
+        Vector3 target = {};
+
+        if (type == CameraType::Fixed)
+        {
+            eye = offset;
+            target = offset + direction;
+        }
+        else if (type == CameraType::Orbit)
+        {
+            target = offset;
+            eye = target - direction * distance;
+        }
+
+        return Matrix::lookAt(eye, target) * (-rotation).toMatrix() * Matrix::translation(-position);
+    } // Wichtig: Erste Funktion endet hier!
+
     Matrix Camera::getViewMatrix() const
     {
         return Matrix::lookAt(position, target);
     }
+
 }

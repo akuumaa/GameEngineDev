@@ -23,6 +23,7 @@
 #include "engine/src/math/matrix.h"
 #include "engine/src/math/quaternion.h"
 #include "engine/src/math/vector3.h"
+#include "engine/src/sim/camera.h"
 #include "engine/src/sim/script.h"
 #include "engine/src/video/renderer.h"
 
@@ -43,6 +44,7 @@ namespace Engine::Sim
     class Entity
     {
       public:
+        void nextCamera();
         Entity() = default;
         Entity(const Vector3 &position, const Quaternion &rotation = {})
             : position(position), rotation(rotation)
@@ -74,6 +76,8 @@ namespace Engine::Sim
             scripts.push_back(std::move(script));
         }
 
+        void setFocus(bool f) { focus = f; }
+
       private:
         struct ModelInstance
         {
@@ -87,5 +91,9 @@ namespace Engine::Sim
         Vector3 scale = {1.0, 1.0, 1.0};
         std::vector<ModelInstance> models = {};
         std::vector<std::unique_ptr<Script>> scripts = {};
+
+        std::vector<Camera> cameras = {};
+        size_t activeCamera = 0;
+        bool focus = false;
     };
 }

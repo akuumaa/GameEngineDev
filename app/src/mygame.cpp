@@ -51,12 +51,18 @@ namespace App
         InputHandler::registerKeyAxis("roll", GLFW_KEY_A, GLFW_KEY_D);
         InputHandler::registerKeyAxis("roll", GLFW_KEY_LEFT, GLFW_KEY_RIGHT);
 
+        InputHandler::registerKeyAction("nextCamera", GLFW_KEY_C);
         InputHandler::registerButtonAction("reset", GLFW_GAMEPAD_BUTTON_A);
 
+        InputHandler::registerButtonAction("nextCamera", GLFW_GAMEPAD_BUTTON_BACK);
         InputHandler::registerStickAxis("yaw", GLFW_GAMEPAD_AXIS_RIGHT_X, true);
         InputHandler::registerStickAxis("pitch", GLFW_GAMEPAD_AXIS_LEFT_Y, true);
         InputHandler::registerStickAxis("roll", GLFW_GAMEPAD_AXIS_LEFT_X);
 
+        InputHandler::onAction("nextCamera", [this]()
+        {
+            ship->nextCamera();
+        });
         bool ok = Application::init();
         if (!ok) return false;
 
@@ -81,6 +87,7 @@ namespace App
 
         std::chrono::duration<double> startupTime = std::chrono::steady_clock::now() - start;
         std::cout << "+ Startup time: " << startupTime.count() << " s" << std::endl;
+        ship->setFocus(true);
 
         return true;
     }
