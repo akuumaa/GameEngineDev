@@ -47,15 +47,30 @@ namespace Engine::Sim
         
         Matrix getViewMatrix(const Vector3 &position, const Quaternion &rotation) const;
 
+        void update(double dt);
+
         const std::string &getName() const { return name; }
 
       private:
+        void clampToLimits();
+
         std::string name = {};
         Vector3 offset = {};
         CameraType type = CameraType::Fixed;
 
+        bool yawLimited = false;
+        double yawMin = 0.0;
+        double yawMax = 0.0;
+        double pitchMin = -1.55;
+        double pitchMax = 1.55;
+        double lookRate = 2.0;
+
         double yaw = 0.0;
         double pitch = 0.0;
         double distance = 8.0;
+
+        double distanceMin = 1.5;
+        double distanceMax = 200.0;
+        double zoomRate = 1.5;
     };
 }

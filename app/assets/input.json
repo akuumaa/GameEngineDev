@@ -17,9 +17,6 @@
     "yaw": {
       "keys": [
         { "negative": "E", "positive": "Q" }
-      ],
-      "gamepad": [
-        { "axis": 2, "invert": true }
       ]
     },
     "pitch": {
@@ -38,6 +35,27 @@
       ],
       "gamepad": [
         { "axis": 0 }
+      ]
+    },
+    "cameraYaw": {
+      "keys": [
+        { "negative": "L", "positive": "J" }
+      ],
+      "gamepad": [
+        { "axis": 2, "invert": true }
+      ]
+    },
+    "cameraPitch": {
+      "keys": [
+        { "negative": "I", "positive": "K" }
+      ],
+      "gamepad": [
+        { "axis": 3, "invert": true }
+      ]
+    },
+    "cameraZoom": {
+      "keys": [
+        { "negative": "U", "positive": "O" }
       ]
     }
   }

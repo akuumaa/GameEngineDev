@@ -59,6 +59,8 @@ namespace Engine::Sim
 
         void nextCamera();
 
+        Camera *getActiveCamera();
+
         Vector3 getPosition() { return position; }
         void setPosition(const Vector3 &p) { position = p; }
 
