@@ -85,18 +85,16 @@ namespace Engine::Core
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         });
 
-        glfwGetCursorPos(window, &mouseLastX, &mouseLastY);
-        glfwSetCursorPosCallback(window, [](GLFWwindow *window, double xPosition, double yPosition)
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+        glfwSetCursorPosCallback(window, [](GLFWwindow *window, double x, double y)
         {
-            Window *self = static_cast<Window *>(glfwGetWindowUserPointer(window));
+            InputHandler::cursorPosCallback(x, y);
+        });
 
-            double deltaX = xPosition - self->mouseLastX;
-            double deltaY = yPosition - self->mouseLastY;
-
-            self->mouseLastX = xPosition;
-            self->mouseLastY = yPosition;
-
-            InputHandler::mouseMoved(deltaX, deltaY);
+        glfwSetScrollCallback(window, [](GLFWwindow *window, double x, double y)
+        {
+            InputHandler::scrollCallback(x, y);
         });
     }
 

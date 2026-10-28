@@ -69,16 +69,6 @@ namespace App
         ShipScript *shipScriptPtr = shipScript.get();
         ship->addScript(std::move(shipScript));
 
-        InputHandler::onAction("rotationStart", [shipScriptPtr]()
-        {
-            shipScriptPtr->rotateWithMouse = true;
-        });
-
-        InputHandler::onActionRelease("rotationStart", [shipScriptPtr]()
-        {
-            shipScriptPtr->rotateWithMouse = false;
-        });
-
         for (const Vector3 &position : {Vector3::forward * 25.0, Vector3::forward * -25.0, Vector3::left * 25.0, Vector3::left * -25.0, Vector3::up * 25.0, Vector3::up * -25.0})
         {
             if (auto cube = simulation->loadEntity("entities/cuberef.entity"))

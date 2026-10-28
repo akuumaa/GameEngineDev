@@ -65,6 +65,34 @@ namespace Engine::Core
         }
     }
 
+    
+    void InputHandler::onKeyPress(uint32_t code, std::function<void()> callback)
+    {
+        keyCallbacks[code].push_back(std::move(callback));
+    }
+
+    void InputHandler::cursorPosCallback(double x, double y)
+    {
+        static double cursorX = 0.0;
+        static double cursorY = 0.0;
+        static bool cursorKnown = false;
+
+        if (cursorKnown)
+        {
+            mouseMovementX += x - cursorX;
+            mouseMovementY += y - cursorY;
+        }
+
+        cursorX = x;
+        cursorY = y;
+        cursorKnown = true;
+    }
+
+    void InputHandler::scrollCallback(double x, double y)
+    {
+        mouseMovementZ += y;
+    }
+
     void InputHandler::updateActionState(const std::string &action, uint64_t source, bool pressed)
     {
         auto &sources = activeActionSources[action];
@@ -83,37 +111,6 @@ namespace Engine::Core
         {
             fireActionRelease(action);
         }
-    }
-
-    void InputHandler::onKeyPress(uint32_t code, std::function<void()> callback)
-    {
-        keyCallbacks[code].push_back(std::move(callback));
-    }
-
-    void InputHandler::onMouseMoved(std::function<void(double deltaX, double deltaY)> callback)
-    {
-        mouseMoveCallbacks.push_back(std::move(callback));
-    }
-
-    void InputHandler::mouseMoved(double deltaX, double deltaY)
-    {
-        mouseDeltaX += deltaX;
-        mouseDeltaY += deltaY;
-
-        // Mouse callbacks are given the delta values
-        // Not used yet, but could be useful for future features
-        for (const auto &callback : mouseMoveCallbacks)
-        {
-            callback(deltaX, deltaY);
-        }
-    }
-
-    std::pair<double, double> InputHandler::consumeMouseDelta()
-    {
-        const auto delta = std::pair{mouseDeltaX, mouseDeltaY};
-        mouseDeltaX = 0.0;
-        mouseDeltaY = 0.0;
-        return delta;
     }
 
     void InputHandler::registerKeyAction(const std::string &action, uint32_t key)
@@ -261,5 +258,13 @@ namespace Engine::Core
         {
             value = std::clamp(value, -1.0, 1.0);
         }
+
+        mouseDeltaX = mouseMovementX;
+        mouseDeltaY = mouseMovementY;
+        mouseDeltaZ = mouseMovementZ;
+
+        mouseMovementX = 0.0;
+        mouseMovementY = 0.0;
+        mouseMovementZ = 0.0;
     }
 }

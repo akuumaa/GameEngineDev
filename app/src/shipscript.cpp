@@ -37,12 +37,8 @@ namespace App
         double pitchInput = InputHandler::getAxis("pitch");
         double yawInput = InputHandler::getAxis("yaw");
 
-        const auto [mouseDeltaX, mouseDeltaY] = InputHandler::consumeMouseDelta();
-
-        double mouseRotationSensitivity = rotateWithMouse ? 0.002 : 0.0;
-
-        double pitchStep = pitchInput * dt * rotationSpeed + mouseDeltaY * mouseRotationSensitivity;
-        double yawStep   = yawInput * dt * rotationSpeed + mouseDeltaX * mouseRotationSensitivity;
+        double pitchStep = pitchInput * dt * rotationSpeed;
+        double yawStep   = yawInput * dt * rotationSpeed;
         double rollStep  = rollInput * dt * rotationSpeed;
 
         Quaternion rotation = entity.getRotation();

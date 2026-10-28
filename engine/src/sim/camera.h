@@ -58,6 +58,8 @@ namespace Engine::Sim
         Vector3 offset = {};
         CameraType type = CameraType::Fixed;
 
+        double mouseSensitivity = 1.0 / 256.0;
+
         bool yawLimited = false;
         double yawMin = 0.0;
         double yawMax = 0.0;
@@ -72,5 +74,6 @@ namespace Engine::Sim
         double distanceMin = 1.5;
         double distanceMax = 200.0;
         double zoomRate = 1.5;
+        double zoomStep = 0.1;
     };
 }

@@ -5,9 +5,6 @@
       "keys": ["SPACE"],
       "buttons": [0]
     },
-    "rotationStart": {
-      "mouseButtons": [0]
-    },
     "nextCamera": {
       "keys": ["C"],
       "buttons": [6]

@@ -76,6 +76,10 @@ namespace Engine::Sim
         pitch += InputHandler::getAxis("cameraPitch") * lookRate * dt;
         distance -= InputHandler::getAxis("cameraZoom") * distance * zoomRate * dt;
 
+        yaw -= InputHandler::getMouseDeltaX() * mouseSensitivity;
+        pitch += InputHandler::getMouseDeltaY() * mouseSensitivity;
+        distance -= InputHandler::getMouseDeltaZ() * distance * zoomStep;
+
         clampToLimits();
     }
 
