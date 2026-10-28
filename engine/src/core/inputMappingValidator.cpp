@@ -4,12 +4,8 @@
 
 #include "inputMappingValidator.h"
 
-#define GLFW_INCLUDE_NONE
-
-#include <GLFW/glfw3.h>
 #include <iostream>
 #include <string>
-#include <string_view>
 
 using Json = nlohmann::json;
 
@@ -35,7 +31,7 @@ namespace Engine::Core
         return true;
     }
 
-    // Validate the action binding arrays and their GLFW input code ranges.
+    // Validate the action binding arrays and their value types.
     bool InputMappingValidator::validateActions(const Json &actions)
     {
         if (!actions.is_object())
@@ -53,7 +49,7 @@ namespace Engine::Core
             }
 
             bool hasBindings = false;
-            for (const char *name : {"keys", "buttons", "mouseButtons"})
+            for (const std::string name : {"keys", "buttons", "mouseButtons"})
             {
                 if (!binding.contains(name)) continue;
                 const auto &codes = binding[name];
@@ -65,12 +61,10 @@ namespace Engine::Core
 
                 for (const auto &code : codes)
                 {
-                    const bool valid = std::string_view(name) == "keys"
-                                           ? isKeyBinding(code)
-                                           : isCodeInRange(code, std::string_view(name) == "buttons" ? GLFW_GAMEPAD_BUTTON_LAST : GLFW_MOUSE_BUTTON_LAST);
+                    const bool valid = name == "keys" ? isKeyBinding(code) : isNonNegativeInteger(code);
                     if (!valid)
                     {
-                        std::cerr << "! Failed to read input mapping for " << action << ": invalid " << name << " code or key name" << std::endl;
+                        std::cerr << "! Failed to read input mapping for " << action << ": invalid " << name << " entry " << code << std::endl;
                         return false;
                     }
                 }
@@ -121,7 +115,7 @@ namespace Engine::Core
                         !pair.contains("negative") || !isKeyBinding(pair["negative"]) ||
                         !pair.contains("positive") || !isKeyBinding(pair["positive"]))
                     {
-                        std::cerr << "! Failed to read input axis " << axis << ": key pairs need valid negative and positive codes" << std::endl;
+                        std::cerr << "! Failed to read input axis " << axis << ": key pairs need valid negative and positive keys" << std::endl;
                         return false;
                     }
                 }
@@ -140,7 +134,7 @@ namespace Engine::Core
                 for (const auto &mapping : gamepadAxes)
                 {
                     if (!mapping.is_object() ||
-                        !mapping.contains("axis") || !isCodeInRange(mapping["axis"], GLFW_GAMEPAD_AXIS_LAST) ||
+                        !mapping.contains("axis") || !isNonNegativeInteger(mapping["axis"]) ||
                         (mapping.contains("invert") && !mapping["invert"].is_boolean()))
                     {
                         std::cerr << "! Failed to read input axis " << axis << ": invalid gamepad axis mapping" << std::endl;
@@ -161,18 +155,14 @@ namespace Engine::Core
         return true;
     }
 
-    // Check integer type and range before codes are converted to uint32_t.
-    bool InputMappingValidator::isCodeInRange(const Json &code, uint32_t maximum)
+    bool InputMappingValidator::isNonNegativeInteger(const Json &code)
     {
-        if (code.is_number_unsigned()) return code.get<uint64_t>() <= maximum;
-        if (!code.is_number_integer()) return false;
-
-        const auto number = code.get<int64_t>();
-        return number >= 0 && number <= maximum;
+        if (code.is_number_unsigned()) return true;
+        return code.is_number_integer() && code.get<int64_t>() >= 0;
     }
 
     bool InputMappingValidator::isKeyBinding(const Json &key)
     {
-        return key.is_string() ? !key.get_ref<const std::string &>().empty() : isCodeInRange(key, GLFW_KEY_LAST);
+        return key.is_string() ? !key.get_ref<const std::string &>().empty() : isNonNegativeInteger(key);
     }
 }
