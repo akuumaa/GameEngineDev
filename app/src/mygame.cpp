@@ -61,6 +61,7 @@ namespace App
         }
 
         InputHandler::registerButtonAction("quit", GLFW_GAMEPAD_BUTTON_START);
+        InputHandler::registerKeyAction("quit", GLFW_KEY_ESCAPE);
 
         InputHandler::registerKeyAction("reset", GLFW_KEY_SPACE);
         InputHandler::registerKeyAction("nextCamera", GLFW_KEY_C);
