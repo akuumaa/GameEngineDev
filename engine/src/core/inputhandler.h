@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
+ * Copyright © 2026 Alexander Mutig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,11 +42,13 @@ namespace Engine::Core
         static void onAction(const std::string &action, std::function<void()> callback);
         static void fireAction(const std::string &action);
         static void registerKeyAxis(const std::string &axis, uint32_t negativeKey, uint32_t positiveKey);
+        static double getAxis(const std::string &axis);
+        static void update();
+
+        // Gamepad button and axis mappings
         static void registerStickAxis(const std::string &axis, uint32_t stickAxis, bool inverted = false);
         static void registerTriggerAxis(const std::string &axis, uint32_t negativeTrigger, uint32_t positiveTrigger);
         static void registerGamepadAxis(const std::string &axis, uint32_t negativeButton, uint32_t positiveButton);
-        static double getAxis(const std::string &axis);
-        static void update();
         static void loadGamepadMappings(std::istream &mappings);
 
       private:

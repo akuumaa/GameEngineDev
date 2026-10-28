@@ -83,6 +83,15 @@ namespace Engine::Sim
             return false;
         }
 
+        if (config.contains("cameras"))
+        {
+            for (const auto &entry : config["cameras"])
+            {
+                Camera camera = Camera::create(entry);
+                cameras.push_back(camera);
+            }
+        }
+
         return true;
     }
 
@@ -119,5 +128,16 @@ namespace Engine::Sim
             };
             commandBuffer.renderItems.push_back(item);
         }
+
+        if (!focus || cameras.empty()) return;
+
+        commandBuffer.viewMatrix = cameras[activeCamera].getViewMatrix(position, rotation);
+    }
+
+    void Entity::nextCamera()
+    {
+        if (cameras.empty()) return;
+
+        activeCamera = (activeCamera + 1) % cameras.size();
     }
 }

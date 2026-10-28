@@ -20,19 +20,45 @@
 #pragma once
 
 #include "engine/src/math/matrix.h"
+#include "engine/src/math/quaternion.h"
 #include "engine/src/math/vector3.h"
 
+#include <json_fwd.hpp>
+#include <string>
+
+
 using Engine::Math::Matrix;
+using Engine::Math::Quaternion;
 using Engine::Math::Vector3;
+
+using Json = nlohmann::json;
 
 namespace Engine::Sim
 {
+
+    enum class CameraType
+    {
+        Fixed,
+        Orbit
+    };
+
     class Camera
     {
       public:
-        Matrix getViewMatrix() const;
+        static Camera create(const Json &config);
+
+        Matrix getViewMatrix(const Vector3 &position, const Quaternion &rotation) const;
+
+        const std::string &getName() const { return name; }
 
       private:
+        CameraType type = CameraType::Fixed;
+        std::string name = {};
+        Vector3 offset = {};
+
+        double yaw = 0.0;
+        double pitch = 0.0;
+        double distance = 8.0;
         Vector3 position = {7.3589, -6.9258, 4.9583};
         Vector3 target = {0.0, 0.0, 0.0};
     };

@@ -25,6 +25,7 @@
 #include "engine/src/math/vector3.h"
 #include "engine/src/sim/script.h"
 #include "engine/src/video/renderer.h"
+#include "engine/src/sim/camera.h"
 
 #include <cstddef>
 #include <memory>
@@ -74,6 +75,10 @@ namespace Engine::Sim
             scripts.push_back(std::move(script));
         }
 
+        // Camera
+        void setFocus(bool f) { focus = f; }
+        void nextCamera();
+
       private:
         struct ModelInstance
         {
@@ -87,5 +92,10 @@ namespace Engine::Sim
         Vector3 scale = {1.0, 1.0, 1.0};
         std::vector<ModelInstance> models = {};
         std::vector<std::unique_ptr<Script>> scripts = {};
+
+        // Camera
+        std::vector<Camera> cameras = {};
+        size_t activeCamera = 0;
+        bool focus = false;
     };
 }

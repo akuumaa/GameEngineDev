@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
+ * Copyright © 2026 Alexander Mutig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,7 +62,9 @@ namespace App
         InputHandler::registerButtonAction("quit", GLFW_GAMEPAD_BUTTON_START);
 
         InputHandler::registerKeyAction("reset", GLFW_KEY_SPACE);
+        InputHandler::registerKeyAction("nextCamera", GLFW_KEY_C);
         InputHandler::registerButtonAction("reset", GLFW_GAMEPAD_BUTTON_A);
+        InputHandler::registerButtonAction("nextCamera", GLFW_GAMEPAD_BUTTON_BACK);
 
         InputHandler::registerKeyAxis("yaw", GLFW_KEY_Q, GLFW_KEY_E);
         InputHandler::registerKeyAxis("pitch", GLFW_KEY_S, GLFW_KEY_W);
@@ -79,6 +82,13 @@ namespace App
         {
             ship->setRotation({});
         });
+
+        InputHandler::onAction("nextCamera", [this]()
+        {
+            ship->nextCamera();
+        });
+
+        ship->setFocus(true);
         
 
         std::chrono::duration<double> startupTime = std::chrono::steady_clock::now() - start;

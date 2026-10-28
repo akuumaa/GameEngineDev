@@ -1,7 +1,8 @@
 /**
  * Game Engine Development
  * Technische Hochschule Mittelhessen
- * Copyright © 2021-2026 Tobias Reimann
+ * Copyright © 2021-2026 Tobias Reimann 
+ * Copyright © 2026 Alexander Mutig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,13 +35,16 @@ namespace App
 {
     void ShipScript::update(Entity &entity, double dt, double t)
     {
+
+        double turnRate = 2.0;
+
         double rollInput = InputHandler::getAxis("roll");
         double pitchInput = InputHandler::getAxis("pitch");
         double yawInput = InputHandler::getAxis("yaw");
 
-        double rollStep = rollInput * 1.5 * dt;
-        double pitchStep = pitchInput * 1.0 * dt;
-        double yawStep = yawInput * 0.8 * dt;
+        double rollStep = rollInput * turnRate * dt;
+        double pitchStep = pitchInput * turnRate * dt;
+        double yawStep = yawInput * turnRate * dt;
 
         Quaternion rotation = entity.getRotation();
         rotation = rotation
