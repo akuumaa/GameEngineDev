@@ -44,14 +44,17 @@ namespace Engine::Sim
             camera.yaw = Math::Number::toRadians(config["rotation"][0].get<double>());
             camera.pitch = Math::Number::toRadians(config["rotation"][1].get<double>());
         }
+        
+        if (config.value("type", "") == "orbit")
+        {
+            camera.type = CameraType::Orbit;
+        }
+        else
+        {
+            camera.type = CameraType::Fixed;
+        }
 
-        // TODO: "type" einlesen. "orbit" ergibt CameraType::Orbit.
-        //       Alles andere und ein fehlender Eintrag ergeben CameraType::Fixed.
-
-        // TODO: "distance" einlesen, falls vorhanden.
-        //       Tipp: config.value(key, fallback) ist eine sehr angenehme Möglichkeit,
-        //       Werte aus dem Json zu lesen.
-
+        camera.distance = config.value("distance", camera.distance);
         if (config.contains("yawLimit"))
         {
             double first = Math::Number::toRadians(config["yawLimit"][0].get<double>());
@@ -81,14 +84,18 @@ namespace Engine::Sim
         Vector3 eye = {};
         Vector3 target = {};
 
-        // TODO Fixed: Die Kamera steht bei offset und blickt in Richtung direction.
-        //             Das entspricht dem bisherigen Aufruf von lookAt().
+        if (type == CameraType::Orbit)
+        {
+            eye = offset - direction * distance;
+            target = offset;
+        }
+        else
+        {
+            eye = offset;
+            target = offset + direction;
+        }
 
-        // TODO Orbit: Die Kamera blickt auf offset. Sie steht im Abstand distance
-        //             so, dass der Blick von eye nach target in Richtung direction zeigt.
-        //             direction ist ein Einheitsvektor.
-
-        return Matrix::lookAt(offset, offset + direction) * (-rotation).toMatrix() * Matrix::translation(-position);
+        return Matrix::lookAt(eye, target) * (-rotation).toMatrix() * Matrix::translation(-position);
     }
 
     void Camera::update(double dt)
