@@ -53,7 +53,7 @@ namespace Engine::Sim
             camera.pitch = Math::Number::toRadians(config["rotation"][1].get<double>());
         }
 
-        if (config.contains("yaw_limit"))
+        if (config.contains("yawLimit"))
         {
             double first = Math::Number::toRadians(config["yawLimit"][0].get<double>());
             double second = Math::Number::toRadians(config["yawLimit"][1].get<double>());
@@ -62,7 +62,7 @@ namespace Engine::Sim
             camera.yawMax = std::max(first, second);
         }
 
-        if (config.contains("pitch_limit"))
+        if (config.contains("pitchLimit"))
         {
             double first = Math::Number::toRadians(config["pitchLimit"][0].get<double>());
             double second = Math::Number::toRadians(config["pitchLimit"][1].get<double>());
