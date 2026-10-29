@@ -89,7 +89,7 @@ namespace Engine::Core
 
     void InputHandler::registerStickAxis(const std::string &axis, uint32_t stickAxis, bool inverted)
     {
-        if (stickAxis >= GLFW_GAMEPAD_AXIS_LAST) return;
+        if (stickAxis > GLFW_GAMEPAD_AXIS_LAST) return;
         stickAxes[axis].push_back({stickAxis, inverted});
     }
 
