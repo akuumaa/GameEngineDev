@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright Â© 2021-2026 Tobias Reimann
+ * Copyright © 2026 Yannick Kissel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +21,6 @@
 #pragma once
 
 #include "engine/src/core/commandbuffer.h"
-#include "engine/src/sim/camera.h"
 #include "engine/src/sim/entity.h"
 #include "engine/src/video/renderer.h"
 
@@ -51,7 +51,6 @@ namespace Engine::Sim
 
         double elapsedTime = 0.0;
 
-        Camera camera;
 
         size_t nextEntityId = 1;
         std::unordered_map<size_t, std::shared_ptr<Entity>> entities = {};

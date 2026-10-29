@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright Â© 2021-2026 Tobias Reimann
+ * Copyright © 2026 Yannick Kissel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +38,8 @@ namespace Engine::Core
         void getFramebufferSize(int &width, int &height) const;
 
       private:
+        void captureMouse(bool capture);
+        bool mouseCaptured = false;
         GLFWwindow *window = nullptr;
     };
 }

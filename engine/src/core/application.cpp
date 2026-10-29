@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright Â© 2021-2026 Tobias Reimann
+ * Copyright © 2026 Yannick Kissel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +19,8 @@
  */
 
 #include "engine/src/core/application.h"
+
+#include "engine/src/core/inputhandler.h"
 
 #include <chrono>
 #include <exception>
@@ -68,6 +71,11 @@ namespace Engine::Core
 
             window.emplace(settings);
 
+            if (auto mappings = load("gamecontrollerdb.txt"))
+            {
+                InputHandler::loadGamepadMappings(*mappings);
+            }
+
             renderer.emplace(frontCommandBuffer, *window, settings);
             simulation.emplace(backCommandBuffer, *renderer);
         }
@@ -108,6 +116,7 @@ namespace Engine::Core
 
                 double dt = frameTime.count();
 
+                InputHandler::update();
                 simulation->update(dt, t);
                 std::swap(frontCommandBuffer, backCommandBuffer);
                 renderer->draw();

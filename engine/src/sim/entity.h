@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright Â© 2021-2026 Tobias Reimann
+ * Copyright © 2026 Yannick Kissel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +25,7 @@
 #include "engine/src/math/quaternion.h"
 #include "engine/src/math/vector3.h"
 #include "engine/src/sim/script.h"
+#include "engine/src/sim/camera.h"
 #include "engine/src/video/renderer.h"
 
 #include <cstddef>
@@ -55,6 +57,9 @@ namespace Engine::Sim
         void update(double dt, double t);
 
         void commit(CommandBuffer &commandBuffer) const;
+        void setFocus(bool f) { focus = f; }
+        void nextCamera();
+        Camera *getActiveCamera();
 
         Vector3 getPosition() { return position; }
         void setPosition(const Vector3 &p) { position = p; }
@@ -75,6 +80,10 @@ namespace Engine::Sim
         }
 
       private:
+        std::vector<Camera> cameras = {};
+        size_t activeCamera = 0;
+        bool focus = false;
+
         struct ModelInstance
         {
             size_t modelId = 0;

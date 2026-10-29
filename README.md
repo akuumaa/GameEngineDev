@@ -31,7 +31,41 @@ $ make run
 $ make clean
 ```
 
-Wenn alles geklappt hat, öffnet sich ein Fenster mit einem sich drehenden Raumschiff. Mit der **ESC**-Taste schließen Sie es wieder.
+Wenn alles geklappt hat, erscheint das Raumschiff mit Verfolgerkamera.
+
+## Steuerung
+
+| Taste | Funktion |
+| --- | --- |
+| W / S | Beschleunigen vorw?rts / r?ckw?rts |
+| A / D | Links / rechts lenken mit leichter Neigung |
+| Q / E | Links / rechts neigen (maximal 45 Grad), st?rkere Kurven |
+| Pfeil hoch / runter | Nase anheben / senken |
+| Leertaste / linke Strg | Vertikal aufsteigen / abtauchen |
+| V / C | Chase- / Orbit-Kamera wechseln |
+| I / K | Kamera nach oben / unten drehen |
+| J / L | Kamera nach links / rechts drehen |
+| U / O | Heraus- / hineinzoomen |
+| Maus / Mausrad | Kamera drehen / zoomen |
+| Escape | Maus freigeben |
+| Linksklick ins Fenster | Maus wieder einfangen |
+
+W l?sst sich mit A/D, Q/E und den Pfeiltasten kombinieren. A+Q bzw. D+E ergeben besonders enge Kurven. Ohne Beschleunigung klingt die Geschwindigkeit sanft ab die seitliche Neigung richtet sich beim Loslassen wieder auf. Zum Beenden das Fenster schlie?en. Controller: rechter Stick steuert die Kamera, linker Stick steuert Pitch und Banking; Back wechselt die Kamera, Start beendet das Spiel.
+
+
+
+## Kameras (Kapitel 3)
+
+Entities laden ihre Kameras aus dem `cameras`-Array der Entity-Datei. Das Schiff hat Fokus und liefert die View Matrix. Chase sitzt relativ zum Schiff fest und begrenzt den Blick auf die konfigurierten Yaw-/Pitch-Winkel. Orbit kreist um den konfigurierten Zielpunkt; sein Abstand ist auf 1,5 bis 200 begrenzt. Beide Kameras folgen der Position und der vollst?ndigen Rotation des Schiffs.
+
+Jede Kamera speichert eigene Soll- und Istwerte. Die exponentielle Gl?ttung verwendet `1 - exp(-12 * dt)`. Beim Wegschalten wird der Sollwert auf den sichtbaren Istwert gesetzt: Inaktive Kameras bleiben stehen, behalten ihren Blickwinkel und setzen beim Zur?ckschalten keine alte Restbewegung fort. Nur die aktive Kamera der fokussierten Entity verarbeitet Eingaben. Mausbewegungen werden separat gesammelt und weder auf [-1, 1] begrenzt noch mit `dt` multipliziert. Das Mausrad verringert den Orbit-Abstand pro Raste um 10 Prozent; kontinuierlicher Tastaturzoom skaliert exponentiell mit der Zeit.
+
+Die Kamerapr?fungen ben?tigen kein Fenster und keinen Controller. GLFW-Ger?teabfragen werden im Test ersetzt. In PowerShell:
+
+```powershell
+clang++ -std=c++20 '-I.' '-Iengine/libraries/glfw-3.5.1/include' '-Iengine/libraries/json' tests/camera_test.cpp engine/src/sim/camera.cpp engine/src/core/inputhandler.cpp -o camera_test.exe
+./camera_test.exe
+```
 
 
 ## Aufgabenstellung

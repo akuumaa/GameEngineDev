@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright Â© 2021-2026 Tobias Reimann
+ * Copyright © 2026 Yannick Kissel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,6 +84,12 @@ namespace Engine::Sim
             return false;
         }
 
+        if (config.contains("cameras"))
+        {
+            for (const auto &entry : config["cameras"])
+                cameras.push_back(Camera::create(entry));
+        }
+
         return true;
     }
 
@@ -105,6 +112,23 @@ namespace Engine::Sim
         {
             script->update(*this, dt, t);
         }
+        // Only the focused entity consumes player camera input.
+        if (focus)
+        {
+            if (Camera *camera = getActiveCamera()) camera->update(dt);
+        }
+    }
+
+    void Entity::nextCamera()
+    {
+        if (cameras.empty()) return;
+        cameras[activeCamera].stopSmoothing();
+        activeCamera = (activeCamera + 1) % cameras.size();
+    }
+
+    Camera *Entity::getActiveCamera()
+    {
+        return cameras.empty() ? nullptr : &cameras[activeCamera];
     }
 
     void Entity::commit(CommandBuffer &commandBuffer) const
@@ -119,5 +143,7 @@ namespace Engine::Sim
             };
             commandBuffer.renderItems.push_back(item);
         }
+        if (focus && !cameras.empty())
+            commandBuffer.viewMatrix = cameras[activeCamera].getViewMatrix(position, rotation);
     }
 }

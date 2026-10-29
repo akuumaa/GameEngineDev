@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright Â© 2021-2026 Tobias Reimann
+ * Copyright © 2026 Yannick Kissel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,8 +64,6 @@ namespace Engine::Sim
         commandBuffer->clear.red = 0.29f + 0.20f * std::sin(phase);
         commandBuffer->clear.green = 0.36f + 0.20f * std::sin(phase + 2.0f);
         commandBuffer->clear.blue = 0.40f + 0.20f * std::sin(phase + 4.0f);
-
-        commandBuffer->viewMatrix = camera.getViewMatrix();
 
         for (auto &[entityId, entity] : entities)
         {

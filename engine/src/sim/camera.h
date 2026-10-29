@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright Â© 2021-2026 Tobias Reimann
+ * Copyright © 2026 Yannick Kissel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,20 +21,58 @@
 #pragma once
 
 #include "engine/src/math/matrix.h"
+#include "engine/src/math/quaternion.h"
 #include "engine/src/math/vector3.h"
 
+#include <json_fwd.hpp>
+#include <string>
+
 using Engine::Math::Matrix;
+using Engine::Math::Quaternion;
 using Engine::Math::Vector3;
+using Json = nlohmann::json;
 
 namespace Engine::Sim
 {
+    enum class CameraType
+    {
+        Fixed,
+        Orbit
+    };
+
     class Camera
     {
       public:
-        Matrix getViewMatrix() const;
+        static Camera create(const Json &config);
+        Matrix getViewMatrix(const Vector3 &position, const Quaternion &rotation) const;
+        const std::string &getName() const { return name; }
+        void update(double dt);
+        // Freeze at the last visible pose when switching away; no delayed motion on return.
+        void stopSmoothing();
 
       private:
-        Vector3 position = {7.3589, -6.9258, 4.9583};
-        Vector3 target = {0.0, 0.0, 0.0};
+        void clampToLimits();
+
+        std::string name = {};
+        CameraType type = CameraType::Fixed;
+        Vector3 offset = {};
+        double yaw = 0.0;
+        double pitch = 0.0;
+        double distance = 8.0;
+        double targetYaw = 0.0;
+        double targetPitch = 0.0;
+        double targetDistance = 8.0;
+        bool yawLimited = false;
+        double yawMin = 0.0;
+        double yawMax = 0.0;
+        double pitchMin = -1.55;
+        double pitchMax = 1.55;
+        double lookRate = 2.0;
+        double distanceMin = 1.5;
+        double distanceMax = 200.0;
+        double zoomRate = 1.5;
+        double mouseSensitivity = 1.0 / 256.0;
+        double zoomStep = 0.1;
+        double smoothingRate = 12.0;
     };
 }

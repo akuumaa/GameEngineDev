@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright Â© 2021-2026 Tobias Reimann
+ * Copyright © 2026 Yannick Kissel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,10 +72,46 @@ namespace Engine::Core
             InputHandler::keyCallback(key, scancode, mods, action == GLFW_PRESS);
         });
 
-        InputHandler::onKeyPress(GLFW_KEY_ESCAPE, [this]()
+        glfwSetCursorPosCallback(window, [](GLFWwindow *window, double x, double y)
+        {
+            auto &self = *static_cast<Window *>(glfwGetWindowUserPointer(window));
+            if (self.mouseCaptured) InputHandler::cursorPosCallback(x, y);
+        });
+        glfwSetScrollCallback(window, [](GLFWwindow *window, double x, double y)
+        {
+            auto &self = *static_cast<Window *>(glfwGetWindowUserPointer(window));
+            if (self.mouseCaptured) InputHandler::scrollCallback(x, y);
+        });
+        glfwSetMouseButtonCallback(window, [](GLFWwindow *window, int button, int action, int mods)
+        {
+            if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+                static_cast<Window *>(glfwGetWindowUserPointer(window))->captureMouse(true);
+        });
+        glfwSetWindowFocusCallback(window, [](GLFWwindow *window, int focused)
+        {
+            if (!focused)
+            {
+                InputHandler::clearKeyboardState();
+                static_cast<Window *>(glfwGetWindowUserPointer(window))->captureMouse(false);
+            }
+        });
+        InputHandler::registerKeyAction("release_mouse", GLFW_KEY_ESCAPE);
+        InputHandler::onAction("release_mouse", [this]() { captureMouse(false); });
+        captureMouse(true);
+        InputHandler::registerButtonAction("quit", GLFW_GAMEPAD_BUTTON_START);
+        InputHandler::onAction("quit", [this]()
         {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         });
+    }
+
+    void Window::captureMouse(bool capture)
+    {
+        if (mouseCaptured == capture) return;
+        mouseCaptured = capture;
+        // Discard movement accumulated before the capture state changed.
+        InputHandler::resetMouse();
+        glfwSetInputMode(window, GLFW_CURSOR, capture ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
     }
 
     Window::~Window()
