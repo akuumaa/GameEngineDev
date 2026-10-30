@@ -72,17 +72,10 @@ namespace Engine::Core
             InputHandler::keyCallback(key, scancode, mods, action == GLFW_PRESS);
         });
 
+        // Mouse Callback registration
         glfwSetMouseButtonCallback(window, [](GLFWwindow *window, int button, int action, int mods)
         {
             InputHandler::mouseButtonCallback(button, action == GLFW_PRESS);
-        });
-
-        InputHandler::registerKeyAction("quit", GLFW_KEY_ESCAPE);
-        InputHandler::registerButtonAction("quit", GLFW_GAMEPAD_BUTTON_START);
-
-        InputHandler::onAction("quit", [this]()
-        {
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
         });
 
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -90,6 +83,19 @@ namespace Engine::Core
         glfwSetCursorPosCallback(window, [](GLFWwindow *window, double x, double y)
         {
             InputHandler::cursorPosCallback(x, y);
+        });
+
+        glfwSetScrollCallback(window, [](GLFWwindow *window, double x, double y)
+        {
+            InputHandler::scrollCallback(x, y);
+        });
+
+        // KEY & BUTTON ACTION REGISTRATION
+        InputHandler::registerKeyAction("quit", GLFW_KEY_ESCAPE);
+        InputHandler::registerButtonAction("quit", GLFW_GAMEPAD_BUTTON_START);
+        InputHandler::onAction("quit", [this]()
+        {
+            glfwSetWindowShouldClose(window, GLFW_TRUE);
         });
 
         glfwSetScrollCallback(window, [](GLFWwindow *window, double x, double y)

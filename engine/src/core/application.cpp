@@ -68,7 +68,8 @@ namespace Engine::Core
             backCommandBuffer = std::make_unique<CommandBuffer>();
 
             window.emplace(settings);
-            
+
+            // LOADING OF GAMEPAD MAPPINGS
             if (std::unique_ptr<std::istream> mappings = load("gamecontrollerdb.txt"))
             {
                 InputHandler::loadGamepadMappings(*mappings);
@@ -113,7 +114,8 @@ namespace Engine::Core
                 double t = utc.count();
 
                 double dt = frameTime.count();
-
+                
+                // InputHandler Updating
                 InputHandler::update();
 
                 simulation->update(dt, t);
