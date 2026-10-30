@@ -47,7 +47,7 @@
         { "negative": "I", "positive": "K" }
       ],
       "gamepad": [
-        { "axis": 3, "invert": true }
+        { "axis": 3, "invert": false }
       ]
     },
     "cameraZoom": {
