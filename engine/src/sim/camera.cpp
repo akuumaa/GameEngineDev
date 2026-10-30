@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
+ * Copyright © 2026 Tom Kertels
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -78,7 +79,7 @@ namespace Engine::Sim
     {
         yawTarget += InputHandler::getAxis("cameraYaw") * lookRate * dt;
         pitchTarget += InputHandler::getAxis("cameraPitch") * lookRate * dt;
-        distanceTarget -= InputHandler::getAxis("cameraZoom") * distance;
+        distanceTarget -= InputHandler::getAxis("cameraZoom") * distance * zoomRate * dt;
 
         yawTarget -= InputHandler::getMouseDeltaX() * mouseSensitivity;
         pitchTarget += InputHandler::getMouseDeltaY() * mouseSensitivity;
@@ -134,13 +135,13 @@ namespace Engine::Sim
 
         if (type == CameraType::Fixed)
         {
-            eye = position + offset;
-            target = position + offset + direction;
-        } 
+            eye = offset;
+            target = offset + direction;
+        }
         else if (type == CameraType::Orbit)
         {
-            eye = position + offset - direction * distance;
-            target = position + offset;
+            eye = offset - direction * distance;
+            target = offset;
         }
 
         return Matrix::lookAt(eye, target) * (-rotation).toMatrix() * Matrix::translation(-position);
