@@ -64,7 +64,6 @@ namespace Engine::Core
             }
         }
     }
-
     
     void InputHandler::onKeyPress(uint32_t code, std::function<void()> callback)
     {

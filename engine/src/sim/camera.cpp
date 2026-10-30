@@ -76,14 +76,13 @@ namespace Engine::Sim
 
     void Camera::update(double dt)
     {
-        yawTarget += InputHandler::getAxis("cameraYaw") * lookRate;
-        pitchTarget += InputHandler::getAxis("cameraPitch") * lookRate;
-        distanceTarget -= InputHandler::getAxis("cameraZoom") * distance * zoomRate;
+        yawTarget += InputHandler::getAxis("cameraYaw") * lookRate * dt;
+        pitchTarget += InputHandler::getAxis("cameraPitch") * lookRate * dt;
+        distanceTarget -= InputHandler::getAxis("cameraZoom") * distance;
 
         yawTarget -= InputHandler::getMouseDeltaX() * mouseSensitivity;
         pitchTarget += InputHandler::getMouseDeltaY() * mouseSensitivity;
         distanceTarget -= InputHandler::getMouseDeltaZ() * distance * zoomStep;
-
 
         yaw = yaw + (yawTarget - yaw) * lookRate * dt;
         pitch = pitch + (pitchTarget - pitch) * lookRate * dt;
@@ -92,11 +91,26 @@ namespace Engine::Sim
         clampToLimits();
     }
 
+
     void Camera::clampToLimits()
     {
-        yaw = yawLimited ? std::clamp(yaw, yawMin, yawMax) : std::remainder(yaw, 2.0 * std::numbers::pi);
+        if (yawLimited)
+        {
+            yaw = std::clamp(yaw, yawMin, yawMax);
+            yawTarget = std::clamp(yawTarget, yawMin, yawMax);
+        }
+        else
+        {
+            double wrapped = std::remainder(yaw, 2.0 * std::numbers::pi);
+            yawTarget += wrapped - yaw;
+            yaw = wrapped;
+        }
+
         pitch = std::clamp(pitch, pitchMin, pitchMax);
+        pitchTarget = std::clamp(pitchTarget, pitchMin, pitchMax);
+
         distance = std::clamp(distance, distanceMin, distanceMax);
+        distanceTarget = std::clamp(distanceTarget, distanceMin, distanceMax);
     }
 
     void Camera::reset()

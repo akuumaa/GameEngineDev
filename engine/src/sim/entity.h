@@ -58,7 +58,6 @@ namespace Engine::Sim
         void commit(CommandBuffer &commandBuffer) const;
 
         void nextCamera();
-
         Camera *getActiveCamera();
 
         Vector3 getPosition() { return position; }
