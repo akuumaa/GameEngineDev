@@ -72,7 +72,20 @@ namespace Engine::Core
             InputHandler::keyCallback(key, scancode, mods, action == GLFW_PRESS);
         });
 
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+        glfwSetCursorPosCallback(window, [](GLFWwindow *window, double x, double y)
+        {
+            InputHandler::cursorPosCallback(x, y);
+        });
+
+        glfwSetScrollCallback(window, [](GLFWwindow *window, double x, double y)
+        {
+            InputHandler::scrollCallback(x, y);
+        });
+
         InputHandler::registerKeyAction("quit", GLFW_KEY_ESCAPE);
+        InputHandler::registerButtonAction("quit", GLFW_GAMEPAD_BUTTON_START);
 
         InputHandler::onAction("quit", [this]()
         {

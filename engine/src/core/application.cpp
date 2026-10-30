@@ -70,6 +70,11 @@ namespace Engine::Core
 
             window.emplace(settings);
 
+            if (std::unique_ptr<std::istream> mappings = load("gamecontrollerdb.txt"))
+            {
+                InputHandler::loadGamepadMappings(*mappings);
+            }
+
             renderer.emplace(frontCommandBuffer, *window, settings);
             simulation.emplace(backCommandBuffer, *renderer);
         }

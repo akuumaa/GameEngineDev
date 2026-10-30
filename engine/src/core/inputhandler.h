@@ -20,13 +20,14 @@
 
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <functional>
-#include <unordered_map>
-#include <vector>
+#include <iosfwd>
 #include <string>
-#include <array>
+#include <unordered_map>
 #include <utility>
+#include <vector>
 
 namespace Engine::Core
 {
@@ -47,6 +48,15 @@ namespace Engine::Core
         static double getAxis(const std::string &axis);
         static void update();
 
+        static void registerButtonAction(const std::string &action, uint32_t button);
+        static void registerStickAxis(const std::string &axis, uint32_t input, bool invert = false);
+        static void loadGamepadMappings(std::istream &mappings);
+
+        static void cursorPosCallback(double x, double y);
+        static void scrollCallback(double x, double y);
+        static double getMouseDeltaX() { return mouseDeltaX; }
+        static double getMouseDeltaY() { return mouseDeltaY; }
+        static double getMouseDeltaZ() { return mouseDeltaZ; }
 
       private:
         static inline std::unordered_map<uint32_t, std::vector<std::function<void()>>> keyCallbacks = {};
@@ -59,5 +69,15 @@ namespace Engine::Core
         static inline std::array<bool, 349> keyboardState = {};
         static inline std::unordered_map<std::string, double> axes = {};
 
+        static inline std::unordered_map<uint32_t, std::vector<std::string>> gamepadActions = {};
+        static inline std::unordered_map<std::string, std::vector<std::pair<uint32_t, bool>>> gamepadAxes = {};
+        static inline std::array<bool, 15> gamepadState = {};
+
+        static inline double mouseMovementX = 0.0;
+        static inline double mouseMovementY = 0.0;
+        static inline double mouseMovementZ = 0.0;
+        static inline double mouseDeltaX = 0.0;
+        static inline double mouseDeltaY = 0.0;
+        static inline double mouseDeltaZ = 0.0;
     };
 }

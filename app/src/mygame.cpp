@@ -53,9 +53,14 @@ namespace App
 
         ship->setPosition(Vector3(0.0, 0.0, 0.0));
         ship->addScript(std::make_unique<ShipScript>());
+        ship->setFocus(true);
 
         /**taste registrieren und dann action hinzufügen */
         InputHandler::registerKeyAction("reset", GLFW_KEY_SPACE);
+        InputHandler::registerButtonAction("reset", GLFW_GAMEPAD_BUTTON_A);
+
+        InputHandler::registerKeyAction("nextCamera", GLFW_KEY_C);
+        InputHandler::registerButtonAction("nextCamera", GLFW_GAMEPAD_BUTTON_BACK);
 
         InputHandler::registerKeyAxis("yaw", GLFW_KEY_A, GLFW_KEY_D);
         InputHandler::registerKeyAxis("pitch", GLFW_KEY_S, GLFW_KEY_W);
@@ -63,9 +68,23 @@ namespace App
         InputHandler::registerKeyAxis("roll", GLFW_KEY_Q, GLFW_KEY_E);
         InputHandler::registerKeyAxis("roll", GLFW_KEY_LEFT, GLFW_KEY_RIGHT);
 
+        InputHandler::registerKeyAxis("cameraYaw", GLFW_KEY_L, GLFW_KEY_J);
+        InputHandler::registerKeyAxis("cameraPitch", GLFW_KEY_I, GLFW_KEY_K);
+        InputHandler::registerKeyAxis("cameraZoom", GLFW_KEY_U, GLFW_KEY_O);
+
+        InputHandler::registerStickAxis("pitch", GLFW_GAMEPAD_AXIS_LEFT_Y, true);
+        InputHandler::registerStickAxis("roll", GLFW_GAMEPAD_AXIS_LEFT_X);
+        InputHandler::registerStickAxis("cameraYaw", GLFW_GAMEPAD_AXIS_RIGHT_X, true);
+        InputHandler::registerStickAxis("cameraPitch", GLFW_GAMEPAD_AXIS_RIGHT_Y, true);
+
         InputHandler::onAction("reset", [this]()
         {
             ship->setRotation({});
+        });
+
+        InputHandler::onAction("nextCamera", [this]()
+        {
+            ship->nextCamera();
         });
 
         for (const Vector3 &position : {Vector3::forward * 25.0, Vector3::forward * -25.0, Vector3::left * 25.0, Vector3::left * -25.0, Vector3::up * 25.0, Vector3::up * -25.0})
