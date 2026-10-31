@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "app/src/physics/waterphysics.h"
 #include "engine/src/math/vector3.h"
 #include "engine/src/sim/script.h"
 
@@ -41,5 +42,6 @@ namespace App
         size_t cameraCallbackId = 0;
         bool flightAssist = true;
         size_t flightAssistCallbackId = 0;
+        WaterPhysics waterPhysics;
     };
 }

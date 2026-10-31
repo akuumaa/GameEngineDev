@@ -70,6 +70,22 @@ namespace App
         InputHandler::registerKeyAction("toggleFlightAssist", GLFW_KEY_TAB);
         InputHandler::registerButtonAction("toggleFlightAssist", GLFW_GAMEPAD_BUTTON_X);
 
+        // Vertikale Bewegung über Tastatur
+        InputHandler::registerKeyAxis(
+            "thrustZ",
+            GLFW_KEY_LEFT_CONTROL,
+            GLFW_KEY_SPACE
+        );
+
+        // Vertikale Bewegung über Controller
+        InputHandler::registerButtonAxis(
+            "thrustZ",
+            GLFW_GAMEPAD_BUTTON_LEFT_BUMPER,
+            GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER
+        );
+
+        InputHandler::registerTriggerAxis("thrustX", GLFW_GAMEPAD_AXIS_LEFT_TRIGGER, GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER);
+
         bool ok = Application::init();
         if (!ok) return false;
 

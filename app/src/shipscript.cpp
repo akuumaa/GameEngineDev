@@ -55,6 +55,8 @@ namespace App
         Vector3 position = entity.getPosition();
         Quaternion rotation = entity.getRotation();
 
+        thrusterInput.z = 0.0;
+
         Vector3 acceleration = thrusterInput * thrust;
         Vector3 angularAcceleration = angularThrusterInput * angularThrust;
 
@@ -95,7 +97,19 @@ namespace App
 
         rotation = Quaternion::normalize(rotation);
 
-        entity.setPosition(position + velocity * dt);
+        // Vertikale Wasserbewegung berechnen
+        double verticalInput = InputHandler::getAxis("thrustZ");
+
+        double verticalMovement = waterPhysics.updateVertical(
+            verticalInput,
+            dt
+        );
+
+        // Normale Bewegung mit vertikaler Wasserbewegung kombinieren
+        Vector3 newPosition =
+            position + velocity * dt + Vector3::up * verticalMovement;
+
+        entity.setPosition(newPosition);
         entity.setRotation(rotation);
     }
 

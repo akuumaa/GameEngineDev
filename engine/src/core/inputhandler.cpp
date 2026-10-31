@@ -199,6 +199,38 @@ namespace Engine::Core
                 // Aktuellen Buttonstatus speichern
                 gamepadState[button] = pressed;
             }
+
+            // Registrierte Gamepad-Button-Achsen auswerten
+            for (const auto &[axis, mappings] : gamepadButtonAxes)
+            {
+                for (const auto &[negativeButton, positiveButton] : mappings)
+                {
+                    if (gamepad.buttons[positiveButton] == GLFW_PRESS)
+                    {
+                        axes[axis] += 1.0;
+                    }
+
+                    if (gamepad.buttons[negativeButton] == GLFW_PRESS)
+                    {
+                        axes[axis] -= 1.0;
+                    }
+                }
+            }
+
+            // Registrierte Trigger-Achsen auswerten
+            for (const auto &[axis, bindings] : triggerAxes)
+            {
+                for (const auto &[negativeTrigger, positiveTrigger] : bindings)
+                {
+                    double negativeValue =
+                        (gamepad.axes[negativeTrigger] + 1.0) / 2.0;
+
+                    double positiveValue =
+                        (gamepad.axes[positiveTrigger] + 1.0) / 2.0;
+
+                    axes[axis] += positiveValue - negativeValue;
+                }
+            }
         }
 
         // Bestehende Begrenzung, jetzt nach Tastatur und Controller
@@ -252,6 +284,31 @@ namespace Engine::Core
     void InputHandler::scrollCallback(double x, double y)
     {
         mouseMovementZ += y;
+    }
+
+    void InputHandler::registerTriggerAxis(
+
+        const std::string &axis,
+        uint32_t negativeTrigger,
+        uint32_t positiveTrigger
+    )
+    {
+        if (negativeTrigger > GLFW_GAMEPAD_AXIS_LAST) return;
+        if (positiveTrigger > GLFW_GAMEPAD_AXIS_LAST) return;
+
+        triggerAxes[axis].push_back({negativeTrigger, positiveTrigger});
+    }
+
+    void InputHandler::registerButtonAxis(
+        const std::string &axis,
+        uint32_t negativeButton,
+        uint32_t positiveButton
+    )
+    {
+        if (negativeButton > GLFW_GAMEPAD_BUTTON_LAST) return;
+        if (positiveButton > GLFW_GAMEPAD_BUTTON_LAST) return;
+
+        gamepadButtonAxes[axis].push_back({negativeButton, positiveButton});
     }
 
 }

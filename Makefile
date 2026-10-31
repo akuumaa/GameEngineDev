@@ -37,7 +37,8 @@ else ifeq ($(System), Linux)
 
 endif
 
-SRC=$(wildcard ${ENGINEPATH}/src/*/*.cpp ${APPPATH}/*.cpp ${APPPATH}/src/*.cpp)
+
+SRC=$(wildcard ${ENGINEPATH}/src/*/*.cpp ${APPPATH}/*.cpp ${APPPATH}/src/*.cpp ${APPPATH}/src/*/*.cpp)
 OBJ=$(SRC:%.cpp=obj/%.o)
 DEP=$(OBJ:.o=.d)
 

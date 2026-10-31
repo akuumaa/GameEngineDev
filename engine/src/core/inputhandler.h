@@ -58,11 +58,23 @@ namespace Engine::Core
         static void registerStickAxis(const std::string &axis, uint32_t input, bool invert = false);
         static void loadGamepadMappings(std::istream &mappings);
 
+        static void registerTriggerAxis(const std::string &axis, uint32_t negativeTrigger, uint32_t positiveTrigger);
+
+        inline static std::map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> triggerAxes;
+
         static void cursorPosCallback(double x, double y);
         static void scrollCallback(double x, double y);
         static double getMouseDeltaX() { return mouseDeltaX; }
         static double getMouseDeltaY() { return mouseDeltaY; }
         static double getMouseDeltaZ() { return mouseDeltaZ; }
+
+        static void registerButtonAxis(
+            const std::string &axis,
+            uint32_t negativeButton,
+            uint32_t positiveButton
+        );
+
+        
 
       private:
         static inline std::unordered_map<uint32_t, std::vector<std::function<void()>>> keyCallbacks = {};
@@ -97,5 +109,10 @@ namespace Engine::Core
         static inline double mouseDeltaX = 0.0;
         static inline double mouseDeltaY = 0.0;
         static inline double mouseDeltaZ = 0.0;
+
+        inline static std::map<
+            std::string,
+            std::vector<std::pair<uint32_t, uint32_t>>>
+            gamepadButtonAxes;
     };
 }
