@@ -39,5 +39,7 @@ namespace App
         Vector3 velocity = {};
         Vector3 angularVelocity = {};
         size_t cameraCallbackId = 0;
+        bool flightAssist = true;
+        size_t flightAssistCallbackId = 0;
     };
 }

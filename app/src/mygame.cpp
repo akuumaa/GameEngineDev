@@ -67,7 +67,9 @@ namespace App
         InputHandler::registerKeyAction("respawn", GLFW_KEY_R);
         InputHandler::registerButtonAction("respawn", GLFW_GAMEPAD_BUTTON_A);
 
-      
+        InputHandler::registerKeyAction("toggleFlightAssist", GLFW_KEY_TAB);
+        InputHandler::registerButtonAction("toggleFlightAssist", GLFW_GAMEPAD_BUTTON_X);
+
         bool ok = Application::init();
         if (!ok) return false;
 

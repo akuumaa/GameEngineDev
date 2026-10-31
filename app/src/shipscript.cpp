@@ -37,15 +37,56 @@ namespace App
 
         constexpr double thrust = 20.0;
         constexpr double angularThrust = 2.0;
+        constexpr double maxVelocity = 20.0;
+        constexpr double maxAngularVelocity = 2.0;
+        constexpr double flightAssistRate = 1.5;
 
-        Vector3 thrusterInput = {InputHandler::getAxis("thrustX"), InputHandler::getAxis("thrustY"), InputHandler::getAxis("thrustZ")};
-        Vector3 angularThrusterInput = {InputHandler::getAxis("roll"), InputHandler::getAxis("pitch"), InputHandler::getAxis("yaw")};
+        Vector3 thrusterInput = {
+            InputHandler::getAxis("thrustX"),
+            InputHandler::getAxis("thrustY"),
+            InputHandler::getAxis("thrustZ")
+        };
+        Vector3 angularThrusterInput = {
+            InputHandler::getAxis("roll"),
+            InputHandler::getAxis("pitch"),
+            InputHandler::getAxis("yaw")
+        };
 
         Vector3 position = entity.getPosition();
         Quaternion rotation = entity.getRotation();
 
         Vector3 acceleration = thrusterInput * thrust;
         Vector3 angularAcceleration = angularThrusterInput * angularThrust;
+
+        if (flightAssist)
+        {
+            Vector3 targetVelocity = rotation * (thrusterInput * maxVelocity);
+            Vector3 targetAngularVelocity = angularThrusterInput * maxAngularVelocity;
+
+            // Beschleunigung im Weltkoordinatensystem berechnen
+            Vector3 worldAcceleration =
+                (targetVelocity - velocity) * flightAssistRate;
+
+            // In das lokale Koordinatensystem umrechnen
+            Quaternion inverseRotation = -rotation;
+            acceleration = inverseRotation * worldAcceleration;
+
+            angularAcceleration =
+                (targetAngularVelocity - angularVelocity) * flightAssistRate;
+
+            // Beschleunigung begrenzen
+            if (acceleration.length() > thrust)
+            {
+                acceleration = acceleration * (thrust / acceleration.length());
+            }
+
+            // Winkelbeschleunigung begrenzen
+            if (angularAcceleration.length() > angularThrust)
+            {
+                angularAcceleration = angularAcceleration *
+                                      (angularThrust / angularAcceleration.length());
+            }
+        }
 
         velocity = velocity + rotation * acceleration * dt;
         angularVelocity = angularVelocity + angularAcceleration * dt;
@@ -65,11 +106,17 @@ namespace App
             entity.nextCamera();
             std::cout << "+ Switched Camera" << std::endl;
         });
+        flightAssistCallbackId = InputHandler::onAction("toggleFlightAssist", [this]()
+        {
+            flightAssist = !flightAssist;
+            std::cout << "+ Flight Assist: " << (flightAssist ? "ON" : "OFF") << std::endl;
+        });
     }
 
     void ShipScript::unload(Entity &entity)
     {
         InputHandler::removeCallback(cameraCallbackId);
+        InputHandler::removeCallback(flightAssistCallbackId);
     }
 
 }
