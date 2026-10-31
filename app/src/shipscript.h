@@ -19,8 +19,10 @@
 
 #pragma once
 
+#include "engine/src/math/vector3.h"
 #include "engine/src/sim/script.h"
 
+using Engine::Math::Vector3;
 using Engine::Sim::Entity;
 using Engine::Sim::Script;
 
@@ -30,5 +32,9 @@ namespace App
     {
       public:
         void update(Entity &entity, double dt, double t) override;
+
+      private:
+        Vector3 velocity = {};
+        Vector3 angularVelocity = {};
     };
 }

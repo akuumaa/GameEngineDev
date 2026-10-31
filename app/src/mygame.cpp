@@ -43,16 +43,11 @@ namespace App
     {
         std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
-        InputHandler::registerKeyAction("reset", GLFW_KEY_SPACE);
-
         InputHandler::registerKeyAxis("yaw", GLFW_KEY_E, GLFW_KEY_Q);
-        InputHandler::registerKeyAxis("pitch", GLFW_KEY_S, GLFW_KEY_W);
         InputHandler::registerKeyAxis("pitch", GLFW_KEY_DOWN, GLFW_KEY_UP);
-        InputHandler::registerKeyAxis("roll", GLFW_KEY_A, GLFW_KEY_D);
         InputHandler::registerKeyAxis("roll", GLFW_KEY_LEFT, GLFW_KEY_RIGHT);
 
         InputHandler::registerKeyAction("nextCamera", GLFW_KEY_C);
-        InputHandler::registerButtonAction("reset", GLFW_GAMEPAD_BUTTON_A);
 
         InputHandler::registerKeyAxis("cameraYaw", GLFW_KEY_L, GLFW_KEY_J);
         InputHandler::registerKeyAxis("cameraPitch", GLFW_KEY_I, GLFW_KEY_K);
@@ -64,6 +59,10 @@ namespace App
 
         InputHandler::registerStickAxis("pitch", GLFW_GAMEPAD_AXIS_LEFT_Y, true);
         InputHandler::registerStickAxis("roll", GLFW_GAMEPAD_AXIS_LEFT_X);
+
+        InputHandler::registerKeyAxis("thrustX", GLFW_KEY_S, GLFW_KEY_W);
+        InputHandler::registerKeyAxis("thrustY", GLFW_KEY_D, GLFW_KEY_A);
+        InputHandler::registerKeyAxis("thrustZ", GLFW_KEY_LEFT_SHIFT, GLFW_KEY_SPACE);
 
         InputHandler::onAction("nextCamera", [this]()
         {
@@ -85,11 +84,6 @@ namespace App
                 cube->setPosition(position);
             }
         }
-
-        InputHandler::onAction("reset", [this]()
-        {
-            ship->setRotation({});
-        });
 
         std::chrono::duration<double> startupTime = std::chrono::steady_clock::now() - start;
         std::cout << "+ Startup time: " << startupTime.count() << " s" << std::endl;

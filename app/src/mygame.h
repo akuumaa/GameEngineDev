@@ -36,6 +36,7 @@ namespace App
         bool init();
 
       private:
-        std::shared_ptr<Entity> ship = {};
+      bool spawnShip();
+      std::shared_ptr<Entity> ship = {};
     };
 }
