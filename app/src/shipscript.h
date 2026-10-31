@@ -43,5 +43,6 @@ namespace App
         bool flightAssist = true;
         size_t flightAssistCallbackId = 0;
         WaterPhysics waterPhysics;
+        double physicsDebugTimer = 0.0;
     };
 }

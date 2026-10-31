@@ -23,6 +23,8 @@
 #include "engine/src/math/quaternion.h"
 #include "engine/src/sim/entity.h"
 
+#include <cmath>
+#include <iomanip>
 #include <iostream>
 
 using Engine::Core::InputHandler;
@@ -54,6 +56,25 @@ namespace App
 
         Vector3 position = entity.getPosition();
         Quaternion rotation = entity.getRotation();
+
+        // Ballasttank steuern
+        double ballastInput = InputHandler::getAxis("ballast");
+
+        waterPhysics.changeWaterLevel(ballastInput, dt);
+
+        // Vertikalschub über Leertaste / Strg / Bumper
+        double verticalInput = InputHandler::getAxis("thrustZ");
+
+        // Vertikale Verschiebung berechnen
+        double verticalMovement =
+            waterPhysics.updateVertical(verticalInput, dt);
+
+        // Mit der bisherigen Bewegung kombinieren
+        Vector3 newPosition =
+            position + velocity * dt + Vector3::up * verticalMovement;
+
+        entity.setPosition(newPosition);
+        entity.setRotation(rotation);
 
         thrusterInput.z = 0.0;
 
@@ -97,20 +118,33 @@ namespace App
 
         rotation = Quaternion::normalize(rotation);
 
-        // Vertikale Wasserbewegung berechnen
-        double verticalInput = InputHandler::getAxis("thrustZ");
-
-        double verticalMovement = waterPhysics.updateVertical(
-            verticalInput,
-            dt
-        );
-
-        // Normale Bewegung mit vertikaler Wasserbewegung kombinieren
-        Vector3 newPosition =
-            position + velocity * dt + Vector3::up * verticalMovement;
-
         entity.setPosition(newPosition);
         entity.setRotation(rotation);
+
+        // Debug-Ausgabe alle 0.25 Sekunden
+        physicsDebugTimer += dt;
+
+        if (physicsDebugTimer >= 0.25)
+        {
+            physicsDebugTimer = 0.0;
+
+            double water = waterPhysics.getWaterLevel();
+            double speed = waterPhysics.getVerticalVelocity();
+
+            const char *movement = "Schwebt";
+
+            if (speed > 0.05)
+                movement = "Steigt";
+            else if (speed < -0.05)
+                movement = "Sinkt";
+
+            std::cout << std::fixed << std::setprecision(2)
+                      << "[Wasserphysik] "
+                      << "Ballast: " << water << "% | "
+                      << "Vertikal: " << speed << " m/s | "
+                      << "Status: " << movement
+                      << std::endl;
+        }
     }
 
     void ShipScript::load(Entity &entity)

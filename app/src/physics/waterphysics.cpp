@@ -4,36 +4,76 @@
 #include <algorithm>
 #include <cmath>
 
+void WaterPhysics::setWaterLevel(double percentage)
+{
+    waterLevel = std::clamp(percentage, 0.0, 100.0);
+}
+
+void WaterPhysics::changeWaterLevel(double input, double dt)
+{
+    if (dt <= 0.0) return;
+
+    setWaterLevel(
+        waterLevel + input * ballastChangeRate * dt
+    );
+}
+
+double WaterPhysics::getWaterLevel() const
+{
+    return waterLevel;
+}
+
+double WaterPhysics::getVerticalVelocity() const
+{
+    return verticalVelocity;
+}
+
 double WaterPhysics::updateVertical(double input, double dt)
 {
-    if (dt <= 0.0)
-    {
-        return 0.0;
-    }
+    if (dt <= 0.0) return 0.0;
+
+    elapsedTime += dt;
 
     input = std::clamp(input, -1.0, 1.0);
 
-    // 1. Eingaberichtung ermitteln
+    // =====================================
+    // 1. Ballast und Auftrieb
+    // =====================================
+
+    // 0 %   = +1.0 (maximaler Auftrieb)
+    // 50 %  =  0.0 (neutral)
+    // 100 % = -1.0 (maximales Sinken)
+
+    double targetBuoyancy =
+        1.0 - 2.0 * (waterLevel / 100.0);
+
+    // Auftrieb mit Verzögerung anpassen
+    double response =
+        1.0 - std::exp(
+            -dt / std::max(buoyancyResponseTime, 0.001)
+        );
+
+    currentBuoyancy +=
+        (targetBuoyancy - currentBuoyancy) * response;
+
+    double buoyancyForce =
+        currentBuoyancy * buoyancyAcceleration;
+
+    // =====================================
+    // 2. Manueller Vertikalschub
+    // =====================================
+
     double direction = 0.0;
 
-    if (input > 0.0)
-    {
-        direction = 1.0;
-    }
-    else if (input < 0.0)
-    {
-        direction = -1.0;
-    }
+    if (input > 0.0) direction = 1.0;
+    if (input < 0.0) direction = -1.0;
 
-    // 2. Beschleunigungskurve zurücksetzen
-    // wenn die Richtung geändert wird
     if (direction != previousDirection)
     {
         accelerationProgress = 0.0;
         previousDirection = direction;
     }
 
-    // 3. Beschleunigung langsam aufbauen
     if (direction != 0.0)
     {
         accelerationProgress +=
@@ -43,33 +83,62 @@ double WaterPhysics::updateVertical(double input, double dt)
             std::clamp(accelerationProgress, 0.0, 1.0);
     }
 
-    // 4. Quadratische Beschleunigungskurve
-    double curve = accelerationProgress * accelerationProgress;
+    double curve =
+        accelerationProgress * accelerationProgress;
 
-    double acceleration =
+    double manualAcceleration =
         input * verticalAcceleration * curve;
 
-    // 5. Wasserwiderstand berechnen
+    // =====================================
+    // 3. Wasserwiderstand
+    // =====================================
+
     double drag =
         linearDrag * verticalVelocity
         + quadraticDrag * verticalVelocity
         * std::abs(verticalVelocity);
 
-    // 6. Geschwindigkeit aktualisieren
-    verticalVelocity += (acceleration - drag) * dt;
+    // =====================================
+    // 4. Geschwindigkeit aktualisieren
+    // =====================================
 
-    // 7. Maximalgeschwindigkeit begrenzen
+    double totalAcceleration =
+        buoyancyForce + manualAcceleration - drag;
+
+    verticalVelocity += totalAcceleration * dt;
+
     verticalVelocity = std::clamp(
         verticalVelocity,
         -maxVerticalSpeed,
         maxVerticalSpeed
     );
 
-    // 8. Verschiebung für diesen Frame zurückgeben
-    return verticalVelocity * dt;
-}
+    // Kleine Geschwindigkeiten beruhigen
+    if (std::abs(verticalVelocity) < 0.001 &&
+        std::abs(totalAcceleration) < 0.001)
+    {
+        verticalVelocity = 0.0;
+    }
 
-double WaterPhysics::getVerticalVelocity() const
-{
-    return verticalVelocity;
+    // =====================================
+    // 5. Leichtes Treiben bei 50 %
+    // =====================================
+
+    // Treiben nur in der Nähe von neutralem Auftrieb
+    double neutralFactor = std::clamp(
+        1.0 - std::abs(waterLevel - 50.0) / 10.0,
+        0.0,
+        1.0
+    );
+
+    double driftVelocity =
+        std::sin(elapsedTime * waterDriftFrequency)
+        * waterDriftStrength
+        * neutralFactor;
+
+    // =====================================
+    // 6. Vertikale Verschiebung
+    // =====================================
+
+    return (verticalVelocity + driftVelocity) * dt;
 }
