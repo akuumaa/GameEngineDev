@@ -30,7 +30,7 @@ namespace Engine::Core
 {
 
 
-     void InputHandler::loadGamepadMappings(std::istream &mappings)
+    void InputHandler::loadGamepadMappings(std::istream &mappings)
     {
         std::ostringstream text;
         text << mappings.rdbuf();
@@ -109,6 +109,14 @@ namespace Engine::Core
 
     void InputHandler::update()
     {
+
+        mouseDeltaX = mouseMovementX;
+        mouseDeltaY = mouseMovementY;
+        mouseDeltaZ = mouseMovementZ;
+
+        mouseMovementX = 0.0;
+        mouseMovementY = 0.0;
+        mouseMovementZ = 0.0;
         for (auto &[name, value] : axes)
         {
             value = 0.0;
@@ -191,7 +199,7 @@ namespace Engine::Core
         }
     }
 
-   
+
     void InputHandler::registerButtonAction(const std::string &action, uint32_t button)
     {
         // Ungültige Button-Indizes abweisen
@@ -214,6 +222,28 @@ namespace Engine::Core
 
         // Stick-Achse und Invertierung registrieren
         gamepadAxes[axis].push_back({input, invert});
+    }
+
+    void InputHandler::cursorPosCallback(double x, double y)
+    {
+        static double cursorX = 0.0;
+        static double cursorY = 0.0;
+        static bool cursorKnown = false;
+
+        if (cursorKnown)
+        {
+            mouseMovementX += x - cursorX;
+            mouseMovementY += y - cursorY;
+        }
+
+        cursorX = x;
+        cursorY = y;
+        cursorKnown = true;
+    }
+
+    void InputHandler::scrollCallback(double x, double y)
+    {
+        mouseMovementZ += y;
     }
 
 }

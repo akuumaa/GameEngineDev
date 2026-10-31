@@ -43,6 +43,7 @@ namespace Engine::Core
 
         testController();
 
+        
         InputHandler::registerButtonAction("quit", GLFW_GAMEPAD_BUTTON_START);
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -77,6 +78,19 @@ namespace Engine::Core
             if (action == GLFW_REPEAT) return;
             InputHandler::keyCallback(key, scancode, mods, action == GLFW_PRESS);
         });
+
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+        glfwSetCursorPosCallback(window, [](GLFWwindow *window, double x, double y)
+        {
+            InputHandler::cursorPosCallback(x, y);
+        });
+
+        glfwSetScrollCallback(window, [](GLFWwindow *window, double x, double y)
+        {
+            InputHandler::scrollCallback(x, y);
+        });
+
 
         InputHandler::registerKeyAction("quit", GLFW_KEY_ESCAPE);
 

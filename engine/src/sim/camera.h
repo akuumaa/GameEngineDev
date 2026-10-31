@@ -49,11 +49,21 @@ namespace Engine::Sim
 
         const std::string &getName() const { return name; }
 
+        void update(double dt);
+
       private:
+        void clampToLimits();
         Vector3 position = {7.3589, -6.9258, 4.9583};
         Vector3 target = {0.0, 0.0, 0.0};
 
         CameraType type = CameraType::Fixed;
+
+        bool yawLimited = false;
+        double yawMin = 0.0;
+        double yawMax = 0.0;
+        double pitchMin = -1.55;
+        double pitchMax = 1.55;
+        double lookRate = 2.0;
 
         std::string name = {};
         Vector3 offset = {};
@@ -61,5 +71,12 @@ namespace Engine::Sim
         double yaw = 0.0;
         double distance = 8.0;
         double pitch = 0.0;
+
+        double distanceMin = 1.5;
+        double distanceMax = 200.0;
+        double zoomRate = 1.5;
+
+        double mouseSensitivity = 1.0 / 256.0;
+        double zoomStep = 0.1;
     };
 }

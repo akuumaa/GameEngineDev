@@ -45,6 +45,8 @@ namespace Engine::Sim
     {
       public:
         void nextCamera();
+
+        Camera *getActiveCamera();
         Entity() = default;
         Entity(const Vector3 &position, const Quaternion &rotation = {})
             : position(position), rotation(rotation)

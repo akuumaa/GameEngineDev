@@ -114,6 +114,17 @@ namespace Engine::Sim
         {
             script->update(*this, dt, t);
         }
+
+        if (Camera *camera = getActiveCamera())
+        {
+            camera->update(dt);
+        }
+    }
+
+    Camera *Entity::getActiveCamera()
+    {
+        if (cameras.empty()) return nullptr;
+        return &cameras[activeCamera];
     }
 
     void Entity::commit(CommandBuffer &commandBuffer) const
