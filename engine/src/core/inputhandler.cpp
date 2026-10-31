@@ -29,7 +29,6 @@
 namespace Engine::Core
 {
 
-
     void InputHandler::loadGamepadMappings(std::istream &mappings)
     {
         std::ostringstream text;
@@ -78,19 +77,29 @@ namespace Engine::Core
         keyboardActions[key].push_back(action);
     }
 
-    void InputHandler::onAction(const std::string &action, std::function<void()> callback)
+    size_t InputHandler::onAction(const std::string &action, std::function<void()> callback)
     {
-        actionCallbacks[action].push_back(std::move(callback));
+        size_t callbackId = nextCallbackId++;
+        actionCallbacks[action][callbackId] = std::move(callback);
+        return callbackId;
+    }
+
+    void InputHandler::removeCallback(size_t callbackId)
+    {
+        for (auto &[action, callbacks] : actionCallbacks)
+        {
+            callbacks.erase(callbackId);
+        }
     }
 
     void InputHandler::fireAction(const std::string &action)
     {
-        if (auto entry = actionCallbacks.find(action); entry != actionCallbacks.end())
+        std::map<size_t, std::function<void()>> callbacks = actionCallbacks[action];
+
+        for (const auto &[callbackId, callback] : callbacks)
         {
-            for (const auto &callback : entry->second)
-            {
-                callback();
-            }
+            if (!actionCallbacks[action].contains(callbackId)) continue;
+            callback();
         }
     }
 
@@ -198,7 +207,6 @@ namespace Engine::Core
             value = std::clamp(value, -1.0, 1.0);
         }
     }
-
 
     void InputHandler::registerButtonAction(const std::string &action, uint32_t button)
     {

@@ -20,9 +20,11 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <iosfwd>
+#include <map>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -44,7 +46,8 @@ namespace Engine::Core
         static void keyCallback(uint32_t key, uint32_t scancode, uint32_t mods, bool pressed);
         static void onKeyPress(uint32_t code, std::function<void()> callback);
         static void registerKeyAction(const std::string &action, uint32_t key);
-        static void onAction(const std::string &action, std::function<void()> callback);
+        static size_t onAction(const std::string &action, std::function<void()> callback);
+        static void removeCallback(size_t callbackId);
         static void fireAction(const std::string &action);
 
         static void registerKeyAxis(const std::string &axis, uint32_t negativeKey, uint32_t positiveKey);
@@ -76,9 +79,9 @@ namespace Engine::Core
          *
          * Beim Auslösen einer Aktion können alle zugehörigen Callbacks ausgeführt werden.
          */
-        static inline std::unordered_map<std::string, std::vector<std::function<void()>>> actionCallbacks = {};
+        static inline std::unordered_map<std::string, std::map<size_t, std::function<void()>>> actionCallbacks = {};
         static inline std::unordered_map<uint32_t, std::vector<std::string>> keyboardActions = {};
-
+        static inline size_t nextCallbackId = 1;
         static inline std::unordered_map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> keyboardAxes = {};
 
         static inline std::array<bool, 349> keyboardState = {};

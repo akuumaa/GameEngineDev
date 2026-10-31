@@ -32,9 +32,12 @@ namespace App
     {
       public:
         void update(Entity &entity, double dt, double t) override;
+        void load(Entity &entity) override;
+        void unload(Entity &entity) override;
 
       private:
         Vector3 velocity = {};
         Vector3 angularVelocity = {};
+        size_t cameraCallbackId = 0;
     };
 }

@@ -23,6 +23,8 @@
 #include "engine/src/math/quaternion.h"
 #include "engine/src/sim/entity.h"
 
+#include <iostream>
+
 using Engine::Core::InputHandler;
 
 using Engine::Math::Quaternion;
@@ -54,6 +56,20 @@ namespace App
 
         entity.setPosition(position + velocity * dt);
         entity.setRotation(rotation);
+    }
+
+    void ShipScript::load(Entity &entity)
+    {
+        cameraCallbackId = InputHandler::onAction("nextCamera", [&entity]()
+        {
+            entity.nextCamera();
+            std::cout << "+ Switched Camera" << std::endl;
+        });
+    }
+
+    void ShipScript::unload(Entity &entity)
+    {
+        InputHandler::removeCallback(cameraCallbackId);
     }
 
 }

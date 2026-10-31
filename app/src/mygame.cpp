@@ -64,18 +64,12 @@ namespace App
         InputHandler::registerKeyAxis("thrustY", GLFW_KEY_D, GLFW_KEY_A);
         InputHandler::registerKeyAxis("thrustZ", GLFW_KEY_LEFT_SHIFT, GLFW_KEY_SPACE);
 
-        InputHandler::onAction("nextCamera", [this]()
-        {
-            ship->nextCamera();
-        });
+        InputHandler::registerKeyAction("respawn", GLFW_KEY_R);
+        InputHandler::registerButtonAction("respawn", GLFW_GAMEPAD_BUTTON_A);
+
+      
         bool ok = Application::init();
         if (!ok) return false;
-
-        ship = simulation->loadEntity("entities/ship.entity");
-        if (!ship) return false;
-
-        ship->setPosition(Vector3(0.0, 0.0, 0.0));
-        ship->addScript(std::make_unique<ShipScript>());
 
         for (const Vector3 &position : {Vector3::forward * 25.0, Vector3::forward * -25.0, Vector3::left * 25.0, Vector3::left * -25.0, Vector3::up * 25.0, Vector3::up * -25.0})
         {
@@ -87,8 +81,28 @@ namespace App
 
         std::chrono::duration<double> startupTime = std::chrono::steady_clock::now() - start;
         std::cout << "+ Startup time: " << startupTime.count() << " s" << std::endl;
-        ship->setFocus(true);
 
+        ok = spawnShip();
+        if (!ok) return false;
+
+        InputHandler::onAction("respawn", [this]()
+        {
+            if (ship) simulation->unloadEntity(ship->getEntityId());
+            spawnShip();
+        });
+
+        return true;
+    }
+
+    bool MyGame::spawnShip()
+    {
+        ship = simulation->loadEntity("entities/ship.entity");
+        if (!ship) return false;
+
+        ship->setPosition(Vector3(0.0, 0.0, 0.0));
+        ship->addScript(std::make_unique<ShipScript>());
+
+        ship->setFocus(true);
         return true;
     }
 }
