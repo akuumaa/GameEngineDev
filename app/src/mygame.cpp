@@ -84,11 +84,17 @@ namespace App
             GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER
         );
 
-        // Ballasttank: Z = leeren, X = füllen
+        // Ballasttank: N = leeren, M = füllen
         InputHandler::registerKeyAxis(
             "ballast",
             GLFW_KEY_N,
             GLFW_KEY_M
+        );
+
+        InputHandler::registerButtonAxis(
+            "ballast",
+            GLFW_GAMEPAD_BUTTON_DPAD_DOWN,
+            GLFW_GAMEPAD_BUTTON_DPAD_UP
         );
 
         InputHandler::registerTriggerAxis("thrustX", GLFW_GAMEPAD_AXIS_LEFT_TRIGGER, GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER);
