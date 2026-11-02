@@ -48,7 +48,7 @@ namespace App
         bool ok = Application::init();
         if (!ok) return false;
 
-        ship = simulation->loadEntity("entities/ship.entity");
+        ship = simulation->loadEntity("entities/submarine.entity");
         if (!ship) return false;
 
         ship->setPosition(Vector3(0.0, 0.0, 0.0));

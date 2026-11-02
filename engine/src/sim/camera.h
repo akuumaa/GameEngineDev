@@ -52,7 +52,7 @@ namespace Engine::Sim
         const std::string &getName() const { return name; }
 
       private:
-        void clampTargetToLimits();
+        void clampToLimits();
 
         std::string name = {};
         Vector3 offset = {};

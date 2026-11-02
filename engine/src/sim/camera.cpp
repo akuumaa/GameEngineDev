@@ -26,7 +26,9 @@
 #include <algorithm>
 #include <cmath>
 #include <json.hpp>
-#include <numbers>
+
+//debug
+#include <iostream>
 
 using Engine::Core::InputHandler;
 
@@ -50,7 +52,8 @@ namespace Engine::Sim
         camera.type = (type == "orbit") ? CameraType::Orbit : CameraType::Fixed;
 
         camera.distance = config.value("distance", camera.distance);
-
+        
+        // vorgegeben
         if (config.contains("yawLimit"))
         {
             double first = Math::Number::toRadians(config["yawLimit"][0].get<double>());
@@ -59,7 +62,8 @@ namespace Engine::Sim
             camera.yawMin = std::min(first, second);
             camera.yawMax = std::max(first, second);
         }
-
+        
+        // vorgegeben
         if (config.contains("pitchLimit"))
         {
             double first = Math::Number::toRadians(config["pitchLimit"][0].get<double>());
@@ -74,7 +78,7 @@ namespace Engine::Sim
         camera.pitchTarget = camera.pitch;
         camera.distanceTarget = camera.distance;
 
-        camera.clampTargetToLimits();
+        camera.clampToLimits();
 
         camera.yaw = camera.yawTarget;
         camera.pitch = camera.pitchTarget;
@@ -84,7 +88,20 @@ namespace Engine::Sim
     }
 
     Matrix Camera::getViewMatrix(const Vector3 &position, const Quaternion &rotation) const
-    {
+    {   
+        /** vorgegebene Funktion
+         * yaw	pitch	Ergebnis	        Blick
+            0°	0°	    (1, 0, 0)	        geradeaus nach vorne
+            90°	0°	    (0, 1, 0)	        nach links
+            0°	45°	    (0,71, 0, -0,71)	schräg nach unten
+            0°	90°	    (0, 0, -1)	        gerade nach unten
+            90°	90°	    (0, 0, -1)	        gerade nach unten
+
+            
+            x = cos(pitch) * cos(yaw)
+            y = cos(pitch) * sin(yaw)
+            z = -sin(pitch)
+         */ 
         Vector3 direction = {std::cos(pitch) * std::cos(yaw), std::cos(pitch) * std::sin(yaw), -std::sin(pitch)};
 
         Vector3 eye = {};
@@ -92,14 +109,14 @@ namespace Engine::Sim
 
         if (type == CameraType::Orbit)
         {
-            // Fest bleibt das Ziel (offset); die Kamera steht im Abstand `distance`
-            // davon entfernt, entgegen der Blickrichtung.
+            // Fest bleibt das Ziel (offset) die Kamera steht im Abstand `distance`
+            // davon entfernt, entgegen der Blickrichtung
             target = offset;
             eye = offset - direction * distance;
         }
         else
         {
-            // Fest bleibt die Position (offset); nur der Blick (direction) dreht sich.
+            // Fest bleibt die Position (offset) nur der Blick (direction) dreht sich
             eye = offset;
             target = offset + direction;
         }
@@ -119,26 +136,34 @@ namespace Engine::Sim
         pitchTarget += InputHandler::getMouseDeltaY() * mouseSensitivity;
         distanceTarget -= InputHandler::getMouseDeltaZ() * distanceTarget * zoomStep;
 
-        clampTargetToLimits();
-
-        // Glättung: der Istwert nähert sich dem Sollwert an, framerate-unabhängig,
-        // weil der aufgeholte Anteil pro Frame von dt abhängt (exponentielles
-        // Herannähern: nach gleicher Zeit immer gleich weit aufgeholt, egal wie
-        // viele Frames dafür gebraucht wurden).
         double factor = 1.0 - std::exp(-smoothingRate * dt);
 
         // Yaw ist zirkulär (kann unbegrenzt wachsen/wrappen): std::remainder liefert
         // den kürzesten Weg zum Ziel, egal wie weit yaw selbst schon gewandert ist.
-        double yawDelta = std::remainder(yawTarget - yaw, 2.0 * std::numbers::pi);
+        double yawDelta = yawTarget - yaw;
         yaw += yawDelta * factor;
-
+        
         pitch += (pitchTarget - pitch) * factor;
         distance += (distanceTarget - distance) * factor;
+
+        clampToLimits();
+
+        // Glättung: der Istwert nähert sich dem Sollwert an, framerate-unabhängig,
+
+
+        //DEBUG
+        if (std::abs(yawDelta) > 0.2 || dt > 0.03)
+        {
+            std::cout << name << " dt=" << dt << " yaw=" << yaw << " target=" << yawTarget
+                    << " delta=" << yawDelta << " pitch=" << pitch << std::endl;
+        }
+
     }
 
-    void Camera::clampTargetToLimits()
+    void Camera::clampToLimits()
     {
-        yawTarget = yawLimited ? std::clamp(yawTarget, yawMin, yawMax) : std::remainder(yawTarget, 2.0 * std::numbers::pi);
+        if (yawLimited) yawTarget = std::clamp(yawTarget, yawMin, yawMax);
+        //yaw = yawLimited ? std::clamp(yaw, yawMin, yawMax) : std::remainder(yaw, 2.0 * std::numbers::pi);
         pitchTarget = std::clamp(pitchTarget, pitchMin, pitchMax);
         distanceTarget = std::clamp(distanceTarget, distanceMin, distanceMax);
     }
