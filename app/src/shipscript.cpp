@@ -18,39 +18,72 @@
  */
 
 #include "app/src/shipscript.h"
-#include "engine/src/core/inputhandler.h"
 
+#include "engine/src/core/inputhandler.h"
 #include "engine/src/math/quaternion.h"
-#include "engine/src/math/vector3.h"
 #include "engine/src/sim/entity.h"
+
+#include <iostream>
 
 using Engine::Core::InputHandler;
 
 using Engine::Math::Quaternion;
-using Engine::Math::Vector3;
 
 namespace App
 {
     void ShipScript::update(Entity &entity, double dt, double t)
     {
-        double rollInput = InputHandler::getAxis("roll");
-        double pitchInput = InputHandler::getAxis("pitch");
-        double yawInput = InputHandler::getAxis("yaw");
+        constexpr double thrust = 20.0;
+        constexpr double angularThrust = 2.0;
+        constexpr double maxVelocity = 20.0;
+        constexpr double maxAngularVelocity = 2.0;
+        constexpr double flightAssistRate = 1.5;
 
-        // ROLL SPEED CALCULATION
-        constexpr double rollSpeed = 1.2;
-        
-        double rollStep = rollInput * rollSpeed * dt;
-        double pitchStep = pitchInput * rollSpeed * dt;
-        double yawStep = yawInput * rollSpeed * dt;
-        
+        Vector3 thrusterInput = {InputHandler::getAxis("thrustX"), InputHandler::getAxis("thrustY"), InputHandler::getAxis("thrustZ")};
+        Vector3 angularThrusterInput = {InputHandler::getAxis("roll"), InputHandler::getAxis("pitch"), InputHandler::getAxis("yaw")};
+
+        Vector3 position = entity.getPosition();
         Quaternion rotation = entity.getRotation();
-        rotation = rotation
-             * Quaternion(Vector3::forward, rollStep)
-             * Quaternion(Vector3::left, pitchStep)
-             * Quaternion(Vector3::up, yawStep);
+
+        Vector3 acceleration = thrusterInput * thrust;
+        Vector3 angularAcceleration = angularThrusterInput * angularThrust;
+
+        if (flightAssist)
+        {
+            // TODO: Zielgeschwindigkeiten aus der Eingabe berechnen.
+            //       acceleration und angularAcceleration aus der Abweichung berechnen.
+            //       Auf thrust und angularThrust begrenzen.
+        }
+
+        velocity = velocity + rotation * acceleration * dt;
+        angularVelocity = angularVelocity + angularAcceleration * dt;
+
+        rotation = rotation * Quaternion(Vector3::forward, angularVelocity.x * dt) * Quaternion(Vector3::left, angularVelocity.y * dt) * Quaternion(Vector3::up, angularVelocity.z * dt);
 
         rotation = Quaternion::normalize(rotation);
+
+        entity.setPosition(position + velocity * dt);
         entity.setRotation(rotation);
+    }
+
+    void ShipScript::load(Entity &entity)
+    {
+        cameraCallbackId = InputHandler::onAction("nextCamera", [&entity]()
+        {
+            entity.nextCamera();
+            std::cout << "+ Switched Camera" << std::endl;
+        });
+
+        flightAssistCallbackId = InputHandler::onAction("toggleFlightAssist", [this]()
+        {
+            flightAssist = !flightAssist;
+            std::cout << "+ Flight Assist: " << (flightAssist ? "ON" : "OFF") << std::endl;
+        });
+    }
+
+    void ShipScript::unload(Entity &entity)
+    {
+        InputHandler::removeCallback(cameraCallbackId);
+        InputHandler::removeCallback(flightAssistCallbackId);
     }
 }

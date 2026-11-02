@@ -27,6 +27,8 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <cstddef>
+#include <map>
 
 namespace Engine::Core
 {
@@ -40,7 +42,8 @@ namespace Engine::Core
         static double getAxis(const std::string &axis);
 
         // Action Handling
-        static void onAction(const std::string &action, std::function<void()> callback);
+        static size_t onAction(const std::string &action, std::function<void()> callback);
+        static void removeCallback(size_t callbackId);
         static void fireAction(const std::string &action);
 
         // Keyboard Support
@@ -53,6 +56,7 @@ namespace Engine::Core
         static void loadGamepadMappings(std::istream &mappings);
         static void registerStickAxis(const std::string &axis, uint32_t input, bool invert = false);
         static void registerButtonAction(const std::string &action, uint32_t button);
+        static void registerTriggerAxis(const std::string &axis, uint32_t negativeTrigger, uint32_t positiveTrigger);
 
         // Mouse Support
         static void cursorPosCallback(double x, double y);
@@ -66,7 +70,8 @@ namespace Engine::Core
         static inline std::unordered_map<std::string, double> axes = {};
 
         // Action Handling
-        static inline std::unordered_map<std::string, std::vector<std::function<void()>>> actionCallbacks = {};
+        static inline std::unordered_map<std::string, std::map<size_t, std::function<void()>>> actionCallbacks = {};
+        static inline size_t nextCallbackId = 1;
 
         // Keyboard Support
         static inline std::array<bool, 349> keyboardState = {};

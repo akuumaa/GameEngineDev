@@ -45,13 +45,6 @@ namespace App
         bool ok = Application::init();
         if (!ok) return false;
 
-        ship = simulation->loadEntity("entities/ship.entity");
-
-        if (!ship) return false;
-
-        ship->setPosition(Vector3(0.0, 0.0, 0.0));
-        ship->addScript(std::make_unique<ShipScript>());
-
         for (const Vector3 &position : {Vector3::forward * 25.0, Vector3::forward * -25.0, Vector3::left * 25.0, Vector3::left * -25.0, Vector3::up * 25.0, Vector3::up * -25.0})
         {
             if (auto cube = simulation->loadEntity("entities/cuberef.entity"))
@@ -60,40 +53,52 @@ namespace App
             }
         }
 
-        // SHIP CAMERA FOCUS
-        ship->setFocus(true);
+        ok = spawnShip();
+        if (!ok) return false;
 
         // SHIP ACTION REGISTRATION
-        InputHandler::registerKeyAction("reset", GLFW_KEY_SPACE);
-        InputHandler::registerKeyAxis("yaw", GLFW_KEY_A, GLFW_KEY_D);
-        InputHandler::registerKeyAxis("pitch", GLFW_KEY_S, GLFW_KEY_W);
         InputHandler::registerKeyAxis("roll", GLFW_KEY_Q, GLFW_KEY_E);
         InputHandler::registerKeyAction("nextCamera", GLFW_KEY_C);
+        InputHandler::registerKeyAxis("thrustX", GLFW_KEY_S, GLFW_KEY_W);
+        InputHandler::registerKeyAxis("thrustY", GLFW_KEY_D, GLFW_KEY_A);
+        InputHandler::registerKeyAxis("thrustZ", GLFW_KEY_LEFT_SHIFT, GLFW_KEY_SPACE);
+        InputHandler::registerKeyAction("respawn", GLFW_KEY_R);
+        InputHandler::registerKeyAction("toggleFlightAssist", GLFW_KEY_TAB);
+        InputHandler::registerButtonAction("toggleFlightAssist", GLFW_GAMEPAD_BUTTON_X);
 
-        InputHandler::registerButtonAction("reset", GLFW_GAMEPAD_BUTTON_A);
         InputHandler::registerStickAxis("pitch", GLFW_GAMEPAD_AXIS_LEFT_Y, true);
         InputHandler::registerStickAxis("roll", GLFW_GAMEPAD_AXIS_LEFT_X);
         InputHandler::registerButtonAction("nextCamera", GLFW_GAMEPAD_BUTTON_BACK);
         InputHandler::registerStickAxis("cameraYaw", GLFW_GAMEPAD_AXIS_RIGHT_X, true);
         InputHandler::registerStickAxis("cameraPitch", GLFW_GAMEPAD_AXIS_RIGHT_Y, true);
+        InputHandler::registerButtonAction("respawn", GLFW_GAMEPAD_BUTTON_A);
+        InputHandler::registerTriggerAxis("thrustX", GLFW_GAMEPAD_AXIS_LEFT_TRIGGER, GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER);
 
         InputHandler::registerKeyAxis("cameraYaw", GLFW_KEY_L, GLFW_KEY_J);
         InputHandler::registerKeyAxis("cameraPitch", GLFW_KEY_I, GLFW_KEY_K);
         InputHandler::registerKeyAxis("cameraZoom", GLFW_KEY_U, GLFW_KEY_O);
 
-        InputHandler::onAction("reset", [this]()
+        InputHandler::onAction("respawn", [this]()
         {
-            ship->setRotation({});
-        });
-
-        InputHandler::onAction("nextCamera", [this]()
-        {
-            ship->nextCamera();
+            if (ship) simulation->unloadEntity(ship->getEntityId());
+            spawnShip();
         });
 
         std::chrono::duration<double> startupTime = std::chrono::steady_clock::now() - start;
         std::cout << "+ Startup time: " << startupTime.count() << " s" << std::endl;
 
+        return true;
+    }
+
+    bool MyGame::spawnShip()
+    {
+        ship = simulation->loadEntity("entities/ship.entity");
+        if (!ship) return false;
+
+        ship->setPosition(Vector3(0.0, 0.0, 0.0));
+        ship->addScript(std::make_unique<ShipScript>());
+
+        ship->setFocus(true);
         return true;
     }
 }
