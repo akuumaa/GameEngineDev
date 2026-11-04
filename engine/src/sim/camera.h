@@ -20,13 +20,18 @@
 #pragma once
 
 #include "engine/src/math/matrix.h"
+#include "engine/src/math/quaternion.h"
 #include "engine/src/math/vector3.h"
 #include "engine/src/math/quaternion.h"
 
 #include <json_fwd.hpp>
 #include <string>
 
+#include <json_fwd.hpp>
+#include <string>
+
 using Engine::Math::Matrix;
+using Engine::Math::Quaternion;
 using Engine::Math::Vector3;
 using Engine::Math::Quaternion;
 
