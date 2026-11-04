@@ -2,12 +2,20 @@
   "$schema": "../../engine/schemas/input.schema",
   "actions": {
     "reset": {
-      "keys": [],
-      "buttons": []
+      "keys": ["P"],
+      "buttons": [8]
+    },
+    "respawn": {
+      "keys": ["R"],
+      "buttons": [0]
     },
     "nextCamera": {
       "keys": ["C"],
       "buttons": [6]
+    },
+    "toggleFlightAssist": {
+      "keys": ["TAB"],
+      "buttons": [2]
     }
   },
   "axes": {
@@ -37,12 +45,13 @@
         { "negative": "S", "positive": "W" }
       ],
       "gamepad": [
-        { "axis": 0 }
+        { "axis": 4, "invert": true },
+        { "axis": 5, "invert": false }
       ]
     },
     "thrustY": {
       "keys": [
-        { "negative": "A", "positive": "D" }
+        { "negative": "D", "positive": "A" }
       ],
       "gamepad": [
         { "axis": 1 }

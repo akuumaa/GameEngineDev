@@ -2,7 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
- * Copyright © 2026 Tom Kertels
+ * Copyright © 2026 Tom Kertels, Alexander Mutig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,5 +38,6 @@ namespace App
 
       private:
         std::shared_ptr<Entity> ship = {};
+        bool spawnShip();
     };
 }

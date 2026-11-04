@@ -27,6 +27,7 @@
 
 #include <chrono>
 #include <iostream>
+#include <memory>
 
 using Engine::Core::InputHandler;
 using Engine::Math::Vector3;
@@ -48,21 +49,20 @@ namespace App
 
         if (!Engine::Core::InputMapper::loadMappings("input.json")) return false;
 
-        ship = simulation->loadEntity("entities/ship.entity");
-        if (!ship) return false;
+        ok = spawnShip();
+        if (!ok) return false;
 
-        ship->setFocus(true);
-
-        InputHandler::onAction("nextCamera", [this]()
+        InputHandler::onAction("reset", [this]()
         {
-            ship->nextCamera();
+            if (ship) simulation->unloadEntity(ship->getEntityId());
+            spawnShip();
         });
 
-        ship->setPosition(Vector3(0.0, 0.0, 0.0));
-
-        auto shipScript = std::make_unique<ShipScript>();
-        ShipScript *shipScriptPtr = shipScript.get();
-        ship->addScript(std::move(shipScript));
+        InputHandler::onAction("respawn", [this]()
+        {
+            if (ship) simulation->unloadEntity(ship->getEntityId());
+            spawnShip();
+        });
 
         for (const Vector3 &position : {Vector3::forward * 25.0, Vector3::forward * -25.0, Vector3::left * 25.0, Vector3::left * -25.0, Vector3::up * 25.0, Vector3::up * -25.0})
         {
@@ -75,6 +75,18 @@ namespace App
         std::chrono::duration<double> startupTime = std::chrono::steady_clock::now() - start;
         std::cout << "+ Startup time: " << startupTime.count() << " s" << std::endl;
 
+        return true;
+    }
+
+    bool MyGame::spawnShip()
+    {
+        ship = simulation->loadEntity("entities/ship.entity");
+        if (!ship) return false;
+
+        ship->setPosition(Vector3(0.0, 0.0, 0.0));
+        ship->addScript(std::make_unique<ShipScript>());
+
+        ship->setFocus(true);
         return true;
     }
 }

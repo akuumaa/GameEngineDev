@@ -24,6 +24,9 @@
 #include "engine/src/math/quaternion.h"
 #include "engine/src/sim/entity.h"
 
+#include <iostream>
+#include <ostream>
+
 using Engine::Core::InputHandler;
 using Engine::Math::Quaternion;
 
@@ -37,6 +40,10 @@ namespace App
 
         constexpr double thrust = 20.0;
         constexpr double angularThrust = 2.0;
+        constexpr double maxVelocity = 20.0;
+        constexpr double maxAngularVelocity = 2.0;
+        constexpr double flightAssistRate = 1.5;
+    
 
         Vector3 thrusterInput = {InputHandler::getAxis("thrustX"),
                                  InputHandler::getAxis("thrustY"),
@@ -56,6 +63,30 @@ namespace App
         Vector3 acceleration = thrusterInput * thrust;
         Vector3 angularAcceleration = angularThrusterInput * angularThrust;
 
+        if (flightAssist)
+        {
+            const Vector3 targetVelocity = rotation * (thrusterInput * maxVelocity);
+            const Vector3 targetAngularVelocity = angularThrusterInput * maxAngularVelocity;
+
+            acceleration = (targetVelocity - velocity) * flightAssistRate;
+            angularAcceleration = (targetAngularVelocity - angularVelocity) * flightAssistRate;
+
+            const double accelerationMagnitude = acceleration.length();
+            if (accelerationMagnitude > thrust)
+            {
+                acceleration = acceleration * (thrust / accelerationMagnitude);
+            }
+
+            const double angularAccelerationMagnitude = angularAcceleration.length();
+            if (angularAccelerationMagnitude > angularThrust)
+            {
+                angularAcceleration = angularAcceleration * (angularThrust / angularAccelerationMagnitude);
+            }
+        }
+
+        velocity = velocity + acceleration * dt;
+        angularVelocity = angularVelocity + angularAcceleration * dt;
+
         rotation = rotation
                 * Quaternion(Vector3::forward, angularVelocity.x * dt)
                 * Quaternion(Vector3::left, angularVelocity.y * dt)
@@ -65,5 +96,26 @@ namespace App
 
         entity.setPosition(position + velocity * dt);
         entity.setRotation(rotation);
+    }
+
+    void ShipScript::load(Entity &entity)
+    {   
+        cameraCallbackId = InputHandler::onAction("nextCamera", [&entity]()
+        {
+            entity.nextCamera();
+            std::cout << "+ Switch to camera " << std::endl;
+        });
+
+        flightAssistCallbackId = InputHandler::onAction("toggleFlightAssist", [this]()
+        {
+            flightAssist = !flightAssist;
+            std::cout << "+ Flight Assist " << (flightAssist ? "ON" : "OFF") << std::endl;
+        });
+    }
+
+    void ShipScript::unload(Entity &entity)
+    {
+        InputHandler::removeCallback(cameraCallbackId);
+        InputHandler::removeCallback(flightAssistCallbackId);
     }
 }

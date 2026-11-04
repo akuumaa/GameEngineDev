@@ -41,7 +41,13 @@ SRC=$(wildcard ${ENGINEPATH}/src/*/*.cpp ${APPPATH}/*.cpp ${APPPATH}/src/*.cpp)
 OBJ=$(SRC:%.cpp=obj/%.o)
 DEP=$(OBJ:.o=.d)
 
-bin/mygame: ${OBJ}
+ifeq ($(System), Windows)
+TARGET := bin/mygame.exe
+else
+TARGET := bin/mygame
+endif
+
+$(TARGET): ${OBJ}
 	@echo Linking $@ ...
 	@mkdir -p $(dir $@)
 	@$(CXX) $^ -o $@ $(LIB) $(LNK) $(OPT)
@@ -51,7 +57,7 @@ obj/%.o: %.cpp
 	@mkdir -p $(dir $@)
 	@$(CXX) -MMD -MP -MF $(@:.o=.d) -c $< -o $@ $(INC) $(OPT)
 
-run: bin/mygame
+run: $(TARGET)
 	@echo Running $< ...
 	@./$< "$(CURDIR)/app/assets"
 
