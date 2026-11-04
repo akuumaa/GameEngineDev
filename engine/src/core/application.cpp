@@ -60,10 +60,9 @@ namespace Engine::Core
 
     bool Application::init()
     {
-        assetRoot = settings.assetRoot;
-
         try
         {
+            assetRoot = settings.assetRoot;
             frontCommandBuffer = std::make_unique<CommandBuffer>();
             backCommandBuffer = std::make_unique<CommandBuffer>();
 
@@ -89,6 +88,7 @@ namespace Engine::Core
 
     bool Application::run()
     {
+
         try
         {
             std::chrono::steady_clock::time_point lastFrame = std::chrono::steady_clock::now();

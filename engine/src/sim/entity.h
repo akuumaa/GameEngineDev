@@ -23,6 +23,7 @@
 #include "engine/src/math/matrix.h"
 #include "engine/src/math/quaternion.h"
 #include "engine/src/math/vector3.h"
+#include "engine/src/sim/camera.h"
 #include "engine/src/sim/script.h"
 #include "engine/src/video/renderer.h"
 #include "engine/src/sim/camera.h"
@@ -44,6 +45,9 @@ namespace Engine::Sim
     class Entity
     {
       public:
+        void nextCamera();
+
+        Camera *getActiveCamera();
         Entity() = default;
         Entity(const Vector3 &position, const Quaternion &rotation = {})
             : position(position), rotation(rotation)
@@ -57,8 +61,6 @@ namespace Engine::Sim
 
         void commit(CommandBuffer &commandBuffer) const;
 
-        void nextCamera();
-        Camera *getActiveCamera();
 
         Vector3 getPosition() { return position; }
         void setPosition(const Vector3 &p) { position = p; }

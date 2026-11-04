@@ -19,8 +19,11 @@
 
 #pragma once
 
+#include "app/src/physics/waterphysics.h"
+#include "engine/src/math/vector3.h"
 #include "engine/src/sim/script.h"
 
+using Engine::Math::Vector3;
 using Engine::Sim::Entity;
 using Engine::Sim::Script;
 
@@ -30,6 +33,17 @@ namespace App
     {
       public:
         void update(Entity &entity, double dt, double t) override;
+        void load(Entity &entity) override;
+        void unload(Entity &entity) override;
+
+      private:
+        Vector3 velocity = {};
+        Vector3 angularVelocity = {};
+        size_t cameraCallbackId = 0;
+        bool flightAssist = true;
+        size_t flightAssistCallbackId = 0;
+        WaterPhysics waterPhysics;
+        double physicsDebugTimer = 0.0;
 
         double rotationSpeed = 2.0;
     };

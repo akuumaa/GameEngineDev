@@ -58,6 +58,15 @@ namespace Engine::Sim
             }
         }
 
+        if (config.contains("cameras"))
+        {
+            for (const auto &entry : config["cameras"])
+            {
+                Camera camera = Camera::create(entry);
+                cameras.push_back(camera);
+            }
+        }
+
         for (const auto &entry : config["models"])
         {
             std::string model = {};

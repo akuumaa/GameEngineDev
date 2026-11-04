@@ -29,6 +29,16 @@
 
 using Engine::Core::InputHandler;
 
+#include "engine/src/core/inputhandler.h"
+#include "engine/src/math/number.h"
+
+#include <algorithm>
+#include <cmath>
+#include <json.hpp>
+#include <numbers>
+
+using Engine::Core::InputHandler;
+
 namespace Engine::Sim
 {
     Camera Camera::create(const Json &config)
@@ -146,4 +156,5 @@ namespace Engine::Sim
 
         return Matrix::lookAt(eye, target) * (-rotation).toMatrix() * Matrix::translation(-position);
     }
+
 }

@@ -1,8 +1,9 @@
+
 /**
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
- * Copyright © 2026 Tom Kertels
+ * Copyright © 2026 Stefan Ganswint
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +20,6 @@
  */
 
 #include "app/src/mygame.h"
-
 #include "app/src/shipscript.h"
 #include "engine/src/core/inputMapper.h"
 #include "engine/src/core/inputhandler.h"
@@ -27,6 +27,7 @@
 
 #include <chrono>
 #include <iostream>
+#include <memory>
 
 using Engine::Core::InputHandler;
 using Engine::Math::Vector3;
@@ -41,35 +42,33 @@ namespace App
 
     bool MyGame::init()
     {
-        std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+        std::chrono::steady_clock::time_point start =
+            std::chrono::steady_clock::now();
 
+        // Initialize engine systems
         bool ok = Application::init();
-        if (!ok) return false;
-
-        if (!Engine::Core::InputMapper::loadMappings("input.json")) return false;
-
-        ship = simulation->loadEntity("entities/ship.entity");
-        if (!ship) return false;
-
-        ship->setFocus(true);
-
-        InputHandler::onAction("reset", [this]()
+        if (!ok)
         {
-            ship->setRotation({});
-        });
+            return false;
+        }
 
-        InputHandler::onAction("nextCamera", [this]()
+        // Load all keyboard and gamepad mappings
+        if (!Engine::Core::InputMapper::loadMappings("input.json"))
         {
-            ship->nextCamera();
-        });
+            std::cerr << "! Failed to load input mappings"
+                      << std::endl;
+            return false;
+        }
 
-        ship->setPosition(Vector3(0.0, 0.0, 0.0));
-
-        auto shipScript = std::make_unique<ShipScript>();
-        ShipScript *shipScriptPtr = shipScript.get();
-        ship->addScript(std::move(shipScript));
-
-        for (const Vector3 &position : {Vector3::forward * 25.0, Vector3::forward * -25.0, Vector3::left * 25.0, Vector3::left * -25.0, Vector3::up * 25.0, Vector3::up * -25.0})
+        // World Setup
+        for (const Vector3 &position : {
+            Vector3::forward * 25.0,
+            Vector3::forward * -25.0,
+            Vector3::left * 25.0,
+            Vector3::left * -25.0,
+            Vector3::up * 25.0,
+            Vector3::up * -25.0
+        })
         {
             if (auto cube = simulation->loadEntity("entities/cuberef.entity"))
             {
@@ -77,9 +76,56 @@ namespace App
             }
         }
 
-        std::chrono::duration<double> startupTime = std::chrono::steady_clock::now() - start;
-        std::cout << "+ Startup time: " << startupTime.count() << " s" << std::endl;
+        std::chrono::duration<double> startupTime =
+            std::chrono::steady_clock::now() - start;
 
+        std::cout
+            << "+ Startup time: "
+            << startupTime.count()
+            << " s"
+            << std::endl;
+
+
+        //! Spawn Ship
+        ok = spawnShip();
+        if (!ok) return false;
+
+        //! Respawn Callback 
+        // Remvoe the exsisting ship and create a new instance
+        // when the respawn action is triggered
+        InputHandler::onAction("respawn", [this]()
+        {
+            if (ship)
+            {
+                simulation->unloadEntity(ship->getEntityId());
+                ship = nullptr;
+            }
+
+            if (!spawnShip())
+            {
+                std::cerr << "! Failed to respawn ship"
+                          << std::endl;
+            }
+        });
+
+        return true;
+    }
+
+
+    //! Spawn Ship
+    bool MyGame::spawnShip()
+    {
+        ship = simulation->loadEntity("entities/ship.entity");
+        if (!ship) return false;
+
+        // Set initial position
+        ship->setPosition(Vector3(0.0, 0.0, 0.0));
+
+        // Attach movement and physics script to the ship entity
+        ship->addScript(std::make_unique<ShipScript>());
+
+        // Set ship as the active focus entity
+        ship->setFocus(true);
         return true;
     }
 }

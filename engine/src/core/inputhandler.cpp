@@ -73,6 +73,21 @@ namespace Engine::Core
                 }
             }
 
+            // Gamepad Trigger Axis Updating
+            for (const auto &[axis, mappings] : triggerAxes)
+            {
+                for (auto [negativeTrigger, positiveTrigger] : mappings)
+                {
+                    if (negativeTrigger >= GLFW_GAMEPAD_AXIS_LAST + 1) continue;
+                    if (positiveTrigger >= GLFW_GAMEPAD_AXIS_LAST + 1) continue;
+
+                    double negativeValue = (gamepad.axes[negativeTrigger] + 1.0) / 2.0;
+                    double positiveValue = (gamepad.axes[positiveTrigger] + 1.0) / 2.0;
+
+                    axes[axis] += positiveValue - negativeValue;
+                }
+            }
+
             // Gamepad Button Updating
             for (const auto &[button, actions] : gamepadActions)
             {
@@ -123,6 +138,22 @@ namespace Engine::Core
         mouseMovementX = 0.0;
         mouseMovementY = 0.0;
         mouseMovementZ = 0.0;
+
+        // Gamepad Button Axis Updating
+        for (const auto &[axis, mappings] : gamepadButtonAxes)
+        {
+            for (auto [negativeButton, positiveButton] : mappings)
+            {
+                if (negativeButton >= GLFW_GAMEPAD_BUTTON_LAST + 1) continue;
+                if (positiveButton >= GLFW_GAMEPAD_BUTTON_LAST + 1) continue;
+
+                if (gamepad.buttons[positiveButton] == GLFW_PRESS)
+                    axes[axis] += 1.0;
+
+                if (gamepad.buttons[negativeButton] == GLFW_PRESS)
+                    axes[axis] -= 1.0;
+            }
+        }
     }
 
     double InputHandler::getAxis(const std::string &axis)
@@ -131,9 +162,22 @@ namespace Engine::Core
     }
 
     /* BEGIN ACTION FUNCTIONS */
-    void InputHandler::onAction(const std::string &action, std::function<void()> callback)
+
+    size_t InputHandler::onAction(const std::string &action, std::function<void()> callback)
     {
-        actionCallbacks[action].push_back(std::move(callback));
+        size_t callbackId = nextCallbackId++;
+
+        actionCallbacks[action][callbackId] = std::move(callback);
+
+        return callbackId;
+    }
+
+    void InputHandler::removeCallback(size_t callbackId)
+    {
+        for (auto &[action, callbacks] : actionCallbacks)
+        {
+            callbacks.erase(callbackId);
+        }
     }
 
     void InputHandler::onActionRelease(const std::string &action, std::function<void()> callback)
@@ -143,9 +187,10 @@ namespace Engine::Core
 
     void InputHandler::fireAction(const std::string &action)
     {
-        if (auto entry = actionCallbacks.find(action); entry != actionCallbacks.end())
+        if (auto entry = actionCallbacks.find(action);
+            entry != actionCallbacks.end())
         {
-            for (const auto &callback : entry->second)
+            for (const auto &[callbackId, callback] : entry->second)
             {
                 callback();
             }
@@ -242,6 +287,30 @@ namespace Engine::Core
     void InputHandler::registerButtonAction(const std::string &action, uint32_t button)
     {
         gamepadActions[button].push_back(action);
+    }
+
+    void InputHandler::registerTriggerAxis(
+        const std::string &axis,
+        uint32_t negativeTrigger,
+        uint32_t positiveTrigger
+    )
+    {
+        if (negativeTrigger >= GLFW_GAMEPAD_AXIS_LAST + 1) return;
+        if (positiveTrigger >= GLFW_GAMEPAD_AXIS_LAST + 1) return;
+
+        triggerAxes[axis].push_back({negativeTrigger, positiveTrigger});
+    }
+
+    void InputHandler::registerButtonAxis(
+        const std::string &axis,
+        uint32_t negativeButton,
+        uint32_t positiveButton
+    )
+    {
+        if (negativeButton >= GLFW_GAMEPAD_BUTTON_LAST + 1) return;
+        if (positiveButton >= GLFW_GAMEPAD_BUTTON_LAST + 1) return;
+
+        gamepadButtonAxes[axis].push_back({negativeButton, positiveButton});
     }
 
     /* BEGIN MOUSE FUNCTIONS */
