@@ -153,9 +153,9 @@ namespace Engine::Core
 
     void InputHandler::fireAction(const std::string &action)
     {
-        std::map<size_t, std::function<void()>> callbabacks = actionCallbacks[action];
+        std::map<size_t, std::function<void()>> callbacks = actionCallbacks[action];
 
-        for (const auto &[callbackId, callback] : callbabacks)
+        for (const auto &[callbackId, callback] : callbacks)
         {
             if (!actionCallbacks[action].contains(callbackId)) continue;
             callback();
