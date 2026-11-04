@@ -2,7 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
- * Copyright © 2026 Tom Kertels
+ * Copyright © 2026 Tom Kertels, Alexander Mutig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,11 +23,9 @@
 #include "engine/src/core/inputhandler.h"
 #include "engine/src/math/quaternion.h"
 #include "engine/src/sim/entity.h"
-#include "engine/src/math/vector3.h"
 
 using Engine::Core::InputHandler;
 using Engine::Math::Quaternion;
-using Engine::Math::Vector3;
 
 namespace App
 {
@@ -37,18 +35,35 @@ namespace App
         double pitchInput = InputHandler::getAxis("pitch");
         double yawInput = InputHandler::getAxis("yaw");
 
+        constexpr double thrust = 20.0;
+        constexpr double angularThrust = 2.0;
+
+        Vector3 thrusterInput = {InputHandler::getAxis("thrustX"),
+                                 InputHandler::getAxis("thrustY"),
+                                 InputHandler::getAxis("thrustZ")};
+
+        Vector3 angularThrusterInput = {InputHandler::getAxis("roll"),
+                                        InputHandler::getAxis("pitch"),
+                                        InputHandler::getAxis("yaw")};                       
+
         double pitchStep = pitchInput * dt * rotationSpeed;
         double yawStep   = yawInput * dt * rotationSpeed;
         double rollStep  = rollInput * dt * rotationSpeed;
 
+        Vector3 position = entity.getPosition();
         Quaternion rotation = entity.getRotation();
+
+        Vector3 acceleration = thrusterInput * thrust;
+        Vector3 angularAcceleration = angularThrusterInput * angularThrust;
+
         rotation = rotation
-                * Quaternion(Vector3::forward, rollStep)
-                * Quaternion(Vector3::left, pitchStep)
-                * Quaternion(Vector3::up, yawStep);
+                * Quaternion(Vector3::forward, angularVelocity.x * dt)
+                * Quaternion(Vector3::left, angularVelocity.y * dt)
+                * Quaternion(Vector3::up, angularVelocity.z * dt);
 
         rotation = Quaternion::normalize(rotation);
 
+        entity.setPosition(position + velocity * dt);
         entity.setRotation(rotation);
     }
 }

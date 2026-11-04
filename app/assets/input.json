@@ -2,8 +2,8 @@
   "$schema": "../../engine/schemas/input.schema",
   "actions": {
     "reset": {
-      "keys": ["SPACE"],
-      "buttons": [0]
+      "keys": [],
+      "buttons": []
     },
     "nextCamera": {
       "keys": ["C"],
@@ -18,7 +18,6 @@
     },
     "pitch": {
       "keys": [
-        { "negative": "S", "positive": "W" },
         { "negative": "DOWN", "positive": "UP" }
       ],
       "gamepad": [
@@ -27,11 +26,34 @@
     },
     "roll": {
       "keys": [
-        { "negative": "A", "positive": "D" },
         { "negative": "LEFT", "positive": "RIGHT" }
       ],
       "gamepad": [
         { "axis": 0 }
+      ]
+    },
+    "thrustX": {
+      "keys": [
+        { "negative": "S", "positive": "W" }
+      ],
+      "gamepad": [
+        { "axis": 0 }
+      ]
+    },
+    "thrustY": {
+      "keys": [
+        { "negative": "A", "positive": "D" }
+      ],
+      "gamepad": [
+        { "axis": 1 }
+      ]
+    },
+    "thrustZ": {
+      "keys": [
+        { "negative": "LEFT_SHIFT", "positive": "SPACE" }
+      ],
+      "gamepad": [
+        { "axis": 2 }
       ]
     },
     "cameraYaw": {

@@ -1,7 +1,7 @@
 /**
  * Game Engine Development
  * Technische Hochschule Mittelhessen
- * Copyright © 2021-2026 Tobias Reimann
+ * Copyright © 2021-2026 Tobias Reimann, Alexander Mutig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,9 +20,11 @@
 #pragma once
 
 #include "engine/src/sim/script.h"
+#include "engine/src/math/vector3.h"
 
 using Engine::Sim::Entity;
 using Engine::Sim::Script;
+using Engine::Math::Vector3;
 
 namespace App
 {
@@ -32,5 +34,9 @@ namespace App
         void update(Entity &entity, double dt, double t) override;
 
         double rotationSpeed = 2.0;
+
+      private:
+        Vector3 velocity = {};
+        Vector3 angularVelocity = {};
     };
 }
