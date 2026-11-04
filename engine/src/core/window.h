@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
+ * Copyright © 2026 Tom Kertels
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,5 +39,7 @@ namespace Engine::Core
 
       private:
         GLFWwindow *window = nullptr;
+        double mouseLastX = 0.0;
+        double mouseLastY = 0.0;
     };
 }

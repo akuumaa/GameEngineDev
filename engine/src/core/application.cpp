@@ -18,6 +18,7 @@
  */
 
 #include "engine/src/core/application.h"
+#include "engine/src/core/inputhandler.h"
 
 #include "engine/src/core/inputhandler.h"
 
@@ -69,6 +70,7 @@ namespace Engine::Core
 
             window.emplace(settings);
 
+            // LOADING OF GAMEPAD MAPPINGS
             if (std::unique_ptr<std::istream> mappings = load("gamecontrollerdb.txt"))
             {
                 InputHandler::loadGamepadMappings(*mappings);
@@ -114,6 +116,9 @@ namespace Engine::Core
                 double t = utc.count();
 
                 double dt = frameTime.count();
+                
+                // InputHandler Updating
+                InputHandler::update();
 
                 InputHandler::update();
 

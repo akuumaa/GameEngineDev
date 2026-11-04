@@ -50,7 +50,6 @@ namespace Engine::Sim
 
         double elapsedTime = 0.0;
 
-
         size_t nextEntityId = 1;
         std::unordered_map<size_t, std::shared_ptr<Entity>> entities = {};
     };

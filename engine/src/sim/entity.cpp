@@ -48,6 +48,15 @@ namespace Engine::Sim
             std::cout << "! Failed to read entity " + filename + ": no models" << std::endl;
             return false;
         }
+            
+        if (config.contains("cameras"))
+        {
+            for (const auto &entry : config["cameras"])
+            {
+                Camera camera = Camera::create(entry);
+                cameras.push_back(camera);
+            }
+        }
 
         if (config.contains("cameras"))
         {
@@ -121,12 +130,6 @@ namespace Engine::Sim
         }
     }
 
-    Camera *Entity::getActiveCamera()
-    {
-        if (cameras.empty()) return nullptr;
-        return &cameras[activeCamera];
-    }
-
     void Entity::commit(CommandBuffer &commandBuffer) const
     {
         Matrix entityTransform = Matrix::translation(position) * rotation.toMatrix() * Matrix::scale(scale);
@@ -149,5 +152,13 @@ namespace Engine::Sim
     {
         if (cameras.empty()) return;
         activeCamera = (activeCamera + 1) % cameras.size();
+        cameras[activeCamera].reset();
     }
+
+    Camera *Entity::getActiveCamera()
+    {
+        if (cameras.empty()) return nullptr;
+        return &cameras[activeCamera];
+    }
+
 }

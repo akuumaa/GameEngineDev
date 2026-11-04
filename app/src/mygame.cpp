@@ -3,6 +3,7 @@
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
  * Copyright © 2026 Stefan Ganswint
+ * Copyright © 2026 Tom Kertels
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +21,7 @@
 
 #include "app/src/mygame.h"
 #include "app/src/shipscript.h"
+#include "engine/src/core/inputMapper.h"
 #include "engine/src/core/inputhandler.h"
 #include "engine/src/math/vector3.h"
 #include <GLFW/glfw3.h>
@@ -34,7 +36,7 @@ namespace App
     MyGame::MyGame(int argc, char *argv[])
         : Application(argc, argv)
     {
-        settings.title = "My Game";
+        settings.title = "Awesome Game";
     }
 
     bool MyGame::init()
@@ -63,6 +65,28 @@ namespace App
         // Toggle Flight Assist
         InputHandler::registerKeyAction("toggleFlightAssist", GLFW_KEY_TAB);
         InputHandler::registerButtonAction("toggleFlightAssist", GLFW_GAMEPAD_BUTTON_X);
+        if (!Engine::Core::InputMapper::loadMappings("input.json")) return false;
+
+        ship = simulation->loadEntity("entities/ship.entity");
+        if (!ship) return false;
+
+        ship->setFocus(true);
+
+        InputHandler::onAction("reset", [this]()
+        {
+            ship->setRotation({});
+        });
+
+        InputHandler::onAction("nextCamera", [this]()
+        {
+            ship->nextCamera();
+        });
+
+        ship->setPosition(Vector3(0.0, 0.0, 0.0));
+
+        auto shipScript = std::make_unique<ShipScript>();
+        ShipScript *shipScriptPtr = shipScript.get();
+        ship->addScript(std::move(shipScript));
 
         // Respawn
         InputHandler::registerKeyAction("respawn", GLFW_KEY_R);

@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
+ * Copyright © 2026 Tom Kertels
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,12 +23,14 @@
 #include "engine/src/core/inputhandler.h"
 #include "engine/src/math/quaternion.h"
 #include "engine/src/sim/entity.h"
+#include "engine/src/math/vector3.h"
 
 #include <iomanip>
 #include <iostream>
 
 using Engine::Core::InputHandler;
 using Engine::Math::Quaternion;
+using Engine::Math::Vector3;
 
 namespace App
 {
@@ -127,6 +130,22 @@ namespace App
 
         // Apply Calculated transform
         entity.setPosition(newPosition);
+        double rollInput = InputHandler::getAxis("roll");
+        double pitchInput = InputHandler::getAxis("pitch");
+        double yawInput = InputHandler::getAxis("yaw");
+
+        double pitchStep = pitchInput * dt * rotationSpeed;
+        double yawStep   = yawInput * dt * rotationSpeed;
+        double rollStep  = rollInput * dt * rotationSpeed;
+
+        Quaternion rotation = entity.getRotation();
+        rotation = rotation
+                * Quaternion(Vector3::forward, rollStep)
+                * Quaternion(Vector3::left, pitchStep)
+                * Quaternion(Vector3::up, yawStep);
+
+        rotation = Quaternion::normalize(rotation);
+
         entity.setRotation(rotation);
 
         //! Physics Debug Output

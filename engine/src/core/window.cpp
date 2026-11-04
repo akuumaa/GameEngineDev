@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
+ * Copyright © 2026 Tom Kertels
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,6 +80,12 @@ namespace Engine::Core
             InputHandler::keyCallback(key, scancode, mods, action == GLFW_PRESS);
         });
 
+        // Mouse Callback registration
+        glfwSetMouseButtonCallback(window, [](GLFWwindow *window, int button, int action, int mods)
+        {
+            InputHandler::mouseButtonCallback(button, action == GLFW_PRESS);
+        });
+
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
         glfwSetCursorPosCallback(window, [](GLFWwindow *window, double x, double y)
@@ -94,9 +101,17 @@ namespace Engine::Core
 
         InputHandler::registerKeyAction("quit", GLFW_KEY_ESCAPE);
 
+        // KEY & BUTTON ACTION REGISTRATION
+        InputHandler::registerKeyAction("quit", GLFW_KEY_ESCAPE);
+        InputHandler::registerButtonAction("quit", GLFW_GAMEPAD_BUTTON_START);
         InputHandler::onAction("quit", [this]()
         {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
+        });
+
+        glfwSetScrollCallback(window, [](GLFWwindow *window, double x, double y)
+        {
+            InputHandler::scrollCallback(x, y);
         });
     }
 

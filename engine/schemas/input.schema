@@ -1,0 +1,132 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Input Map",
+  "description": "Maps keyboard keys, gamepad buttons, and mouse buttons to actions and axes.",
+  "type": "object",
+  "definitions": {
+    "key": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^([A-Z]|[0-9]|SPACE|APOSTROPHE|COMMA|MINUS|PERIOD|SLASH|SEMICOLON|EQUAL|LEFT_BRACKET|BACKSLASH|RIGHT_BRACKET|GRAVE_ACCENT|WORLD_[12]|ESCAPE|ENTER|TAB|BACKSPACE|INSERT|DELETE|RIGHT|LEFT|DOWN|UP|PAGE_UP|PAGE_DOWN|HOME|END|CAPS_LOCK|SCROLL_LOCK|NUM_LOCK|PRINT_SCREEN|PAUSE|F([1-9]|1[0-9]|2[0-5])|KP_([0-9]|DECIMAL|DIVIDE|MULTIPLY|SUBTRACT|ADD|ENTER|EQUAL)|LEFT_SHIFT|LEFT_CONTROL|LEFT_ALT|LEFT_SUPER|RIGHT_SHIFT|RIGHT_CONTROL|RIGHT_ALT|RIGHT_SUPER|MENU)$"
+        },
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 348
+        }
+      ]
+    }
+  },
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "actions": {
+      "type": "object",
+      "description": "Action names and the keyboard keys or gamepad buttons that trigger them.",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "keys": {
+            "type": "array",
+            "description": "Keyboard key names such as C, SPACE, TAB, LEFT, and F1.",
+            "items": {
+              "$ref": "#/definitions/key"
+            },
+            "minItems": 1
+          },
+          "buttons": {
+            "type": "array",
+            "description": "GLFW gamepad button codes.",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 14
+            },
+            "minItems": 1
+          },
+          "mouseButtons": {
+            "type": "array",
+            "description": "GLFW mouse button codes.",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 7
+            },
+            "minItems": 1
+          }
+        },
+        "additionalProperties": false,
+        "minProperties": 1
+      }
+    },
+    "axes": {
+      "type": "object",
+      "description": "Named axes that combine keyboard key pairs and gamepad stick axes.",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "keys": {
+            "type": "array",
+            "description": "Keyboard key pairs. Holding the negative key decreases the axis; holding the positive key increases it.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "negative": {
+                  "$ref": "#/definitions/key"
+                },
+                "positive": {
+                  "$ref": "#/definitions/key"
+                }
+              },
+              "additionalProperties": false,
+              "required": ["negative", "positive"]
+            },
+            "minItems": 1
+          },
+          "gamepad": {
+            "type": "array",
+            "description": "Gamepad stick axes to combine for this axis.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "axis": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 5
+                },
+                "invert": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false,
+              "required": ["axis"]
+            },
+            "minItems": 1
+          }
+        },
+        "additionalProperties": false,
+        "anyOf": [
+          {
+            "required": ["keys"],
+            "properties": {
+              "keys": { "minItems": 1 }
+            }
+          },
+          {
+            "required": ["gamepad"],
+            "properties": {
+              "gamepad": { "minItems": 1 }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "additionalProperties": false,
+  "anyOf": [
+    { "required": ["actions"] },
+    { "required": ["axes"] }
+  ]
+}
