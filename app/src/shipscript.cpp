@@ -23,26 +23,26 @@
 #include "engine/src/math/quaternion.h"
 #include "engine/src/sim/entity.h"
 
-#include <cmath>
 #include <iomanip>
 #include <iostream>
 
 using Engine::Core::InputHandler;
-
 using Engine::Math::Quaternion;
 
 namespace App
 {
 
+    //! Ship Movement and Physics
     void ShipScript::update(Entity &entity, double dt, double t)
     {
-
+        //! Movement Settings
         constexpr double thrust = 20.0;
         constexpr double angularThrust = 2.0;
         constexpr double maxVelocity = 20.0;
         constexpr double maxAngularVelocity = 2.0;
         constexpr double flightAssistRate = 1.5;
 
+        //! Input
         Vector3 thrusterInput = {
             InputHandler::getAxis("thrustX"),
             InputHandler::getAxis("thrustY"),
@@ -54,33 +54,30 @@ namespace App
             InputHandler::getAxis("yaw")
         };
 
+        //! Current Transform
         Vector3 position = entity.getPosition();
         Quaternion rotation = entity.getRotation();
 
-        // Ballasttank steuern
+        //! Water Physics
+        // Update ballast tank water level
         double ballastInput = InputHandler::getAxis("ballast");
 
         waterPhysics.changeWaterLevel(ballastInput, dt);
 
-        // Vertikalschub über Leertaste / Strg / Bumper
+        // Calculate vertical movement using buoyancy and water resistance
         double verticalInput = InputHandler::getAxis("thrustZ");
 
-        // Vertikale Verschiebung berechnen
         double verticalMovement =
             waterPhysics.updateVertical(verticalInput, dt);
 
-        // Mit der bisherigen Bewegung kombinieren
-        Vector3 newPosition =
-            position + velocity * dt + Vector3::up * verticalMovement;
-
-        entity.setPosition(newPosition);
-        entity.setRotation(rotation);
-
+        // Vertical movement is handled exclusively by WaterPhysics
         thrusterInput.z = 0.0;
 
+        //! Movement Acceleration
         Vector3 acceleration = thrusterInput * thrust;
         Vector3 angularAcceleration = angularThrusterInput * angularThrust;
 
+        //! Flight Assist
         if (flightAssist)
         {
             Vector3 targetVelocity = rotation * (thrusterInput * maxVelocity);
@@ -111,16 +108,28 @@ namespace App
             }
         }
 
+        //! Velocity Update
+        // Apply translational acceleration
         velocity = velocity + rotation * acceleration * dt;
+
+        // Apply roational acceleration
         angularVelocity = angularVelocity + angularAcceleration * dt;
 
+        //! Rotation Update
         rotation = rotation * Quaternion(Vector3::forward, angularVelocity.x * dt) * Quaternion(Vector3::left, angularVelocity.y * dt) * Quaternion(Vector3::up, angularVelocity.z * dt);
 
+        // Keep quaternion normalized
         rotation = Quaternion::normalize(rotation);
 
+        //! Position Update
+        Vector3 newPosition =
+            position + velocity * dt + Vector3::up * verticalMovement;
+
+        // Apply Calculated transform
         entity.setPosition(newPosition);
         entity.setRotation(rotation);
 
+        //! Physics Debug Output
         // Debug-Ausgabe alle 0.25 Sekunden
         physicsDebugTimer += dt;
 
@@ -147,19 +156,33 @@ namespace App
         }
     }
 
+    //! Script Initialization
     void ShipScript::load(Entity &entity)
     {
-        cameraCallbackId = InputHandler::onAction("nextCamera", [&entity]()
+        // Register camera switchting callback
+        cameraCallbackId = InputHandler::onAction(
+            "nextCamera",
+            [&entity]()
         {
             entity.nextCamera();
             std::cout << "+ Switched Camera" << std::endl;
-        });
-        flightAssistCallbackId = InputHandler::onAction("toggleFlightAssist", [this]()
+        }
+        );
+
+        // Register flight assist toggle callback
+        flightAssistCallbackId = InputHandler::onAction(
+            "toggleFlightAssist", 
+            [this]()
         {
             flightAssist = !flightAssist;
-            std::cout << "+ Flight Assist: " << (flightAssist ? "ON" : "OFF") << std::endl;
+            std::cout 
+            << "+ Flight Assist: " 
+            << (flightAssist ? "ON" : "OFF") 
+            << std::endl;
         });
     }
+
+    //! Script Cleanup
 
     void ShipScript::unload(Entity &entity)
     {

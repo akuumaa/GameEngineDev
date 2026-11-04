@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
+ * Copyright © 2026 Stefan Ganswint
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,82 +38,61 @@ namespace Engine::Core
       public:
         InputHandler() = delete;
 
-        /**
-         * Registriert eine Aktion für eine bestimmte Taste.
-         *
-         * @param _action_ Name der Aktion, die registriert werden soll.
-         * @param key Tastencode, der mit der Aktion verknüpft wird.
-         */
-        static void keyCallback(uint32_t key, uint32_t scancode, uint32_t mods, bool pressed);
-        static void onKeyPress(uint32_t code, std::function<void()> callback);
-        static void registerKeyAction(const std::string &action, uint32_t key);
+        //! General
+        static void update();
+        static double getAxis(const std::string &axis);
         static size_t onAction(const std::string &action, std::function<void()> callback);
         static void removeCallback(size_t callbackId);
         static void fireAction(const std::string &action);
 
+        //! Keyboard
+        static void keyCallback(uint32_t key, uint32_t scancode, uint32_t mods, bool pressed);
+        static void onKeyPress(uint32_t code, std::function<void()> callback);
+        static void registerKeyAction(const std::string &action, uint32_t key);
         static void registerKeyAxis(const std::string &axis, uint32_t negativeKey, uint32_t positiveKey);
-        static double getAxis(const std::string &axis);
-        static void update();
 
+        //! Gamepad
+        static void loadGamepadMappings(std::istream &mappings);
         static void registerButtonAction(const std::string &action, uint32_t button);
         static void registerStickAxis(const std::string &axis, uint32_t input, bool invert = false);
-        static void loadGamepadMappings(std::istream &mappings);
-
         static void registerTriggerAxis(const std::string &axis, uint32_t negativeTrigger, uint32_t positiveTrigger);
+        static void registerButtonAxis(const std::string &axis, uint32_t negativeButton, uint32_t positiveButton);
 
-        inline static std::map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> triggerAxes;
-
+        //! Mouse
         static void cursorPosCallback(double x, double y);
         static void scrollCallback(double x, double y);
+
         static double getMouseDeltaX() { return mouseDeltaX; }
         static double getMouseDeltaY() { return mouseDeltaY; }
         static double getMouseDeltaZ() { return mouseDeltaZ; }
 
-        static void registerButtonAxis(
-            const std::string &axis,
-            uint32_t negativeButton,
-            uint32_t positiveButton
-        );
-
-        
-
       private:
-        static inline std::unordered_map<uint32_t, std::vector<std::function<void()>>> keyCallbacks = {};
-
-        /**
-         * Speichert Callback-Funktionen für verschiedene Aktionen.
-         *
-         * - static: Die Map ist innerhalb einer Klasse für alle Instanzen gemeinsam verfügbar.
-         * - inline: Ermöglicht die direkte Definition in einer Header-Datei (ab C++17).
-         * - unordered_map: Ordnet jeder Aktion (std::string) eine Liste von Callbacks zu.
-         * - vector: Ermöglicht mehrere Callbacks pro Aktion.
-         * - function<void()>: Speichert Funktionen ohne Parameter und Rückgabewert.
-         * - = {}: Initialisiert die Map leer.
-         *
-         * Beim Auslösen einer Aktion können alle zugehörigen Callbacks ausgeführt werden.
-         */
+        //! General
+        static inline std::unordered_map<std::string, double> axes = {};
         static inline std::unordered_map<std::string, std::map<size_t, std::function<void()>>> actionCallbacks = {};
-        static inline std::unordered_map<uint32_t, std::vector<std::string>> keyboardActions = {};
         static inline size_t nextCallbackId = 1;
+
+        //! Keyboard
+        static inline std::array<bool, 349> keyboardState = {};
+        static inline std::unordered_map<uint32_t, std::vector<std::function<void()>>> keyCallbacks = {};
+        static inline std::unordered_map<uint32_t, std::vector<std::string>> keyboardActions = {};
         static inline std::unordered_map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> keyboardAxes = {};
 
-        static inline std::array<bool, 349> keyboardState = {};
-        static inline std::unordered_map<std::string, double> axes = {};
+        //! Gamepad
+        static inline std::array<bool, 15> gamepadState = {};
 
         static inline std::unordered_map<uint32_t, std::vector<std::string>> gamepadActions = {};
         static inline std::unordered_map<std::string, std::vector<std::pair<uint32_t, bool>>> gamepadAxes = {};
-        static inline std::array<bool, 15> gamepadState = {};
 
+        static inline std::map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> triggerAxes;
+        static inline std::map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> gamepadButtonAxes;
+
+        //! Mouse
         static inline double mouseMovementX = 0.0;
         static inline double mouseMovementY = 0.0;
         static inline double mouseMovementZ = 0.0;
         static inline double mouseDeltaX = 0.0;
         static inline double mouseDeltaY = 0.0;
         static inline double mouseDeltaZ = 0.0;
-
-        inline static std::map<
-            std::string,
-            std::vector<std::pair<uint32_t, uint32_t>>>
-            gamepadButtonAxes;
     };
 }
