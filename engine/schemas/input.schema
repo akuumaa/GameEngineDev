@@ -1,7 +1,8 @@
+
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "Input Map",
-  "description": "Maps keyboard keys, gamepad buttons, and mouse buttons to actions and axes.",
+  "description": "Maps keyboard keys, gamepad buttons, triggers, and mouse buttons to actions and axes.",
   "type": "object",
   "definitions": {
     "key": {
@@ -16,6 +17,21 @@
           "maximum": 348
         }
       ]
+    },
+    "axisPair": {
+      "type": "object",
+      "properties": {
+        "negative": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "positive": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": ["negative", "positive"]
     }
   },
   "properties": {
@@ -102,6 +118,48 @@
               },
               "additionalProperties": false,
               "required": ["axis"]
+            },
+            "minItems": 1
+          },
+          "triggers": {
+            "type": "array",
+            "description": "Pairs of analog gamepad triggers combined into one directional axis.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "negative": {
+                  "type": "integer",
+                  "enum": [4, 5]
+                },
+                "positive": {
+                  "type": "integer",
+                  "enum": [4, 5]
+                }
+              },
+              "required": ["negative", "positive"],
+              "additionalProperties": false
+            },
+            "minItems": 1
+          },
+          "buttonAxes": {
+            "type": "array",
+            "description": "Pairs of gamepad buttons combined into a directional axis.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "negative": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 14
+                },
+                "positive": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 14
+                }
+              },
+              "required": ["negative", "positive"],
+              "additionalProperties": false
             },
             "minItems": 1
           }

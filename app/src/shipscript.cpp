@@ -138,7 +138,6 @@ namespace App
         double yawStep   = yawInput * dt * rotationSpeed;
         double rollStep  = rollInput * dt * rotationSpeed;
 
-        Quaternion rotation = entity.getRotation();
         rotation = rotation
                 * Quaternion(Vector3::forward, rollStep)
                 * Quaternion(Vector3::left, pitchStep)

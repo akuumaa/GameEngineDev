@@ -29,11 +29,6 @@
 #include <map>
 #include <string>
 #include <unordered_map>
-#include <cstdint>
-#include <functional>
-#include <iosfwd>
-#include <string>
-#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -48,33 +43,10 @@ namespace Engine::Core
         //! General
         static void update();
         static double getAxis(const std::string &axis);
-        static size_t onAction(const std::string &action, std::function<void()> callback);
         static void removeCallback(size_t callbackId);
-        static void fireAction(const std::string &action);
-
-        //! Keyboard
-        static void keyCallback(uint32_t key, uint32_t scancode, uint32_t mods, bool pressed);
-        static void onKeyPress(uint32_t code, std::function<void()> callback);
-        static void registerKeyAction(const std::string &action, uint32_t key);
-        static void registerKeyAxis(const std::string &axis, uint32_t negativeKey, uint32_t positiveKey);
-
-        //! Gamepad
-        static void loadGamepadMappings(std::istream &mappings);
-        static void registerButtonAction(const std::string &action, uint32_t button);
-        static void registerStickAxis(const std::string &axis, uint32_t input, bool invert = false);
-        static void registerTriggerAxis(const std::string &axis, uint32_t negativeTrigger, uint32_t positiveTrigger);
-        static void registerButtonAxis(const std::string &axis, uint32_t negativeButton, uint32_t positiveButton);
-
-        //! Mouse
-        static void cursorPosCallback(double x, double y);
-        static void scrollCallback(double x, double y);
-
-        // General
-        static void update();
-        static double getAxis(const std::string &axis);
 
         // Action Handling
-        static void onAction(const std::string &action, std::function<void()> callback);
+        static size_t onAction(const std::string &action, std::function<void()> callback);
         static void onActionRelease(const std::string &action, std::function<void()> callback);
         static void fireAction(const std::string &action);
         static void fireActionRelease(const std::string &action);
@@ -90,6 +62,9 @@ namespace Engine::Core
         static void registerStickAxis(const std::string &axis, uint32_t input, bool invert = false);
         static void registerButtonAction(const std::string &action, uint32_t button);
 
+        static void registerTriggerAxis(const std::string &axis, uint32_t negativeTrigger, uint32_t positiveTrigger);
+        static void registerButtonAxis(const std::string &axis, uint32_t negativeButton, uint32_t positiveButton);
+
         // Mouse Support
         static void mouseButtonCallback(uint32_t button, bool pressed);
         static void registerMouseButtonAction(const std::string &action, uint32_t button);
@@ -101,32 +76,13 @@ namespace Engine::Core
 
       private:
         //! General
-        static inline std::unordered_map<std::string, double> axes = {};
-        static inline std::unordered_map<std::string, std::map<size_t, std::function<void()>>> actionCallbacks = {};
         static inline size_t nextCallbackId = 1;
-
-        //! Keyboard
-        static inline std::array<bool, 349> keyboardState = {};
-        static inline std::unordered_map<uint32_t, std::vector<std::function<void()>>> keyCallbacks = {};
-        static inline std::unordered_map<uint32_t, std::vector<std::string>> keyboardActions = {};
-        static inline std::unordered_map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> keyboardAxes = {};
-
-        //! Gamepad
-        static inline std::array<bool, 15> gamepadState = {};
-
-        static inline std::unordered_map<uint32_t, std::vector<std::string>> gamepadActions = {};
-        static inline std::unordered_map<std::string, std::vector<std::pair<uint32_t, bool>>> gamepadAxes = {};
-
-        static inline std::map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> triggerAxes;
-        static inline std::map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> gamepadButtonAxes;
-
-        //! Mouse
-        // General
         static inline std::unordered_map<std::string, double> axes = {};
 
         // Action Handling
         static void updateActionState(const std::string &action, uint64_t source, bool pressed);
-        static inline std::unordered_map<std::string, std::vector<std::function<void()>>> actionCallbacks = {};
+
+        static inline std::unordered_map<std::string, std::map<size_t, std::function<void()>>> actionCallbacks = {};
         static inline std::unordered_map<std::string, std::vector<std::function<void()>>> actionReleaseCallbacks = {};
         static inline std::unordered_map<std::string, std::unordered_set<uint64_t>> activeActionSources = {};
 
@@ -140,6 +96,8 @@ namespace Engine::Core
         static inline std::array<bool, 15> gamepadState = {};
         static inline std::unordered_map<std::string, std::vector<std::pair<uint32_t, bool>>> gamepadAxes = {};
         static inline std::unordered_map<uint32_t, std::vector<std::string>> gamepadActions = {};
+        static inline std::map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> triggerAxes;
+        static inline std::map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> gamepadButtonAxes;
 
         // Mouse Support
         static inline std::unordered_map<uint32_t, std::vector<std::string>> mouseButtonActions = {};

@@ -75,7 +75,7 @@ namespace Engine::Core
         {"RIGHT_SUPER", GLFW_KEY_RIGHT_SUPER},
         {"MENU", GLFW_KEY_MENU},
     };
-    
+
     bool InputMapper::loadMappings(const std::string &filename)
     {
         std::unique_ptr<std::istream> mappings = Application::load(filename);
@@ -147,6 +147,38 @@ namespace Engine::Core
                         if (isInRange(mapping["axis"], GLFW_GAMEPAD_AXIS_LAST)) continue;
                         std::cerr << "! Failed to read input axis " << axis << ": unknown gamepad axis " << mapping["axis"] << std::endl;
                         return false;
+                    }
+                }
+
+                // Validate gamepad triggers
+                if (binding.contains("triggers"))
+                {
+                    for (const auto &pair : binding["triggers"])
+                    {
+                        if (!isInRange(pair["negative"], GLFW_GAMEPAD_AXIS_LAST) ||
+                            !isInRange(pair["positive"], GLFW_GAMEPAD_AXIS_LAST))
+                        {
+                            std::cerr
+                                << "! Invalid trigger axis for " << axis
+                                << std::endl;
+                            return false;
+                        }
+                    }
+                }
+
+                // Validate gamepad button axes
+                if (binding.contains("buttonAxes"))
+                {
+                    for (const auto &pair : binding["buttonAxes"])
+                    {
+                        if (!isInRange(pair["negative"], GLFW_GAMEPAD_BUTTON_LAST) ||
+                            !isInRange(pair["positive"], GLFW_GAMEPAD_BUTTON_LAST))
+                        {
+                            std::cerr
+                                << "! Invalid gamepad button for " << axis
+                                << std::endl;
+                            return false;
+                        }
                     }
                 }
             }
@@ -237,7 +269,7 @@ namespace Engine::Core
             if (end != last) return std::nullopt;
             if (fDigits.front() == '0') return std::nullopt;
             if (number < 1 || number > 25) return std::nullopt;
-            
+
             return GLFW_KEY_F1 + number - 1;
         }
 
@@ -308,6 +340,32 @@ namespace Engine::Core
                         axis,
                         mapping["axis"].get<uint32_t>(),
                         mapping.value("invert", false)
+                    );
+                }
+            }
+
+            // Gamepad triggers
+            if (binding.contains("triggers"))
+            {
+                for (const auto &pair : binding["triggers"])
+                {
+                    InputHandler::registerTriggerAxis(
+                        axis,
+                        pair["negative"].get<uint32_t>(),
+                        pair["positive"].get<uint32_t>()
+                    );
+                }
+            }
+
+            // Gamepad button axes
+            if (binding.contains("buttonAxes"))
+            {
+                for (const auto &pair : binding["buttonAxes"])
+                {
+                    InputHandler::registerButtonAxis(
+                        axis,
+                        pair["negative"].get<uint32_t>(),
+                        pair["positive"].get<uint32_t>()
                     );
                 }
             }

@@ -61,8 +61,6 @@ namespace Engine::Sim
 
         void commit(CommandBuffer &commandBuffer) const;
 
-        void nextCamera();
-        Camera *getActiveCamera();
 
         Vector3 getPosition() { return position; }
         void setPosition(const Vector3 &p) { position = p; }
@@ -83,8 +81,6 @@ namespace Engine::Sim
         }
         void setFocus(bool f) { focus = f; }
 
-        void setFocus(bool f) { focus = f; }
-
       private:
         struct ModelInstance
         {
@@ -103,9 +99,5 @@ namespace Engine::Sim
 
         std::vector<ModelInstance> models = {};
         std::vector<std::unique_ptr<Script>> scripts = {};
-
-        std::vector<Camera> cameras = {};
-        size_t activeCamera = 0;
-        bool focus = false;
     };
 }

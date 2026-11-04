@@ -1,59 +1,141 @@
+
 {
-  "$schema": "../../engine/schemas/input.schema",
-  "actions": {
-    "reset": {
-      "keys": ["SPACE"],
-      "buttons": [0]
+    "$schema": "../../engine/schemas/input.schema",
+    "actions": {
+        "respawn": {
+            "keys": ["R"],
+            "buttons": [0]
+        },
+        "nextCamera": {
+            "keys": ["C"],
+            "buttons": [6]
+        },
+        "toggleFlightAssist": {
+            "keys": ["TAB"],
+            "buttons": [2]
+        }
     },
-    "nextCamera": {
-      "keys": ["C"],
-      "buttons": [6]
+    "axes": {
+        "yaw": {
+            "keys": [
+                {
+                    "negative": "E",
+                    "positive": "Q"
+                }
+            ]
+        },
+        "pitch": {
+            "keys": [
+                {
+                    "negative": "DOWN",
+                    "positive": "UP"
+                }
+            ],
+            "gamepad": [
+                {
+                    "axis": 1,
+                    "invert": true
+                }
+            ]
+        },
+        "roll": {
+            "keys": [
+                {
+                    "negative": "LEFT",
+                    "positive": "RIGHT"
+                }
+            ],
+            "gamepad": [
+                {
+                    "axis": 0
+                }
+            ]
+        },
+        "thrustX": {
+            "keys": [
+                {
+                    "negative": "S",
+                    "positive": "W"
+                }
+            ],
+            "triggers": [
+                {
+                    "negative": 4,
+                    "positive": 5
+                }
+            ]
+        },
+        "thrustY": {
+            "keys": [
+                {
+                    "negative": "D",
+                    "positive": "A"
+                }
+            ]
+        },
+        "thrustZ": {
+            "keys": [
+                {
+                    "negative": "LEFT_SHIFT",
+                    "positive": "SPACE"
+                }
+            ],
+            "buttonAxes": [
+                {
+                    "negative": 4,
+                    "positive": 5
+                }
+            ]
+        },
+        "ballast": {
+            "keys": [
+                {
+                    "negative": "N",
+                    "positive": "M"
+                }
+            ],
+            "buttonAxes": [
+                {
+                    "negative": 13,
+                    "positive": 11
+                }
+            ]
+        },
+        "cameraYaw": {
+            "keys": [
+                {
+                    "negative": "L",
+                    "positive": "J"
+                }
+            ],
+            "gamepad": [
+                {
+                    "axis": 2,
+                    "invert": true
+                }
+            ]
+        },
+        "cameraPitch": {
+            "keys": [
+                {
+                    "negative": "I",
+                    "positive": "K"
+                }
+            ],
+            "gamepad": [
+                {
+                    "axis": 3,
+                    "invert": true
+                }
+            ]
+        },
+        "cameraZoom": {
+            "keys": [
+                {
+                    "negative": "U",
+                    "positive": "O"
+                }
+            ]
+        }
     }
-  },
-  "axes": {
-    "yaw": {
-      "keys": [
-        { "negative": "E", "positive": "Q" }
-      ]
-    },
-    "pitch": {
-      "keys": [
-        { "negative": "S", "positive": "W" },
-        { "negative": "DOWN", "positive": "UP" }
-      ],
-      "gamepad": [
-        { "axis": 1, "invert": true }
-      ]
-    },
-    "roll": {
-      "keys": [
-        { "negative": "A", "positive": "D" },
-        { "negative": "LEFT", "positive": "RIGHT" }
-      ],
-      "gamepad": [
-        { "axis": 0 }
-      ]
-    },
-    "cameraYaw": {
-      "keys": [
-        { "negative": "L", "positive": "J" }
-      ],
-      "gamepad": [
-        { "axis": 2, "invert": true }
-      ]
-    },
-    "cameraPitch": {
-      "keys": [
-        { "negative": "I", "positive": "K" }
-      ],
-      "gamepad": [
-        { "axis": 3, "invert": false }
-      ]
-    },
-    "cameraZoom": {
-      "keys": [
-        { "negative": "U", "positive": "O" }
-      ]
-    }
-  }
 }

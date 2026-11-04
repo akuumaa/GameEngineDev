@@ -20,8 +20,6 @@
 #include "engine/src/core/application.h"
 #include "engine/src/core/inputhandler.h"
 
-#include "engine/src/core/inputhandler.h"
-
 #include <chrono>
 #include <exception>
 #include <fstream>
@@ -63,7 +61,7 @@ namespace Engine::Core
     bool Application::init()
     {
         try
-        {   
+        {
             assetRoot = settings.assetRoot;
             frontCommandBuffer = std::make_unique<CommandBuffer>();
             backCommandBuffer = std::make_unique<CommandBuffer>();
@@ -119,10 +117,6 @@ namespace Engine::Core
                 
                 // InputHandler Updating
                 InputHandler::update();
-
-                InputHandler::update();
-
-                simulation->update(dt, t);
 
                 simulation->update(dt, t);
                 std::swap(frontCommandBuffer, backCommandBuffer);

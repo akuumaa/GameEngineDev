@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#define GLFW_INCLUDE_NONE
 
 #define GLFW_INCLUDE_NONE
 
@@ -32,17 +31,6 @@
 
 namespace Engine::Core
 {
-
-    void InputHandler::loadGamepadMappings(std::istream &mappings)
-    {
-        std::ostringstream text;
-        text << mappings.rdbuf();
-        glfwUpdateGamepadMappings(text.str().c_str());
-    }
-
-    void InputHandler::keyCallback(uint32_t key, uint32_t scancode, uint32_t mods, bool pressed)
-    {
-
     /* BEGIN GENERAL FUNCTIONS */
     void InputHandler::update()
     {
@@ -82,6 +70,21 @@ namespace Engine::Core
                     value = std::copysign((std::abs(value) - gamepadDeadzone) / (1.0 - gamepadDeadzone), value);
 
                     axes[axis] += value;
+                }
+            }
+
+            // Gamepad Trigger Axis Updating
+            for (const auto &[axis, mappings] : triggerAxes)
+            {
+                for (auto [negativeTrigger, positiveTrigger] : mappings)
+                {
+                    if (negativeTrigger >= GLFW_GAMEPAD_AXIS_LAST + 1) continue;
+                    if (positiveTrigger >= GLFW_GAMEPAD_AXIS_LAST + 1) continue;
+
+                    double negativeValue = (gamepad.axes[negativeTrigger] + 1.0) / 2.0;
+                    double positiveValue = (gamepad.axes[positiveTrigger] + 1.0) / 2.0;
+
+                    axes[axis] += positiveValue - negativeValue;
                 }
             }
 
@@ -135,6 +138,22 @@ namespace Engine::Core
         mouseMovementX = 0.0;
         mouseMovementY = 0.0;
         mouseMovementZ = 0.0;
+
+        // Gamepad Button Axis Updating
+        for (const auto &[axis, mappings] : gamepadButtonAxes)
+        {
+            for (auto [negativeButton, positiveButton] : mappings)
+            {
+                if (negativeButton >= GLFW_GAMEPAD_BUTTON_LAST + 1) continue;
+                if (positiveButton >= GLFW_GAMEPAD_BUTTON_LAST + 1) continue;
+
+                if (gamepad.buttons[positiveButton] == GLFW_PRESS)
+                    axes[axis] += 1.0;
+
+                if (gamepad.buttons[negativeButton] == GLFW_PRESS)
+                    axes[axis] -= 1.0;
+            }
+        }
     }
 
     double InputHandler::getAxis(const std::string &axis)
@@ -143,9 +162,22 @@ namespace Engine::Core
     }
 
     /* BEGIN ACTION FUNCTIONS */
-    void InputHandler::onAction(const std::string &action, std::function<void()> callback)
+
+    size_t InputHandler::onAction(const std::string &action, std::function<void()> callback)
     {
-        actionCallbacks[action].push_back(std::move(callback));
+        size_t callbackId = nextCallbackId++;
+
+        actionCallbacks[action][callbackId] = std::move(callback);
+
+        return callbackId;
+    }
+
+    void InputHandler::removeCallback(size_t callbackId)
+    {
+        for (auto &[action, callbacks] : actionCallbacks)
+        {
+            callbacks.erase(callbackId);
+        }
     }
 
     void InputHandler::onActionRelease(const std::string &action, std::function<void()> callback)
@@ -155,9 +187,10 @@ namespace Engine::Core
 
     void InputHandler::fireAction(const std::string &action)
     {
-        if (auto entry = actionCallbacks.find(action); entry != actionCallbacks.end())
+        if (auto entry = actionCallbacks.find(action);
+            entry != actionCallbacks.end())
         {
-            for (const auto &callback : entry->second)
+            for (const auto &[callbackId, callback] : entry->second)
             {
                 callback();
             }
@@ -211,11 +244,6 @@ namespace Engine::Core
             }
         }
 
-        if (auto actions = keyboardActions.find(key); pressed && actions != keyboardActions.end())
-        {
-            for (const auto &action : actions->second)
-            {
-                fireAction(action);
         if (auto actions = keyboardActions.find(key); actions != keyboardActions.end())
         {
             for (const auto &action : actions->second)
@@ -230,43 +258,6 @@ namespace Engine::Core
         keyCallbacks[code].push_back(std::move(callback));
     }
 
-    /**
-     * Registriert eine Aktion für eine bestimmte Taste.
-     *
-     * @param action Name der Aktion, die registriert werden soll.
-     * @param key Tastencode, der mit der Aktion verknüpft wird.
-     */
-    void InputHandler::registerKeyAction(const std::string &action, uint32_t key)
-    {
-        keyboardActions[key].push_back(action);
-    }
-
-    size_t InputHandler::onAction(const std::string &action, std::function<void()> callback)
-    {
-        size_t callbackId = nextCallbackId++;
-        actionCallbacks[action][callbackId] = std::move(callback);
-        return callbackId;
-    }
-
-    void InputHandler::removeCallback(size_t callbackId)
-    {
-        for (auto &[action, callbacks] : actionCallbacks)
-        {
-            callbacks.erase(callbackId);
-        }
-    }
-
-    void InputHandler::fireAction(const std::string &action)
-    {
-        std::map<size_t, std::function<void()>> callbacks = actionCallbacks[action];
-
-        for (const auto &[callbackId, callback] : callbacks)
-        {
-            if (!actionCallbacks[action].contains(callbackId)) continue;
-            callback();
-        }
-    }
-
     void InputHandler::registerKeyAxis(const std::string &axis, uint32_t negativeKey, uint32_t positiveKey)
     {
         if (negativeKey >= keyboardState.size()) return;
@@ -275,133 +266,6 @@ namespace Engine::Core
         keyboardAxes[axis].push_back({negativeKey, positiveKey});
     }
 
-    double InputHandler::getAxis(const std::string &axis)
-    {
-        return axes[axis];
-    }
-
-    void InputHandler::update()
-    {
-
-        mouseDeltaX = mouseMovementX;
-        mouseDeltaY = mouseMovementY;
-        mouseDeltaZ = mouseMovementZ;
-
-        mouseMovementX = 0.0;
-        mouseMovementY = 0.0;
-        mouseMovementZ = 0.0;
-        for (auto &[name, value] : axes)
-        {
-            value = 0.0;
-        }
-
-        for (const auto &[axis, mappings] : keyboardAxes)
-        {
-            for (auto [negativeKey, positiveKey] : mappings)
-            {
-                if (keyboardState[positiveKey]) axes[axis] += 1.0;
-                if (keyboardState[negativeKey]) axes[axis] -= 1.0;
-            }
-        }
-
-        for (auto &[name, value] : axes)
-        {
-            value = std::clamp(value, -1.0, 1.0);
-        }
-
-        GLFWgamepadstate gamepad = {};
-        if (glfwGetGamepadState(GLFW_JOYSTICK_1, &gamepad))
-        {
-            constexpr double gamepadDeadzone = 0.15;
-
-            // Registrierte Gamepad-Achsen auswerten
-            for (const auto &[axis, bindings] : gamepadAxes)
-            {
-                for (const auto &[input, invert] : bindings)
-                {
-                    double value = gamepad.axes[input];
-
-                    // Deadzone anwenden
-                    if (std::abs(value) < gamepadDeadzone)
-                    {
-                        value = 0.0;
-                    }
-
-                    // Achse bei Bedarf invertieren
-                    if (invert)
-                    {
-                        value = -value;
-                    }
-
-                    // Wert zur registrierten Achse addieren
-                    axes[axis] += value;
-                }
-            }
-
-            // Alle Gamepad-Buttons auswerten
-            for (uint32_t button = 0;
-                 button <= GLFW_GAMEPAD_BUTTON_LAST;
-                 ++button)
-            {
-                bool pressed =
-                    gamepad.buttons[button] == GLFW_PRESS;
-
-                // Aktion nur beim Übergang von losgelassen zu gedrückt
-                if (pressed && !gamepadState[button])
-                {
-                    auto it = gamepadActions.find(button);
-
-                    if (it != gamepadActions.end())
-                    {
-                        for (const auto &action : it->second)
-                        {
-                            fireAction(action);
-                        }
-                    }
-                }
-
-                // Aktuellen Buttonstatus speichern
-                gamepadState[button] = pressed;
-            }
-
-            // Registrierte Gamepad-Button-Achsen auswerten
-            for (const auto &[axis, mappings] : gamepadButtonAxes)
-            {
-                for (const auto &[negativeButton, positiveButton] : mappings)
-                {
-                    if (gamepad.buttons[positiveButton] == GLFW_PRESS)
-                    {
-                        axes[axis] += 1.0;
-                    }
-
-                    if (gamepad.buttons[negativeButton] == GLFW_PRESS)
-                    {
-                        axes[axis] -= 1.0;
-                    }
-                }
-            }
-
-            // Registrierte Trigger-Achsen auswerten
-            for (const auto &[axis, bindings] : triggerAxes)
-            {
-                for (const auto &[negativeTrigger, positiveTrigger] : bindings)
-                {
-                    double negativeValue =
-                        (gamepad.axes[negativeTrigger] + 1.0) / 2.0;
-
-                    double positiveValue =
-                        (gamepad.axes[positiveTrigger] + 1.0) / 2.0;
-
-                    axes[axis] += positiveValue - negativeValue;
-                }
-            }
-        }
-
-        // Bestehende Begrenzung, jetzt nach Tastatur und Controller
-        for (auto &[name, value] : axes)
-        {
-            value = std::clamp(value, -1.0, 1.0);
-        }
     void InputHandler::registerKeyAction(const std::string &action, uint32_t key)
     {
         keyboardActions[key].push_back(action);
@@ -422,27 +286,31 @@ namespace Engine::Core
 
     void InputHandler::registerButtonAction(const std::string &action, uint32_t button)
     {
-        // Ungültige Button-Indizes abweisen
-        if (button > GLFW_GAMEPAD_BUTTON_LAST)
-        {
-            return;
-        }
-
-        // Aktion für den Button registrieren
         gamepadActions[button].push_back(action);
     }
 
-    void InputHandler::registerStickAxis(const std::string &axis, uint32_t input, bool invert)
+    void InputHandler::registerTriggerAxis(
+        const std::string &axis,
+        uint32_t negativeTrigger,
+        uint32_t positiveTrigger
+    )
     {
-        // Ungültige Achsen-Indizes abweisen
-        if (input > GLFW_GAMEPAD_AXIS_LAST)
-        {
-            return;
-        }
+        if (negativeTrigger >= GLFW_GAMEPAD_AXIS_LAST + 1) return;
+        if (positiveTrigger >= GLFW_GAMEPAD_AXIS_LAST + 1) return;
 
-        // Stick-Achse und Invertierung registrieren
-        gamepadAxes[axis].push_back({input, invert});
-        gamepadActions[button].push_back(action);
+        triggerAxes[axis].push_back({negativeTrigger, positiveTrigger});
+    }
+
+    void InputHandler::registerButtonAxis(
+        const std::string &axis,
+        uint32_t negativeButton,
+        uint32_t positiveButton
+    )
+    {
+        if (negativeButton >= GLFW_GAMEPAD_BUTTON_LAST + 1) return;
+        if (positiveButton >= GLFW_GAMEPAD_BUTTON_LAST + 1) return;
+
+        gamepadButtonAxes[axis].push_back({negativeButton, positiveButton});
     }
 
     /* BEGIN MOUSE FUNCTIONS */
@@ -483,31 +351,4 @@ namespace Engine::Core
     {
         mouseMovementZ += y;
     }
-
-    void InputHandler::registerTriggerAxis(
-
-        const std::string &axis,
-        uint32_t negativeTrigger,
-        uint32_t positiveTrigger
-    )
-    {
-        if (negativeTrigger > GLFW_GAMEPAD_AXIS_LAST) return;
-        if (positiveTrigger > GLFW_GAMEPAD_AXIS_LAST) return;
-
-        triggerAxes[axis].push_back({negativeTrigger, positiveTrigger});
-    }
-
-    void InputHandler::registerButtonAxis(
-        const std::string &axis,
-        uint32_t negativeButton,
-        uint32_t positiveButton
-    )
-    {
-        if (negativeButton > GLFW_GAMEPAD_BUTTON_LAST) return;
-        if (positiveButton > GLFW_GAMEPAD_BUTTON_LAST) return;
-
-        gamepadButtonAxes[axis].push_back({negativeButton, positiveButton});
-    }
-
-}
 }

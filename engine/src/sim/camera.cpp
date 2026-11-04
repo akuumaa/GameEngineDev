@@ -157,24 +157,4 @@ namespace Engine::Sim
         return Matrix::lookAt(eye, target) * (-rotation).toMatrix() * Matrix::translation(-position);
     }
 
-    void Camera::update(double dt)
-    {
-        yaw += InputHandler::getAxis("cameraYaw") * lookRate * dt;
-        pitch += InputHandler::getAxis("cameraPitch") * lookRate * dt;
-        distance -= InputHandler::getAxis("cameraZoom") * distance * zoomRate * dt;
-
-        yaw -= InputHandler::getMouseDeltaX() * mouseSensitivity;
-        pitch += InputHandler::getMouseDeltaY() * mouseSensitivity;
-        distance -= InputHandler::getMouseDeltaZ() * distance * zoomStep;
-
-        clampToLimits();
-    }
-
-    void Camera::clampToLimits()
-    {
-        yaw = yawLimited ? std::clamp(yaw, yawMin, yawMax) : std::remainder(yaw, 2.0 * std::numbers::pi);
-        pitch = std::clamp(pitch, pitchMin, pitchMax);
-        distance = std::clamp(distance, distanceMin, distanceMax);
-    }
-
 }
