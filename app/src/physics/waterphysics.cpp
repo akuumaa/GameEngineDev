@@ -140,4 +140,34 @@ double WaterPhysics::updateVertical(double input, double dt)
 
     //! Vertical Displacement
     return (verticalVelocity + driftVelocity) * dt;
+    
+}
+
+// Return current forward velocity (m/s)
+double WaterPhysics::getForwardVelocity() const
+{
+    return forwardVelocity;
+}
+
+//! Forward Physics Update
+double WaterPhysics::updateForward(double input, double dt)
+{
+    if (dt <= 0.0) return 0.0;
+
+    input = std::clamp(input, -1.0, 1.0);
+
+    // Use weaker thrust when moving backwards
+    double thrust = input * (input >= 0.0 ? forwardThrust : reverseThrust);
+
+    //! Water Resistance
+    // v * |v| keeps the drag opposite to the direction of movement
+    double drag = forwardLinearDrag * forwardVelocity
+                + forwardQuadraticDrag * forwardVelocity * std::abs(forwardVelocity);
+
+    //! Velocity Update
+    // No clamp: thrust and drag balance out at terminal velocity
+    forwardVelocity += (thrust - drag) * dt;
+
+    //! Forward Displacement
+    return forwardVelocity * dt;
 }
