@@ -50,9 +50,12 @@ namespace App
 
         if (flightAssist)
         {
-            // TODO: Zielgeschwindigkeiten aus der Eingabe berechnen.
-            //       acceleration und angularAcceleration aus der Abweichung berechnen.
-            //       Auf thrust und angularThrust begrenzen.
+            Vector3 targetVelocity = rotation * thrusterInput * maxVelocity;
+            Vector3 targetAngularVelocity = angularThrusterInput * maxAngularVelocity;
+            acceleration = ((-rotation) * (targetVelocity - velocity)) * flightAssistRate;
+            angularAcceleration = (targetAngularVelocity - angularVelocity) * flightAssistRate;
+            acceleration = Vector3::clamp(acceleration, -thrust, thrust);
+            angularAcceleration = Vector3::clamp(angularAcceleration, -angularThrust, angularThrust);
         }
 
         velocity = velocity + rotation * acceleration * dt;

@@ -83,6 +83,7 @@ namespace Engine::Core
         static inline std::array<bool, 15> gamepadState = {};
         static inline std::unordered_map<std::string, std::vector<std::pair<uint32_t, bool>>> gamepadAxes = {};
         static inline std::unordered_map<uint32_t, std::vector<std::string>> gamepadActions = {};
+        static inline std::unordered_map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> gamepadTriggers = {};
 
         // Mouse Support
         static inline double mouseMovementX = 0.0;

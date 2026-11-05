@@ -32,19 +32,29 @@
 namespace Engine::Core
 {
     /* BEGIN ACTION FUNCTIONS */
-    void InputHandler::onAction(const std::string &action, std::function<void()> callback)
+    size_t InputHandler::onAction(const std::string &action, std::function<void()> callback)
     {
-        actionCallbacks[action].push_back(std::move(callback));
+        size_t callbackId = nextCallbackId++;
+        actionCallbacks[action][callbackId] = std::move(callback);
+        return callbackId;
     }
 
     void InputHandler::fireAction(const std::string &action)
     {
-        if (auto entry = actionCallbacks.find(action); entry != actionCallbacks.end())
+        std::map<size_t, std::function<void()>> callbacks = actionCallbacks[action];
+
+        for (const auto &[callbackId, callback] : callbacks)
         {
-            for (const auto &callback : entry->second)
-            {
-                callback();
-            }
+            if (!actionCallbacks[action].contains(callbackId)) continue;
+            callback();
+        }
+    }
+
+    void InputHandler::removeCallback(size_t callbackId)
+    {
+        for (auto &[action, callbacks] : actionCallbacks)
+        {
+            callbacks.erase(callbackId);
         }
     }
 
@@ -103,6 +113,13 @@ namespace Engine::Core
     {
         if (input > GLFW_GAMEPAD_AXIS_LAST) return;
         gamepadAxes[axis].push_back({input, inverted});
+    }
+
+    void InputHandler::registerTriggerAxis(const std::string &axis, uint32_t negativeTrigger, uint32_t positiveTrigger)
+    {
+        if (negativeTrigger > GLFW_GAMEPAD_AXIS_LAST) return;
+        if (positiveTrigger > GLFW_GAMEPAD_AXIS_LAST) return;
+        gamepadTriggers[axis].push_back({negativeTrigger, positiveTrigger});
     }
 
     void InputHandler::loadGamepadMappings(std::istream &mappings)
@@ -191,6 +208,24 @@ namespace Engine::Core
                     for (const auto &action : actions)
                     {
                         fireAction(action);
+                    }
+                }
+            }
+
+            // Gamepad Trigger Updating
+            for (const auto &[axis, mappings] : gamepadTriggers)
+            {
+                for (auto [negativeTrigger, positiveTrigger] : mappings)
+                {
+                    double negativeValue = (gamepad.axes[negativeTrigger] + 1.0) * 0.5;
+                    double positiveValue = (gamepad.axes[positiveTrigger] + 1.0) * 0.5;
+                    if (positiveValue >= gamepadDeadzone)
+                    {
+                        axes[axis] += (positiveValue - gamepadDeadzone) / (1.0 - gamepadDeadzone);
+                    }
+                    if (negativeValue >= gamepadDeadzone)
+                    {
+                        axes[axis] -= (negativeValue - gamepadDeadzone) / (1.0 - gamepadDeadzone);
                     }
                 }
             }
