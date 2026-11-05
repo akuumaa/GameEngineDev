@@ -26,6 +26,8 @@
 
 #include <iostream>
 #include <ostream>
+#include <algorithm>
+#include <cmath>
 
 using Engine::Core::InputHandler;
 using Engine::Math::Quaternion;
@@ -43,22 +45,33 @@ namespace App
         constexpr double maxVelocity = 20.0;
         constexpr double maxAngularVelocity = 2.0;
         constexpr double flightAssistRate = 1.5;
-    
+        
+        
+        // Roll Mechanics
+        constexpr double maxRollAngle = 30.0 * (3.14159265358979323846 / 180.0); // Convert to radians
+        constexpr double rollSpring = 7.0;
+        constexpr double rollDamping = 7.0;
+        const bool returning = std::abs(rollInput) < 0.01; // Check if roll input is near zero
+        const double targetRollAngle = maxRollAngle * std::clamp(rollInput, -1.0, 1.0);
+        const double spring = returning ? 2.0 : rollSpring; // Use a weaker spring when returning to center
+        const double damping = returning ? 4.0 : rollDamping; // Use a weaker damping when returning to center
 
+        const double rollAcceleration = (targetRollAngle - rollAngle) * spring - rollAngularVelocity * damping;
+        rollAngularVelocity += rollAcceleration * dt;
+        rollAngle += rollAngularVelocity * dt;
+        
+        
         Vector3 thrusterInput = {InputHandler::getAxis("thrustX"),
                                  InputHandler::getAxis("thrustY"),
                                  InputHandler::getAxis("thrustZ")};
 
-        Vector3 angularThrusterInput = {InputHandler::getAxis("roll"),
+        Vector3 angularThrusterInput = {0.0,
                                         InputHandler::getAxis("pitch"),
                                         InputHandler::getAxis("yaw")};                       
 
-        double pitchStep = pitchInput * dt * rotationSpeed;
-        double yawStep   = yawInput * dt * rotationSpeed;
-        double rollStep  = rollInput * dt * rotationSpeed;
 
         Vector3 position = entity.getPosition();
-        Quaternion rotation = entity.getRotation();
+        Quaternion rotation = attitude * Quaternion(Vector3::forward, rollAngle);
 
         Vector3 acceleration = thrusterInput * thrust;
         Vector3 angularAcceleration = angularThrusterInput * angularThrust;
@@ -86,13 +99,13 @@ namespace App
 
         velocity = velocity + acceleration * dt;
         angularVelocity = angularVelocity + angularAcceleration * dt;
+        angularVelocity.x = 0.0; // Disable roll for now
 
-        rotation = rotation
-                * Quaternion(Vector3::forward, angularVelocity.x * dt)
-                * Quaternion(Vector3::left, angularVelocity.y * dt)
-                * Quaternion(Vector3::up, angularVelocity.z * dt);
+        attitude = attitude * Quaternion(Vector3::left, angularVelocity.y * dt)
+                            * Quaternion(Vector3::up, angularVelocity.z * dt);
+        attitude = Quaternion::normalize(attitude);
 
-        rotation = Quaternion::normalize(rotation);
+        rotation = attitude * Quaternion(Vector3::forward, rollAngle);
 
         entity.setPosition(position + velocity * dt);
         entity.setRotation(rotation);
@@ -100,6 +113,7 @@ namespace App
 
     void ShipScript::load(Entity &entity)
     {   
+        attitude = entity.getRotation();
         cameraCallbackId = InputHandler::onAction("nextCamera", [&entity]()
         {
             entity.nextCamera();

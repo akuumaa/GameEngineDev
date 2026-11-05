@@ -21,12 +21,14 @@
 
 #include "engine/src/sim/script.h"
 #include "engine/src/math/vector3.h"
+#include "engine/src/math/quaternion.h"
 
 #include <cstddef>
 
 using Engine::Sim::Entity;
 using Engine::Sim::Script;
 using Engine::Math::Vector3;
+using Engine::Math::Quaternion;
 
 namespace App
 {
@@ -45,5 +47,8 @@ namespace App
         size_t cameraCallbackId = 0;
         bool flightAssist = true;
         size_t flightAssistCallbackId = 0;
+        Quaternion attitude = {};
+        double rollAngle = {};
+        double rollAngularVelocity = {};
     };
 }
