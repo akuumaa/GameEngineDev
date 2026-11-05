@@ -2,7 +2,7 @@
 #pragma once
 
 /*
- * * Water Physics - Buoyancy, Ballast & Vertical & Forward Movement
+ * * Water Physics - Buoyancy, Ballast, Vertical & Forward Movement
  */
 
 class WaterPhysics
