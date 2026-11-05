@@ -76,6 +76,15 @@ namespace App
         // Vertical movement is handled exclusively by WaterPhysics
         thrusterInput.z = 0.0;
 
+        // Calculate forward movement using thrust and water resistance
+        double forwardInput = InputHandler::getAxis("thrustX");
+
+        double forwardMovement =
+            waterPhysics.updateForward(forwardInput, dt);
+
+        // Forward movement is handled exclusively by WaterPhysics
+        thrusterInput.x = 0.0;
+
         //! Movement Acceleration
         Vector3 acceleration = thrusterInput * thrust;
         Vector3 angularAcceleration = angularThrusterInput * angularThrust;
@@ -125,26 +134,15 @@ namespace App
         rotation = Quaternion::normalize(rotation);
 
         //! Position Update
+        // Vertical movement follows world up (buoyancy), forward movement follows the nose
         Vector3 newPosition =
-            position + velocity * dt + Vector3::up * verticalMovement;
+            position + velocity * dt 
+            + Vector3::up * verticalMovement
+            + rotation * Vector3::forward * forwardMovement;
+        
 
         // Apply Calculated transform
         entity.setPosition(newPosition);
-        double rollInput = InputHandler::getAxis("roll");
-        double pitchInput = InputHandler::getAxis("pitch");
-        double yawInput = InputHandler::getAxis("yaw");
-
-        double pitchStep = pitchInput * dt * rotationSpeed;
-        double yawStep   = yawInput * dt * rotationSpeed;
-        double rollStep  = rollInput * dt * rotationSpeed;
-
-        rotation = rotation
-                * Quaternion(Vector3::forward, rollStep)
-                * Quaternion(Vector3::left, pitchStep)
-                * Quaternion(Vector3::up, yawStep);
-
-        rotation = Quaternion::normalize(rotation);
-
         entity.setRotation(rotation);
 
         //! Physics Debug Output
@@ -169,6 +167,8 @@ namespace App
                       << "[Wasserphysik] "
                       << "Ballast: " << water << "% | "
                       << "Vertikal: " << speed << " m/s | "
+                      << "Forward: " << waterPhysics.getForwardVelocity() << " m/s | "
+                      << "Pos: " << entity.getPosition().x << ", " << entity.getPosition().z << " | "
                       << "Status: " << movement
                       << std::endl;
         }

@@ -44,7 +44,5 @@ namespace App
         size_t flightAssistCallbackId = 0;
         WaterPhysics waterPhysics;
         double physicsDebugTimer = 0.0;
-
-        double rotationSpeed = 2.0;
     };
 }
