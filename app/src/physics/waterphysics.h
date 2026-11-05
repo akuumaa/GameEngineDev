@@ -26,12 +26,11 @@ class WaterPhysics
     double quadraticDrag = 0.08;
 
     //! Forward Movement
-    // No speed limit: terminal velocity emerges where thrust equals drag
     // Forward thrust in m/s² (results in ~12 m/s)
     double forwardThrust = 6.96;
 
     // Reverse thrust in m/s² (results in ~7.5 m/s)
-    double reverseThrust = 3;
+    double reverseThrust = 3.0;
 
     // Linear drag along the nose - lower than vertical (streamlined hull)
     double forwardLinearDrag = 0.1;

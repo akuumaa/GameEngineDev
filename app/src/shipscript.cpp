@@ -141,26 +141,6 @@ namespace App
             + rotation * Vector3::forward * forwardMovement;
         
 
-        
-        
-        /* comment out -> dublicate ?
-        double rollInput = InputHandler::getAxis("roll");
-        double pitchInput = InputHandler::getAxis("pitch");
-        double yawInput = InputHandler::getAxis("yaw");
-
-        double pitchStep = pitchInput * dt * rotationSpeed;
-        double yawStep   = yawInput * dt * rotationSpeed;
-        double rollStep  = rollInput * dt * rotationSpeed;
-
-        
-        rotation = rotation
-                * Quaternion(Vector3::forward, rollStep)
-                * Quaternion(Vector3::left, pitchStep)
-                * Quaternion(Vector3::up, yawStep);
-
-        rotation = Quaternion::normalize(rotation);
-        */
-
         // Apply Calculated transform
         entity.setPosition(newPosition);
         entity.setRotation(rotation);
