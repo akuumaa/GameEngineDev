@@ -60,7 +60,7 @@ namespace App
         rollAngularVelocity += rollAcceleration * dt;
         rollAngle += rollAngularVelocity * dt;
         
-        
+
         Vector3 thrusterInput = {InputHandler::getAxis("thrustX"),
                                  InputHandler::getAxis("thrustY"),
                                  InputHandler::getAxis("thrustZ")};
@@ -99,7 +99,6 @@ namespace App
 
         velocity = velocity + acceleration * dt;
         angularVelocity = angularVelocity + angularAcceleration * dt;
-        angularVelocity.x = 0.0; // Disable roll for now
 
         attitude = attitude * Quaternion(Vector3::left, angularVelocity.y * dt)
                             * Quaternion(Vector3::up, angularVelocity.z * dt);
