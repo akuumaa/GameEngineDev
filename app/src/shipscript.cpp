@@ -84,20 +84,12 @@ namespace App
             acceleration = (targetVelocity - velocity) * flightAssistRate;
             angularAcceleration = (targetAngularVelocity - angularVelocity) * flightAssistRate;
 
-            const double accelerationMagnitude = acceleration.length();
-            if (accelerationMagnitude > thrust)
-            {
-                acceleration = acceleration * (thrust / accelerationMagnitude);
-            }
-
-            const double angularAccelerationMagnitude = angularAcceleration.length();
-            if (angularAccelerationMagnitude > angularThrust)
-            {
-                angularAcceleration = angularAcceleration * (angularThrust / angularAccelerationMagnitude);
-            }
+            acceleration = Vector3::clamp(acceleration, -thrust, thrust);
+            angularAcceleration = Vector3::clamp(angularAcceleration, -angularThrust, angularThrust);
         }
 
         velocity = velocity + acceleration * dt;
+        std::cout << "Geschwindigkeit: " << velocity.x << ", " << velocity.y << ", " << velocity.z << std::endl;
         angularVelocity = angularVelocity + angularAcceleration * dt;
 
         attitude = attitude * Quaternion(Vector3::left, angularVelocity.y * dt)
@@ -108,6 +100,7 @@ namespace App
 
         entity.setPosition(position + velocity * dt);
         entity.setRotation(rotation);
+
     }
 
     void ShipScript::load(Entity &entity)
