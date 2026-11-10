@@ -147,7 +147,6 @@ namespace App
         attitude = Quaternion::normalize(attitude);
 
         rotation = attitude * Quaternion(Vector3::forward, rollAngle);
-        rotation = Quaternion::normalize(rotation);
 
         // Keep quaternion normalized
         rotation = Quaternion::normalize(rotation);
