@@ -97,6 +97,15 @@ namespace App
         // Vertical movement is handled exclusively by WaterPhysics
         thrusterInput.z = 0.0;
 
+        // Calculate forward movement using thrust and water resistance
+        double forwardInput = InputHandler::getAxis("thrustX");
+
+        double forwardMovement =
+            waterPhysics.updateForward(forwardInput, dt);
+
+        // Forward movement is handled exclusively by WaterPhysics
+        thrusterInput.x = 0.0;
+
         //! Movement Acceleration
         Vector3 acceleration = thrusterInput * thrust;
         Vector3 angularAcceleration = angularThrusterInput * angularThrust;
@@ -152,8 +161,12 @@ namespace App
         rotation = Quaternion::normalize(rotation);
 
         //! Position Update
+        // Vertical movement follows world up (buoyancy), forward movement follows the nose
         Vector3 newPosition =
-            position + velocity * dt + Vector3::up * verticalMovement;
+            position + velocity * dt 
+            + Vector3::up * verticalMovement
+            + rotation * Vector3::forward * forwardMovement;
+        
 
         // Apply Calculated transform
         entity.setPosition(newPosition);
@@ -181,6 +194,8 @@ namespace App
                       << "[Wasserphysik] "
                       << "Ballast: " << water << "% | "
                       << "Vertikal: " << speed << " m/s | "
+                      << "Forward: " << waterPhysics.getForwardVelocity() << " m/s | "
+                      << "Pos: " << entity.getPosition().x << ", " << entity.getPosition().z << " | "
                       << "Status: " << movement
                       << std::endl;
         }
