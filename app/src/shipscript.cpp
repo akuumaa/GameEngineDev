@@ -2,7 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
- * Copyright © 2026 Tom Kertels
+ * Copyright © 2026 Tom Kertels, Alexander Mutig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,8 @@
 
 #include <iomanip>
 #include <iostream>
+#include <cmath>
+#include <algorithm>
 
 using Engine::Core::InputHandler;
 using Engine::Math::Quaternion;
@@ -45,6 +47,24 @@ namespace App
         constexpr double maxAngularVelocity = 2.0;
         constexpr double flightAssistRate = 1.5;
 
+        double rollInput = InputHandler::getAxis("roll");
+        double pitchInput = InputHandler::getAxis("pitch");
+        double yawInput = InputHandler::getAxis("yaw");
+
+        
+        //! Roll Mechanics
+        constexpr double maxRollAngle = 30.0 * (3.14159265358979323846 / 180.0); // Convert degrees to radians
+        constexpr double rollSpring = 7.0; // Spring constant for roll stabilization
+        constexpr double rollDamping = 7.0; // Damping constant for roll stabilization
+        const bool isReturning = std::abs(rollInput) < 0.01; // Check if roll input is near zero
+        const double targetRollAngle = maxRollAngle * std::clamp(rollInput, -1.0, 1.0); // Target roll angle based on input
+        const double spring = isReturning ? 3.0 : rollSpring; // Use different spring constant when returning to neutral
+        const double damping = isReturning ? 4.0 : rollDamping; // Use different damping constant when returning to neutral
+
+        const double rollAcceleration = (targetRollAngle - rollAngle) * spring - rollAngularVelocity * damping;
+        rollAngularVelocity += rollAcceleration * dt;
+        rollAngle += rollAngularVelocity * dt;
+
         //! Input
         Vector3 thrusterInput = {
             InputHandler::getAxis("thrustX"),
@@ -52,14 +72,15 @@ namespace App
             InputHandler::getAxis("thrustZ")
         };
         Vector3 angularThrusterInput = {
-            InputHandler::getAxis("roll"),
+            0.0, // Roll is handled separately,
             InputHandler::getAxis("pitch"),
             InputHandler::getAxis("yaw")
         };
 
         //! Current Transform
         Vector3 position = entity.getPosition();
-        Quaternion rotation = entity.getRotation();
+        Quaternion rotation = attitude * Quaternion(Vector3::forward, rollAngle);
+        rotation = Quaternion::normalize(rotation);
 
         //! Water Physics
         // Update ballast tank water level
@@ -128,7 +149,13 @@ namespace App
         angularVelocity = angularVelocity + angularAcceleration * dt;
 
         //! Rotation Update
-        rotation = rotation * Quaternion(Vector3::forward, angularVelocity.x * dt) * Quaternion(Vector3::left, angularVelocity.y * dt) * Quaternion(Vector3::up, angularVelocity.z * dt);
+        attitude = attitude
+         * Quaternion(Vector3::left, angularVelocity.y * dt)
+         * Quaternion(Vector3::up, angularVelocity.z * dt);
+
+        attitude = Quaternion::normalize(attitude);
+
+        rotation = attitude * Quaternion(Vector3::forward, rollAngle);
 
         // Keep quaternion normalized
         rotation = Quaternion::normalize(rotation);
@@ -177,6 +204,8 @@ namespace App
     //! Script Initialization
     void ShipScript::load(Entity &entity)
     {
+        attitude = entity.getRotation();
+
         // Register camera switchting callback
         cameraCallbackId = InputHandler::onAction(
             "nextCamera",
