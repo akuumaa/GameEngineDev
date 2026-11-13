@@ -54,6 +54,7 @@ namespace Engine::Video
         bool hasUniform(const std::string &name);
 
         void setInt(const std::string &name, int value);
+        void setFloat(const std::string &name, double value);
         void setMatrix(const std::string &name, const Matrix &value);
 
       private:

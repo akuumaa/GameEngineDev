@@ -23,14 +23,20 @@
 #include "app/src/shipscript.h"
 #include "engine/src/core/inputMapper.h"
 #include "engine/src/core/inputhandler.h"
+#include "engine/src/math/quaternion.h"
+#include "engine/src/math/random.h"
 #include "engine/src/math/vector3.h"
 
 #include <chrono>
+#include <cmath>
 #include <iostream>
 #include <memory>
+#include <numbers>
 
 using Engine::Core::InputHandler;
 using Engine::Math::Vector3;
+using Engine::Math::Quaternion;
+using Engine::Math::Random;
 
 namespace App
 {
@@ -60,19 +66,28 @@ namespace App
             return false;
         }
 
-        // World Setup
-        for (const Vector3 &position : {
-            Vector3::forward * 25.0,
-            Vector3::forward * -25.0,
-            Vector3::left * 25.0,
-            Vector3::left * -25.0,
-            Vector3::up * 25.0,
-            Vector3::up * -25.0
-        })
+        renderer->loadSkybox("models/skybox_placeholder.model");
+        renderer->loadSun("models/sun.model", "models/lensflare.model");
+
+        Random random(worldSeed);
+
+        for (int i = 0; i < asteroidCount; i++)
         {
-            if (auto cube = simulation->loadEntity("entities/cuberef.entity"))
+            double angle = random.nextDouble(0.0, 2.0 * std::numbers::pi);
+            double radius = random.nextDouble(fieldRadiusMin, fieldRadiusMax);
+            double height = random.nextDouble(-fieldHeight, fieldHeight);
+            double size = random.nextDouble(asteroidSizeMin, asteroidSizeMax);
+            double yaw = random.nextDouble(0.0, 2.0 * std::numbers::pi);
+            double pitch = random.nextDouble(0.0, 2.0 * std::numbers::pi);
+            double roll = random.nextDouble(0.0, 2.0 * std::numbers::pi);
+
+            if (auto asteroid = simulation->loadEntity("entities/asteroid_placeholder.entity"))
             {
-                cube->setPosition(position);
+                asteroid->setPosition(Vector3(std::cos(angle) * radius, std::sin(angle) * radius, height));
+                asteroid->setRotation(Quaternion(yaw, pitch, roll));
+                asteroid->setScale(Vector3(size, size, size));
+
+                asteroids.push_back(asteroid->getEntityId());
             }
         }
 
@@ -106,6 +121,45 @@ namespace App
                 std::cerr << "! Failed to respawn ship"
                           << std::endl;
             }
+        });
+
+        InputHandler::onAction("unloadAsteroid", [this]()
+        {
+            if (!ship) return;
+
+            size_t nearest = 0;
+
+            for (size_t asteroidId : asteroids)
+            {
+                auto asteroid = simulation->getEntity(asteroidId);
+                if (!asteroid) continue;
+
+                if (nearest == 0)
+                {
+                    nearest = asteroidId;
+                    continue;
+                }
+
+                auto nearestAsteroid = simulation->getEntity(nearest);
+                if (!nearestAsteroid) continue;
+
+                double distanceToNearest = (ship->getPosition() - nearestAsteroid->getPosition()).length();
+                double distanceToCurrent = (ship->getPosition() - asteroid->getPosition()).length();
+
+                if (distanceToCurrent < distanceToNearest)
+                {
+                    nearest = asteroidId;
+                }
+            }
+
+            if (nearest == 0)
+            {
+                return;
+            }
+
+            simulation->unloadEntity(nearest);
+
+            std::cout << "  Unloaded asteroid " << nearest << ", " << simulation->getEntityCount() << " entities left" << std::endl;
         });
 
         return true;

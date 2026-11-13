@@ -53,6 +53,18 @@ namespace Engine::Sim
         return true;
     }
 
+    std::shared_ptr<Entity> Simulation::getEntity(size_t entityId)
+    {
+        auto entity = entities.find(entityId);
+
+        if (entity == entities.end())
+        {
+            return nullptr;
+        }
+
+        return entity->second;
+    }
+
     void Simulation::update(double dt, double t)
     {
         elapsedTime += dt;
