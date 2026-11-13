@@ -40,6 +40,14 @@ namespace App
         void unload(Entity &entity) override;
 
       private:
+        void updateRoll(double input, double dt);
+        void updateWaterMovement(
+            Vector3 &thrusterInput,
+            double dt,
+            double &verticalMovement,
+            double &forwardMovement
+        );
+
         Vector3 velocity = {};
         Vector3 angularVelocity = {};
         size_t cameraCallbackId = 0;

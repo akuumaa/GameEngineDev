@@ -80,6 +80,10 @@ class WaterPhysics
     double getForwardVelocity() const;
 
   private:
+    double updateBuoyancyForce(double dt);
+    double updateManualVerticalAcceleration(double input, double dt);
+    void updateVerticalVelocity(double acceleration, double dt);
+
     //! Ballast State
     // Current ballast water level (50% = neutral buoyancy)
     double waterLevel = 50.0;

@@ -38,7 +38,7 @@ namespace App
 {
 
     //! Ship Movement and Physics
-    void ShipScript::update(Entity &entity, double dt, double t)
+    void ShipScript::update(Entity &entity, double dt, double /*t*/)
     {
         //! Movement Settings
         constexpr double thrust = 20.0;
@@ -47,23 +47,7 @@ namespace App
         constexpr double maxAngularVelocity = 2.0;
         constexpr double flightAssistRate = 1.5;
 
-        double rollInput = InputHandler::getAxis("roll");
-        double pitchInput = InputHandler::getAxis("pitch");
-        double yawInput = InputHandler::getAxis("yaw");
-
-        
-        //! Roll Mechanics
-        constexpr double maxRollAngle = 30.0 * (3.14159265358979323846 / 180.0); // Convert degrees to radians
-        constexpr double rollSpring = 7.0; // Spring constant for roll stabilization
-        constexpr double rollDamping = 7.0; // Damping constant for roll stabilization
-        const bool isReturning = std::abs(rollInput) < 0.01; // Check if roll input is near zero
-        const double targetRollAngle = maxRollAngle * std::clamp(rollInput, -1.0, 1.0); // Target roll angle based on input
-        const double spring = isReturning ? 3.0 : rollSpring; // Use different spring constant when returning to neutral
-        const double damping = isReturning ? 4.0 : rollDamping; // Use different damping constant when returning to neutral
-
-        const double rollAcceleration = (targetRollAngle - rollAngle) * spring - rollAngularVelocity * damping;
-        rollAngularVelocity += rollAcceleration * dt;
-        rollAngle += rollAngularVelocity * dt;
+        updateRoll(InputHandler::getAxis("roll"), dt);
 
         //! Input
         Vector3 thrusterInput = {
@@ -82,29 +66,14 @@ namespace App
         Quaternion rotation = attitude * Quaternion(Vector3::forward, rollAngle);
         rotation = Quaternion::normalize(rotation);
 
-        //! Water Physics
-        // Update ballast tank water level
-        double ballastInput = InputHandler::getAxis("ballast");
-
-        waterPhysics.changeWaterLevel(ballastInput, dt);
-
-        // Calculate vertical movement using buoyancy and water resistance
-        double verticalInput = InputHandler::getAxis("thrustZ");
-
-        double verticalMovement =
-            waterPhysics.updateVertical(verticalInput, dt);
-
-        // Vertical movement is handled exclusively by WaterPhysics
-        thrusterInput.z = 0.0;
-
-        // Calculate forward movement using thrust and water resistance
-        double forwardInput = InputHandler::getAxis("thrustX");
-
-        double forwardMovement =
-            waterPhysics.updateForward(forwardInput, dt);
-
-        // Forward movement is handled exclusively by WaterPhysics
-        thrusterInput.x = 0.0;
+        double verticalMovement = 0.0;
+        double forwardMovement = 0.0;
+        updateWaterMovement(
+            thrusterInput,
+            dt,
+            verticalMovement,
+            forwardMovement
+        );
 
         //! Movement Acceleration
         Vector3 acceleration = thrusterInput * thrust;
@@ -142,10 +111,7 @@ namespace App
         }
 
         //! Velocity Update
-        // Apply translational acceleration
         velocity = velocity + rotation * acceleration * dt;
-
-        // Apply roational acceleration
         angularVelocity = angularVelocity + angularAcceleration * dt;
 
         //! Rotation Update
@@ -156,24 +122,18 @@ namespace App
         attitude = Quaternion::normalize(attitude);
 
         rotation = attitude * Quaternion(Vector3::forward, rollAngle);
-
-        // Keep quaternion normalized
         rotation = Quaternion::normalize(rotation);
 
         //! Position Update
-        // Vertical movement follows world up (buoyancy), forward movement follows the nose
         Vector3 newPosition =
-            position + velocity * dt 
+            position + velocity * dt
             + Vector3::up * verticalMovement
             + rotation * Vector3::forward * forwardMovement;
-        
 
-        // Apply Calculated transform
         entity.setPosition(newPosition);
         entity.setRotation(rotation);
 
         //! Physics Debug Output
-        // Debug-Ausgabe alle 0.25 Sekunden
         physicsDebugTimer += dt;
 
         if (physicsDebugTimer >= 0.25)
@@ -201,6 +161,50 @@ namespace App
         }
     }
 
+    void ShipScript::updateRoll(double input, double dt)
+    {
+        constexpr double maxRollAngle =
+            30.0 * (3.14159265358979323846 / 180.0);
+        constexpr double rollSpring = 7.0;
+        constexpr double rollDamping = 7.0;
+
+        const bool isReturning = std::abs(input) < 0.01;
+        const double targetRollAngle =
+            maxRollAngle * std::clamp(input, -1.0, 1.0);
+        const double spring = isReturning ? 3.0 : rollSpring;
+        const double damping = isReturning ? 4.0 : rollDamping;
+
+        const double rollAcceleration =
+            (targetRollAngle - rollAngle) * spring
+            - rollAngularVelocity * damping;
+
+        rollAngularVelocity += rollAcceleration * dt;
+        rollAngle += rollAngularVelocity * dt;
+    }
+
+    void ShipScript::updateWaterMovement(
+        Vector3 &thrusterInput,
+        double dt,
+        double &verticalMovement,
+        double &forwardMovement
+    )
+    {
+        waterPhysics.changeWaterLevel(
+            InputHandler::getAxis("ballast"),
+            dt
+        );
+
+        verticalMovement =
+            waterPhysics.updateVertical(thrusterInput.z, dt);
+
+        forwardMovement =
+            waterPhysics.updateForward(thrusterInput.x, dt);
+
+        // These axes are now handled by WaterPhysics.
+        thrusterInput.x = 0.0;
+        thrusterInput.z = 0.0;
+    }
+
     //! Script Initialization
     void ShipScript::load(Entity &entity)
     {
@@ -218,19 +222,18 @@ namespace App
 
         // Register flight assist toggle callback
         flightAssistCallbackId = InputHandler::onAction(
-            "toggleFlightAssist", 
+            "toggleFlightAssist",
             [this]()
         {
             flightAssist = !flightAssist;
-            std::cout 
-            << "+ Flight Assist: " 
-            << (flightAssist ? "ON" : "OFF") 
+            std::cout
+            << "+ Flight Assist: "
+            << (flightAssist ? "ON" : "OFF")
             << std::endl;
         });
     }
 
     //! Script Cleanup
-
     void ShipScript::unload(Entity &entity)
     {
         InputHandler::removeCallback(cameraCallbackId);
