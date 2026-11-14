@@ -22,6 +22,7 @@
 
 #include "engine/src/core/application.h"
 #include "engine/src/sim/entity.h"
+#include "engine/src/sim/proceduralspawner.h"
 
 #include <memory>
 
@@ -31,6 +32,8 @@
 
 using Engine::Core::Application;
 using Engine::Sim::Entity;
+using Engine::Sim::SpawnConfig;
+using Engine::Sim::SpawnShape;
 
 namespace App
 {
@@ -46,12 +49,20 @@ namespace App
 
       std::vector<size_t> asteroids = {};
 
-      uint32_t worldSeed = 1337;
-      int asteroidCount = 10;
-      double fieldRadiusMin = 80.0;
-      double fieldRadiusMax = 400.0;
-      double fieldHeight = 60.0;
-      double asteroidSizeMin = 2.0;
-      double asteroidSizeMax = 12.0;
+      SpawnConfig fishConfig = {
+          .count = 10,
+          .entityPaths = {"entities/fish.entity"},
+          .shape = SpawnShape::CylinderRing,
+          .center = {0.0, 0.0, 0.0},
+          .radiusMin = 0.0,
+          .radiusMax = 400.0,
+          .heightMin = -120.0,
+          .heightMax = 120.0,
+          .scaleMin = 0.2,
+          .scaleMax = 3.0,
+          .randomYaw = true,
+          .randomPitchRoll = true,
+          .snapToGround = false,
+      };
     };
 }

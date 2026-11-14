@@ -43,6 +43,14 @@ namespace Engine::Math
             return min + (max - min) * (draw() / 4294967295.0);
         }
 
+        /// Returns an integer between `min` and `max`, both included.
+        int nextInt(int min, int max)
+        {
+            if (max <= min) return min;
+            uint32_t range = static_cast<uint32_t>(max - min) + 1;
+            return min + static_cast<int>(draw() % range);
+        }
+
       private:
         /// Returns the next 32-bit number of the sequence.
         ///

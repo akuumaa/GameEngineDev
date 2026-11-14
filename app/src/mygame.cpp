@@ -20,23 +20,20 @@
  */
 
 #include "app/src/mygame.h"
+
 #include "app/src/shipscript.h"
 #include "engine/src/core/inputMapper.h"
 #include "engine/src/core/inputhandler.h"
 #include "engine/src/math/vector3.h"
-#include "engine/src/math/quaternion.h"
-#include "engine/src/math/random.h"
+#include "engine/src/sim/proceduralspawner.h"
 
 #include <chrono>
 #include <iostream>
 #include <memory>
-#include <cmath>
-#include <numbers>
 
 using Engine::Core::InputHandler;
 using Engine::Math::Vector3;
-using Engine::Math::Quaternion;
-using Engine::Math::Random;
+using Engine::Sim::ProceduralSpawner;
 
 namespace App
 {
@@ -68,43 +65,23 @@ namespace App
 
         // World Setup
         for (const Vector3 &position : {
-            Vector3::forward * 25.0,
-            Vector3::forward * -25.0,
-            Vector3::left * 25.0,
-            Vector3::left * -25.0,
-            Vector3::up * 25.0,
-            Vector3::up * -25.0
-        })
+                 Vector3::forward * 25.0,
+                 Vector3::forward * -25.0,
+                 Vector3::left * 25.0,
+                 Vector3::left * -25.0,
+                 Vector3::up * 25.0,
+                 Vector3::up * -25.0
+             })
         {
             if (auto cube = simulation->loadEntity("entities/cuberef.entity"))
             {
                 cube->setPosition(position);
             }
         }
-        
+
         renderer->loadSkybox("models/skybox_placeholder.model");
-
-        Random random(worldSeed);
-
-        for (int i = 0; i < asteroidCount; i++)
-        {
-            double angle = random.nextDouble(0.0, 2.0 * std::numbers::pi);
-            double radius = random.nextDouble(fieldRadiusMin, fieldRadiusMax);
-            double height = random.nextDouble(-fieldHeight, fieldHeight);
-            double size = random.nextDouble(asteroidSizeMin, asteroidSizeMax);
-            double yaw = random.nextDouble(0.0, 2.0 * std::numbers::pi);
-            double pitch = random.nextDouble(0.0, 2.0 * std::numbers::pi);
-            double roll = random.nextDouble(0.0, 2.0 * std::numbers::pi);
-
-            if (auto asteroid = simulation->loadEntity("entities/asteroid_placeholder.entity"))
-            {
-                asteroid->setPosition(Vector3(std::cos(angle) * radius, std::sin(angle) * radius, height));
-                asteroid->setRotation(Quaternion(yaw, pitch, roll));
-                asteroid->setScale(Vector3(size, size, size));
-
-                asteroids.push_back(asteroid->getEntityId());
-            }
-        }
+        
+        asteroids = ProceduralSpawner::spawn(*simulation, fishConfig);
 
         std::chrono::duration<double> startupTime =
             std::chrono::steady_clock::now() - start;
@@ -115,12 +92,11 @@ namespace App
             << " s"
             << std::endl;
 
-
         //! Spawn Ship
         ok = spawnShip();
         if (!ok) return false;
 
-        //! Respawn Callback 
+        //! Respawn Callback
         // Remvoe the exsisting ship and create a new instance
         // when the respawn action is triggered
         InputHandler::onAction("respawn", [this]()
@@ -140,7 +116,6 @@ namespace App
 
         return true;
     }
-
 
     //! Spawn Ship
     bool MyGame::spawnShip()
