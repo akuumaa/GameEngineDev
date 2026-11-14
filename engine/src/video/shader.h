@@ -55,6 +55,7 @@ namespace Engine::Video
 
         void setInt(const std::string &name, int value);
         void setMatrix(const std::string &name, const Matrix &value);
+        void setFloat(const std::string &name, double value);
 
       private:
         Shader() = default;

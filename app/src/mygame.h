@@ -22,7 +22,10 @@
 #include "engine/src/core/application.h"
 #include "engine/src/sim/entity.h"
 
+#include <cstddef>
+#include <cstdint>
 #include <memory>
+#include <vector>
 
 using Engine::Core::Application;
 using Engine::Sim::Entity;
@@ -38,5 +41,14 @@ namespace App
       private:
         std::shared_ptr<Entity> ship = {};
         bool spawnShip();
+
+        std::vector<size_t> asteroids = {};
+        uint32_t worldSeed = 1337;
+        int asteroidCount = 10;
+        double fieldRadiusMin = 80.0;
+        double fieldRadiusMax = 400.0;
+        double fieldHeight = 60.0;
+        double asteroidSizeMin = 2.0;
+        double asteroidSizeMax = 12.0;
     };
 }

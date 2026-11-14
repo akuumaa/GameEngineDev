@@ -43,13 +43,15 @@ namespace Engine::Sim
 
         void update(double dt, double t);
 
+        std::shared_ptr<Entity> getEntity(size_t entityId);
+        size_t getEntityCount() const { return entities.size(); }
+
       private:
         std::unique_ptr<CommandBuffer> &commandBuffer;
 
         Renderer &renderer;
 
         double elapsedTime = 0.0;
-
 
         size_t nextEntityId = 1;
         std::unordered_map<size_t, std::shared_ptr<Entity>> entities = {};

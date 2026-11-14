@@ -32,8 +32,8 @@ namespace Engine::Video
     std::shared_ptr<Shader> Shader::create(const std::string &vertexShaderFile, const std::string &fragmentShaderFile)
     {
         auto shader = std::shared_ptr<Shader>(new Shader());
-        ShaderData vertexShaderData = { GL_VERTEX_SHADER, vertexShaderFile };
-        ShaderData fragmentShaderData = { GL_FRAGMENT_SHADER, fragmentShaderFile };
+        ShaderData vertexShaderData = {GL_VERTEX_SHADER, vertexShaderFile};
+        ShaderData fragmentShaderData = {GL_FRAGMENT_SHADER, fragmentShaderFile};
 
         bool success = readFile(vertexShaderData) && readFile(fragmentShaderData);
         if (!success) return shader;
@@ -133,5 +133,13 @@ namespace Engine::Video
     Shader::~Shader()
     {
         glDeleteProgram(programId);
+    }
+
+    void Shader::setFloat(const std::string &name, double value)
+    {
+        int location = getLocation(name);
+        if (location < 0) return;
+
+        glUniform1f(location, (float)value);
     }
 }

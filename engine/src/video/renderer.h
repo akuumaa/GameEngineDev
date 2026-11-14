@@ -26,6 +26,7 @@
 #include "engine/src/video/model.h"
 
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -44,6 +45,9 @@ namespace Engine::Video
         void draw();
         size_t loadModel(const std::string &filename);
         void unloadModel(size_t modelId);
+        void loadSkybox(const std::string &filename);
+
+        void loadSun(const std::string &sunFilename, const std::string &lensflareFilename);
 
       private:
         const std::unique_ptr<CommandBuffer> &commandBuffer;
@@ -60,5 +64,11 @@ namespace Engine::Video
         double nearPlane = 0.1;
         double farPlane = 1000.0;
         Matrix projectionMatrix = {};
+
+        std::shared_ptr<Model> skybox = {};
+        std::shared_ptr<Model> sun = {};
+        std::shared_ptr<Model> lensflare = {};
+        uint32_t sunQueryId = 0;
+        int sunPointCount = 240;
     };
 }

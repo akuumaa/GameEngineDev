@@ -94,6 +94,11 @@ namespace Engine::Video
         shader->setMatrix("ViewMatrix", viewMatrix);
         shader->setMatrix("ProjectionMatrix", projectionMatrix);
 
+        for (const auto &[uniformName, value] : floats)
+        {
+            shader->setFloat(uniformName, value);
+        }
+
         int unit = 0;
         for (const auto &[uniformName, texture] : textures)
         {

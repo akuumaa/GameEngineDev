@@ -42,6 +42,7 @@ namespace Engine::Video
         Model &operator=(const Model &) = delete;
 
         void draw(const Matrix &worldMatrix, const Matrix &viewMatrix, const Matrix &projectionMatrix) const;
+        void setFloat(const std::string &name, double value) { floats[name] = value; }
 
       private:
         Model() = default;
@@ -50,5 +51,6 @@ namespace Engine::Video
         std::vector<std::shared_ptr<Mesh>> meshes = {};
         std::shared_ptr<Shader> shader = {};
         std::map<std::string, std::shared_ptr<Texture>> textures = {};
+        std::map<std::string, double> floats = {};
     };
 }

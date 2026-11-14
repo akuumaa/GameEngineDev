@@ -29,6 +29,12 @@ namespace Engine::Sim
     {
     }
 
+    std::shared_ptr<Entity> Simulation::getEntity(size_t entityId)
+    {
+        // TODO: Entity mit dieser ID in entities suchen und zurückgeben.
+        //       Gibt es sie nicht: nullptr. Vergleichen Sie mit unloadEntity().
+    }
+
     std::shared_ptr<Entity> Simulation::loadEntity(const std::string &filename)
     {
         std::shared_ptr<Entity> entity = std::make_shared<Entity>();
@@ -64,7 +70,6 @@ namespace Engine::Sim
         commandBuffer->clear.green = 0.36f + 0.20f * std::sin(phase + 2.0f);
         commandBuffer->clear.blue = 0.40f + 0.20f * std::sin(phase + 4.0f);
 
-
         for (auto &[entityId, entity] : entities)
         {
             entity->update(dt, t);
@@ -75,4 +80,5 @@ namespace Engine::Sim
             entity->commit(*commandBuffer);
         }
     }
+
 }

@@ -23,9 +23,11 @@
 
 #include "engine/src/core/application.h"
 
+#include <chrono>
 #include <glad/glad.h>
 #include <iostream>
 #include <iterator>
+#include <ratio>
 #include <stb_image.h>
 #include <vector>
 
@@ -36,7 +38,7 @@ namespace Engine::Video
     std::shared_ptr<Texture> Texture::create(const std::string &filename)
     {
         auto texture = std::shared_ptr<Texture>(new Texture());
-        TextureData textureData = { filename };
+        TextureData textureData = {filename};
 
         bool success = readFile(textureData);
         if (!success) return texture;
@@ -47,6 +49,7 @@ namespace Engine::Video
 
     bool Texture::readFile(TextureData &data)
     {
+        std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
         auto file = Application::load(data.filename, std::ios::binary);
         if (!file) return false;
 
@@ -60,16 +63,26 @@ namespace Engine::Video
             return false;
         }
 
+        std::chrono::duration<double, std::milli> readTime = std::chrono::steady_clock::now() - start;
+        std::cout << "  Reading texture " + data.filename + " took " + std::to_string(readTime.count()) + " ms" << std::endl;
+
         return true;
     }
 
     void Texture::genTexture(Texture &texture, const TextureData &data)
     {
-        while (glGetError() != GL_NO_ERROR) { }
+        std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+        while (glGetError() != GL_NO_ERROR)
+        {
+        }
 
         uint32_t textureId = 0;
 
         glGenTextures(1, &textureId);
+
+        std::chrono::duration<double, std::milli> genTime = std::chrono::steady_clock::now() - start;
+        std::cout << "  Generating texture " + data.filename + " took " + std::to_string(genTime.count()) + " ms" << std::endl;
+        
         glActiveTexture(GL_TEXTURE15);
         glBindTexture(GL_TEXTURE_2D, textureId);
 
