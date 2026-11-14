@@ -24,13 +24,19 @@
 #include "engine/src/core/inputMapper.h"
 #include "engine/src/core/inputhandler.h"
 #include "engine/src/math/vector3.h"
+#include "engine/src/math/quaternion.h"
+#include "engine/src/math/random.h"
 
 #include <chrono>
 #include <iostream>
 #include <memory>
+#include <cmath>
+#include <numbers>
 
 using Engine::Core::InputHandler;
 using Engine::Math::Vector3;
+using Engine::Math::Quaternion;
+using Engine::Math::Random;
 
 namespace App
 {
@@ -73,6 +79,30 @@ namespace App
             if (auto cube = simulation->loadEntity("entities/cuberef.entity"))
             {
                 cube->setPosition(position);
+            }
+        }
+        
+        renderer->loadSkybox("models/skybox_placeholder.model");
+
+        Random random(worldSeed);
+
+        for (int i = 0; i < asteroidCount; i++)
+        {
+            double angle = random.nextDouble(0.0, 2.0 * std::numbers::pi);
+            double radius = random.nextDouble(fieldRadiusMin, fieldRadiusMax);
+            double height = random.nextDouble(-fieldHeight, fieldHeight);
+            double size = random.nextDouble(asteroidSizeMin, asteroidSizeMax);
+            double yaw = random.nextDouble(0.0, 2.0 * std::numbers::pi);
+            double pitch = random.nextDouble(0.0, 2.0 * std::numbers::pi);
+            double roll = random.nextDouble(0.0, 2.0 * std::numbers::pi);
+
+            if (auto asteroid = simulation->loadEntity("entities/asteroid_placeholder.entity"))
+            {
+                asteroid->setPosition(Vector3(std::cos(angle) * radius, std::sin(angle) * radius, height));
+                asteroid->setRotation(Quaternion(yaw, pitch, roll));
+                asteroid->setScale(Vector3(size, size, size));
+
+                asteroids.push_back(asteroid->getEntityId());
             }
         }
 

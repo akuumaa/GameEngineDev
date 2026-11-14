@@ -43,6 +43,12 @@ namespace Engine::Sim
         return entity;
     }
 
+    std::shared_ptr<Entity> Simulation::getEntity(size_t entityId)
+    {
+        // TODO: Entity mit dieser ID in entities suchen und zurückgeben.
+        //       Gibt es sie nicht: nullptr. Vergleichen Sie mit unloadEntity().
+    }
+
     bool Simulation::unloadEntity(size_t entityId)
     {
         auto entry = entities.find(entityId);

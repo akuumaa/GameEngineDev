@@ -61,6 +61,11 @@ namespace Engine::Video
         models.erase(modelId);
     }
 
+    void Renderer::loadSkybox(const std::string &filename)
+    {
+        skybox = Model::create(filename);
+    }
+
     void Renderer::draw()
     {
         int width = 0;
@@ -80,6 +85,13 @@ namespace Engine::Video
 
         glClearColor(clear.red, clear.green, clear.blue, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        if (skybox)
+        {
+            glDepthMask(GL_FALSE);
+            skybox->draw(Matrix::identity(), commandBuffer->viewMatrix, projectionMatrix);
+            glDepthMask(GL_TRUE);
+        }
 
         for (const RenderItem &item : commandBuffer->renderItems)
         {

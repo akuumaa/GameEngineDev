@@ -41,6 +41,9 @@ namespace Engine::Sim
         std::shared_ptr<Entity> loadEntity(const std::string &filename);
         bool unloadEntity(size_t entityId);
 
+        std::shared_ptr<Entity> getEntity(size_t entityId);
+        size_t getEntityCount() const { return entities.size(); }
+
         void update(double dt, double t);
 
       private:
