@@ -82,17 +82,17 @@ namespace Engine::Sim
     {
         // Das muss so in zwei Loops mit der Liste, sonst löschen wir uns das Objekt auf dem wir iterieren weg
         // Weil unloadEntity intern entities.erase() aufruft und das potentiell während der Iteration ist
-        std::vector<size_t> pendingDestroyIds = {};
+        std::vector<size_t> pendingUnloadIds = {};
         
         for (auto &[entityId, entity] : entities)
         {
             if (entity->isPendingUnload())
             {
-                pendingDestroyIds.push_back(entityId);
+                pendingUnloadIds.push_back(entityId);
             }
         }
 
-        for ( auto entityId : pendingDestroyIds)
+        for ( auto entityId : pendingUnloadIds)
         {
             unloadEntity(entityId);
         }
