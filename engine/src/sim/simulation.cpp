@@ -59,6 +59,29 @@ namespace Engine::Sim
         return entity->second;
     }
 
+    std::vector<std::shared_ptr<Entity>> Simulation::findEntitiesWithTag(const std::string &tag) const
+    {
+        std::vector<std::shared_ptr<Entity>> result = {};
+
+        for (const auto &entity : pendingLoadEntities)
+        {
+            if (entity->hasTag(tag) && !entity->isPendingUnload())
+            {
+                result.push_back(entity);
+            }
+        }
+
+        for (const auto &[entityId, entity] : entities)
+        {
+            if (entity->hasTag(tag) && !entity->isPendingUnload())
+            {
+                result.push_back(entity);
+            }
+        }
+
+        return result;
+    }
+
     bool Simulation::unloadEntity(size_t entityId)
     {
         auto entry = entities.find(entityId);

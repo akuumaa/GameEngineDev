@@ -15,6 +15,14 @@
       "type": "number",
       "description": "Radius of the entity's collision sphere around its origin, before the entity is scaled. 0 turns collisions off."
     },
+    "tags": {
+      "type": "array",
+      "description": "Tags are arbitrary strings that can be used to identify entities. They are unique, and an entity can have multiple tags.",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
     "models": {
       "type": "array",
       "description": "The models this entity is drawn with. A plain string is the shorthand for a model without a scale.",

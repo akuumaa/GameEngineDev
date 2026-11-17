@@ -42,6 +42,7 @@ namespace Engine::Sim
         std::shared_ptr<Entity> loadEntity(const std::string &filename);
 
         std::shared_ptr<Entity> getEntity(size_t entityId);
+        std::vector<std::shared_ptr<Entity>> findEntitiesWithTag(const std::string &tag) const;
         size_t getEntityCount() const { return entities.size(); }
 
         void update(double dt, double t);

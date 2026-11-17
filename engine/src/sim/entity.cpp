@@ -58,6 +58,17 @@ namespace Engine::Sim
             }
         }
 
+        if (config.contains("tags") && config["tags"].is_array())
+        {
+            for (const auto &entry : config["tags"])
+            {
+                if (entry.is_string())
+                {
+                    addTag(entry.get<std::string>());
+                }
+            }
+        }
+
         for (const auto &entry : config["models"])
         {
             std::string model = {};

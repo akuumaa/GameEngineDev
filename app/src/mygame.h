@@ -26,8 +26,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
-#include <vector>
-
 
 using Engine::Core::Application;
 using Engine::Sim::Entity;
@@ -43,7 +41,6 @@ namespace App
       private:
       bool spawnShip();
       std::shared_ptr<Entity> ship = {};
-      std::vector<size_t> asteroids = {};
 
       uint32_t worldSeed = 1337;
       int asteroidCount = 10;

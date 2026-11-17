@@ -86,8 +86,6 @@ namespace App
                 asteroid->setPosition(Vector3(std::cos(angle) * radius, std::sin(angle) * radius, height));
                 asteroid->setRotation(Quaternion(yaw, pitch, roll));
                 asteroid->setScale(Vector3(size, size, size));
-
-                asteroids.push_back(asteroid->getEntityId());
             }
         }
 
@@ -127,39 +125,25 @@ namespace App
         {
             if (!ship) return;
 
-            size_t nearest = 0;
+            std::shared_ptr<Entity> nearest = nullptr;
+            double nearestDistance = 0.0;
 
-            for (size_t asteroidId : asteroids)
+            for (const std::shared_ptr<Entity> &asteroid : simulation->findEntitiesWithTag("asteroid"))
             {
-                auto asteroid = simulation->getEntity(asteroidId);
-                if (!asteroid) continue;
+                double distance = (ship->getPosition() - asteroid->getPosition()).length();
 
-                if (nearest == 0)
+                if (!nearest || distance < nearestDistance)
                 {
-                    nearest = asteroidId;
-                    continue;
-                }
-
-                auto nearestAsteroid = simulation->getEntity(nearest);
-                if (!nearestAsteroid) continue;
-
-                double distanceToNearest = (ship->getPosition() - nearestAsteroid->getPosition()).length();
-                double distanceToCurrent = (ship->getPosition() - asteroid->getPosition()).length();
-
-                if (distanceToCurrent < distanceToNearest)
-                {
-                    nearest = asteroidId;
+                    nearest = asteroid;
+                    nearestDistance = distance;
                 }
             }
 
-            if (nearest == 0)
-            {
-                return;
-            }
+            if (!nearest) return;
 
-            simulation->getEntity(nearest)->queueUnload();
+            nearest->queueUnload();
 
-            std::cout << "  Unloaded asteroid " << nearest << ", " << simulation->getEntityCount() << " entities left" << std::endl;
+            std::cout << "  Queued asteroid " << nearest->getEntityId() << " for removal" << std::endl;
         });
 
         return true;
