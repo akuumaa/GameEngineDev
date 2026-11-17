@@ -27,6 +27,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 using Engine::Core::CommandBuffer;
 using Engine::Video::Renderer;
@@ -46,6 +47,10 @@ namespace Engine::Sim
         void update(double dt, double t);
 
       private:
+        void loadPendingEntities();
+        void unloadFlaggedEntities();
+        bool unloadEntity(size_t entityId);
+
         std::unique_ptr<CommandBuffer> &commandBuffer;
 
         Renderer &renderer;
@@ -54,8 +59,6 @@ namespace Engine::Sim
 
         size_t nextEntityId = 1;
         std::unordered_map<size_t, std::shared_ptr<Entity>> entities = {};
-
-        bool unloadEntity(size_t entityId);
-        void unloadFlaggedEntities();
+        std::vector<std::shared_ptr<Entity>> pendingLoadEntities = {};
     };
 }
