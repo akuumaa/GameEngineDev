@@ -44,6 +44,18 @@
                 "items": { "type": "number" },
                 "minItems": 3,
                 "maxItems": 3
+              },
+              "rotation": {
+                "type": "array",
+                "items": { "type": "number" },
+                "minItems": 4,
+                "maxItems": 4
+              },
+              "offset": {
+                "type": "array",
+                "items": { "type": "number" },
+                "minItems": 3,
+                "maxItems": 3
               }
             },
             "additionalProperties": false,
@@ -69,15 +81,17 @@
           },
           "offset": {
             "type": "array",
+            "description": "Position of the model relative to the entity origin, before the entity is scaled.",
             "items": { "type": "number" },
             "minItems": 3,
             "maxItems": 3
           },
           "rotation": {
             "type": "array",
+            "description": "Rotation of the model inside the entity in degrees: [yaw, pitch, roll].",
             "items": { "type": "number" },
-            "minItems": 2,
-            "maxItems": 2
+            "minItems": 3,
+            "maxItems": 3
           },
           "yawLimit": {
             "type": "array",
