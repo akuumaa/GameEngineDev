@@ -65,21 +65,36 @@ namespace Engine::Sim
         double scaleMin = 1.0;
         double scaleMax = 1.0;
         // TODO: Add more control for selected axes not just random true/false
+        Vector3 minRotation = {};
+        Vector3 maxRotation = {};
+
         bool randomYaw = true;
         bool randomPitchRoll = true;
+
+        // TODO: Add more control over Distance between Entities
+        double distanceMin = 0.0;
 
         bool snapToGround = false;
         double groundHeight = 0.0;
         double groundOffset = 0.0;
     };
 
-    class ProceduralSpawner
+    class EntitySpawner
     {
       public:
         using GroundHeightFunc = std::function<double(double x, double y)>;
 
-        static std::vector<size_t> spawn(
+        static std::vector<size_t> spawnAt(
+            // TODO: Spawn a singel Entity at a defined position
+        );
+        
+        static std::vector<size_t> spawnAtPositions(
+            // TODO: Spawn multiple Entities at defined positions 
+        );
+
+        static std::vector<size_t> spawnProcedural(
             Simulation &simulation,
-            const SpawnConfig &config);
+            const SpawnConfig &config
+        );
     };
 }

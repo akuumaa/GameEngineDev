@@ -18,7 +18,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "engine/src/sim/proceduralspawner.h"
+#include "engine/src/sim/entityspawner.h"
 
 #include "engine/src/math/quaternion.h"
 #include "engine/src/math/random.h"
@@ -32,7 +32,7 @@ using Engine::Math::Vector3;
 
 namespace Engine::Sim
 {
-    std::vector<size_t> ProceduralSpawner::spawn(
+    std::vector<size_t> EntitySpawner::spawnProcedural(
         Simulation &simulation,
         const SpawnConfig &config)
     {

@@ -25,7 +25,7 @@
 #include "engine/src/core/inputMapper.h"
 #include "engine/src/core/inputhandler.h"
 #include "engine/src/math/vector3.h"
-#include "engine/src/sim/proceduralspawner.h"
+#include "engine/src/sim/entityspawner.h"
 
 #include <chrono>
 #include <iostream>
@@ -33,7 +33,7 @@
 
 using Engine::Core::InputHandler;
 using Engine::Math::Vector3;
-using Engine::Sim::ProceduralSpawner;
+using Engine::Sim::EntitySpawner;
 
 namespace App
 {
@@ -81,7 +81,7 @@ namespace App
 
         renderer->loadSkybox("models/skybox_placeholder.model");
         
-        asteroids = ProceduralSpawner::spawn(*simulation, fishConfig);
+        asteroids = EntitySpawner::spawnProcedural(*simulation, fishConfig);
 
         std::chrono::duration<double> startupTime =
             std::chrono::steady_clock::now() - start;

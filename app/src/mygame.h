@@ -22,7 +22,7 @@
 
 #include "engine/src/core/application.h"
 #include "engine/src/sim/entity.h"
-#include "engine/src/sim/proceduralspawner.h"
+#include "engine/src/sim/entityspawner.h"
 
 #include <memory>
 
