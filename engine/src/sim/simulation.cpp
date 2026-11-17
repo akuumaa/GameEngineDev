@@ -86,7 +86,7 @@ namespace Engine::Sim
         
         for (auto &[entityId, entity] : entities)
         {
-            if (entity->isPendingDestroy())
+            if (entity->isPendingUnload())
             {
                 pendingDestroyIds.push_back(entityId);
             }
@@ -111,7 +111,7 @@ namespace Engine::Sim
 
         for (auto &[entityId, entity] : entities)
         {
-            if (entity->isPendingDestroy())
+            if (entity->isPendingUnload())
             {
                 continue;
             }
