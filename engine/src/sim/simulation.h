@@ -21,7 +21,6 @@
 #pragma once
 
 #include "engine/src/core/commandbuffer.h"
-
 #include "engine/src/sim/entity.h"
 #include "engine/src/video/renderer.h"
 
@@ -52,8 +51,6 @@ namespace Engine::Sim
 
         double elapsedTime = 0.0;
 
-        
-        
         size_t nextEntityId = 1;
         std::unordered_map<size_t, std::shared_ptr<Entity>> entities = {};
     };

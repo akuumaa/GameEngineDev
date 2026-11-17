@@ -1,8 +1,9 @@
+
 /**
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
- * Copyright © 2026 Alexander Mutig
+ * Copyright © 2026 Stefan Ganswint
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,14 +20,15 @@
  */
 
 #include "app/src/mygame.h"
-
 #include "app/src/shipscript.h"
+#include "engine/src/core/inputMapper.h"
 #include "engine/src/core/inputhandler.h"
 #include "engine/src/math/vector3.h"
 
 #include <GLFW/glfw3.h>
 #include <chrono>
 #include <iostream>
+#include <memory>
 
 using Engine::Core::InputHandler;
 using Engine::Math::Vector3;
@@ -36,23 +38,38 @@ namespace App
     MyGame::MyGame(int argc, char *argv[])
         : Application(argc, argv)
     {
-        settings.title = "My Game";
+        settings.title = "Awesome Game";
     }
 
     bool MyGame::init()
     {
-        std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+        std::chrono::steady_clock::time_point start =
+            std::chrono::steady_clock::now();
 
+        // Initialize engine systems
         bool ok = Application::init();
-        if (!ok) return false;
+        if (!ok)
+        {
+            return false;
+        }
 
-        ship = simulation->loadEntity("entities/ship.entity");
-        if (!ship) return false;
+        // Load all keyboard and gamepad mappings
+        if (!Engine::Core::InputMapper::loadMappings("input.json"))
+        {
+            std::cerr << "! Failed to load input mappings"
+                      << std::endl;
+            return false;
+        }
 
-        ship->setPosition(Vector3(0.0, 0.0, 0.0));
-        ship->addScript(std::make_unique<ShipScript>());
-
-        for (const Vector3 &position : {Vector3::forward * 25.0, Vector3::forward * -25.0, Vector3::left * 25.0, Vector3::left * -25.0, Vector3::up * 25.0, Vector3::up * -25.0})
+        // World Setup
+        for (const Vector3 &position : {
+            Vector3::forward * 25.0,
+            Vector3::forward * -25.0,
+            Vector3::left * 25.0,
+            Vector3::left * -25.0,
+            Vector3::up * 25.0,
+            Vector3::up * -25.0
+        })
         {
             if (auto cube = simulation->loadEntity("entities/cuberef.entity"))
             {
@@ -60,46 +77,56 @@ namespace App
             }
         }
 
-        InputHandler::registerButtonAction("quit", GLFW_GAMEPAD_BUTTON_START);
-        InputHandler::registerKeyAction("quit", GLFW_KEY_ESCAPE);
+        std::chrono::duration<double> startupTime =
+            std::chrono::steady_clock::now() - start;
 
-        InputHandler::registerKeyAction("reset", GLFW_KEY_SPACE);
-        InputHandler::registerKeyAction("nextCamera", GLFW_KEY_C);
-        InputHandler::registerButtonAction("reset", GLFW_GAMEPAD_BUTTON_A);
-        InputHandler::registerButtonAction("nextCamera", GLFW_GAMEPAD_BUTTON_BACK);
+        std::cout
+            << "+ Startup time: "
+            << startupTime.count()
+            << " s"
+            << std::endl;
 
-        InputHandler::registerKeyAxis("yaw", GLFW_KEY_Q, GLFW_KEY_E);
-        InputHandler::registerKeyAxis("pitch", GLFW_KEY_S, GLFW_KEY_W);
-        InputHandler::registerKeyAxis("pitch", GLFW_KEY_DOWN, GLFW_KEY_UP);
-        InputHandler::registerKeyAxis("roll", GLFW_KEY_A, GLFW_KEY_D);
-        InputHandler::registerKeyAxis("roll", GLFW_KEY_LEFT, GLFW_KEY_RIGHT);
 
-        // Camera controls
-        InputHandler::registerKeyAxis("cameraYaw", GLFW_KEY_L, GLFW_KEY_J);
-        InputHandler::registerKeyAxis("cameraPitch", GLFW_KEY_I, GLFW_KEY_K);
-        InputHandler::registerKeyAxis("cameraZoom", GLFW_KEY_U, GLFW_KEY_O);
+        //! Spawn Ship
+        ok = spawnShip();
+        if (!ok) return false;
 
-        InputHandler::registerStickAxis("cameraYaw", GLFW_GAMEPAD_AXIS_RIGHT_X, true);
-        InputHandler::registerStickAxis("cameraPitch", GLFW_GAMEPAD_AXIS_RIGHT_Y, true);
-        InputHandler::registerStickAxis("pitch", GLFW_GAMEPAD_AXIS_RIGHT_Y, true);
-        InputHandler::registerGamepadAxis("roll", GLFW_GAMEPAD_BUTTON_LEFT_BUMPER, GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER);
-        InputHandler::registerTriggerAxis("roll", GLFW_GAMEPAD_AXIS_LEFT_TRIGGER, GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER);
-
-        InputHandler::onAction("reset", [this]()
+        //! Respawn Callback 
+        // Remvoe the exsisting ship and create a new instance
+        // when the respawn action is triggered
+        InputHandler::onAction("respawn", [this]()
         {
-            ship->setRotation({});
+            if (ship)
+            {
+                simulation->unloadEntity(ship->getEntityId());
+                ship = nullptr;
+            }
+
+            if (!spawnShip())
+            {
+                std::cerr << "! Failed to respawn ship"
+                          << std::endl;
+            }
         });
 
-        InputHandler::onAction("nextCamera", [this]()
-        {
-            ship->nextCamera();
-        });
+        return true;
+    }
 
+
+    //! Spawn Ship
+    bool MyGame::spawnShip()
+    {
+        ship = simulation->loadEntity("entities/ship.entity");
+        if (!ship) return false;
+
+        // Set initial position
+        ship->setPosition(Vector3(0.0, 0.0, 0.0));
+
+        // Attach movement and physics script to the ship entity
+        ship->addScript(std::make_unique<ShipScript>());
+
+        // Set ship as the active focus entity
         ship->setFocus(true);
-
-        std::chrono::duration<double> startupTime = std::chrono::steady_clock::now() - start;
-        std::cout << "+ Startup time: " << startupTime.count() << " s" << std::endl;
-
         return true;
     }
 }

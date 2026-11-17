@@ -2,7 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
- * Copyright © 2026 Alexander Mutig
+ * Copyright © 2026 Tom Kertels
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,9 @@
 
 namespace Engine::Core
 {
+
+    void testController(); // Vorwärtsdeklaration
+
     Window::Window(const Settings &settings)
     {
         glfwSetErrorCallback([](int error, const char *description)
@@ -38,6 +41,11 @@ namespace Engine::Core
         {
             throw std::runtime_error("Failed to initialize GLFW");
         }
+
+        testController();
+
+        
+        InputHandler::registerButtonAction("quit", GLFW_GAMEPAD_BUTTON_START);
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -72,9 +80,10 @@ namespace Engine::Core
             InputHandler::keyCallback(key, scancode, mods, action == GLFW_PRESS);
         });
 
-        InputHandler::onAction("quit", [this]()
+        // Mouse Callback registration
+        glfwSetMouseButtonCallback(window, [](GLFWwindow *window, int button, int action, int mods)
         {
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
+            InputHandler::mouseButtonCallback(button, action == GLFW_PRESS);
         });
 
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -82,6 +91,22 @@ namespace Engine::Core
         glfwSetCursorPosCallback(window, [](GLFWwindow *window, double x, double y)
         {
             InputHandler::cursorPosCallback(x, y);
+        });
+
+        glfwSetScrollCallback(window, [](GLFWwindow *window, double x, double y)
+        {
+            InputHandler::scrollCallback(x, y);
+        });
+
+
+        InputHandler::registerKeyAction("quit", GLFW_KEY_ESCAPE);
+
+        // KEY & BUTTON ACTION REGISTRATION
+        InputHandler::registerKeyAction("quit", GLFW_KEY_ESCAPE);
+        InputHandler::registerButtonAction("quit", GLFW_GAMEPAD_BUTTON_START);
+        InputHandler::onAction("quit", [this]()
+        {
+            glfwSetWindowShouldClose(window, GLFW_TRUE);
         });
 
         glfwSetScrollCallback(window, [](GLFWwindow *window, double x, double y)
@@ -111,4 +136,48 @@ namespace Engine::Core
     {
         glfwGetFramebufferSize(window, &width, &height);
     }
+
+    void testController()
+    {
+        for (int id = GLFW_JOYSTICK_1;
+             id <= GLFW_JOYSTICK_LAST;
+             ++id)
+        {
+            if (!glfwJoystickPresent(id))
+            {
+                continue;
+            }
+
+            std::cout << "\nController: "
+                      << glfwGetJoystickName(id)
+                      << std::endl;
+
+            const char *guid = glfwGetJoystickGUID(id);
+
+            std::cout << "GUID: "
+                      << (guid ? guid : "Unbekannt")
+                      << std::endl;
+
+            std::cout << "Mapping: "
+                      << (glfwJoystickIsGamepad(id) ? "JA" : "NEIN")
+                      << std::endl;
+
+            std::cout << "GLFW Version: "
+                      << glfwGetVersionString()
+                      << std::endl;
+
+            int axisCount = 0;
+            const float *axisValues = glfwGetJoystickAxes(
+                id, &axisCount
+            );
+
+            for (int i = 0; i < axisCount; ++i)
+            {
+                std::cout << "Achse " << i
+                          << ": " << axisValues[i]
+                          << std::endl;
+            }
+        }
+    }
+
 }

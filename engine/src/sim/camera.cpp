@@ -2,7 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
- * Copyright © 2026 Alexander Mutig
+ * Copyright © 2026 Tom Kertels
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,31 +19,38 @@
  */
 
 #include "engine/src/sim/camera.h"
+#include "engine/src/math/number.h"
 #include "engine/src/core/inputhandler.h"
 
+#include <algorithm>
+#include <cmath>
+#include <json.hpp>
+#include <numbers>
+
+using Engine::Core::InputHandler;
+
+#include "engine/src/core/inputhandler.h"
 #include "engine/src/math/number.h"
 
-#include <cmath>
-#include <cstdarg>
-#include <json.hpp>
 #include <algorithm>
+#include <cmath>
+#include <json.hpp>
 #include <numbers>
 
 using Engine::Core::InputHandler;
 
 namespace Engine::Sim
 {
-
     Camera Camera::create(const Json &config)
     {
-
         Camera camera = {};
 
-        camera.type = config.contains("type") && config["type"].is_string() && config["type"] == "orbit"
-                          ? CameraType::Orbit
-                          : CameraType::Fixed;
         camera.name = config.value("name", "");
+
+        camera.type = config.value("type", "fixed") == "orbit" ? CameraType::Orbit : CameraType::Fixed;
+
         camera.distance = config.value("distance", 8.0);
+        camera.distanceStart = camera.distance;
 
         if (config.contains("offset")) camera.offset = {config["offset"][0].get<double>(), config["offset"][1].get<double>(), config["offset"][2].get<double>()};
 
@@ -51,6 +58,9 @@ namespace Engine::Sim
         {
             camera.yaw = Math::Number::toRadians(config["rotation"][0].get<double>());
             camera.pitch = Math::Number::toRadians(config["rotation"][1].get<double>());
+
+            camera.yawStart = camera.yaw;
+            camera.pitchStart = camera.pitch;
         }
 
         if (config.contains("yawLimit"))
@@ -72,11 +82,58 @@ namespace Engine::Sim
 
         camera.clampToLimits();
 
-        camera.targetYaw = camera.yaw;
-        camera.targetPitch = camera.pitch;
-        camera.targetDistance = camera.distance;
-
         return camera;
+    }
+
+    void Camera::update(double dt)
+    {
+        yawTarget += InputHandler::getAxis("cameraYaw") * lookRate * dt;
+        pitchTarget += InputHandler::getAxis("cameraPitch") * lookRate * dt;
+        distanceTarget -= InputHandler::getAxis("cameraZoom") * distance * zoomRate * dt;
+
+        yawTarget -= InputHandler::getMouseDeltaX() * mouseSensitivity;
+        pitchTarget += InputHandler::getMouseDeltaY() * mouseSensitivity;
+        distanceTarget -= InputHandler::getMouseDeltaZ() * distance * zoomStep;
+
+        yaw = yaw + (yawTarget - yaw) * lookRate * dt;
+        pitch = pitch + (pitchTarget - pitch) * lookRate * dt;
+        distance = distance + (distanceTarget - distance) * zoomRate * dt;
+
+        clampToLimits();
+    }
+
+
+    void Camera::clampToLimits()
+    {
+        if (yawLimited)
+        {
+            yaw = std::clamp(yaw, yawMin, yawMax);
+            yawTarget = std::clamp(yawTarget, yawMin, yawMax);
+        }
+        else
+        {
+            double wrapped = std::remainder(yaw, 2.0 * std::numbers::pi);
+            yawTarget += wrapped - yaw;
+            yaw = wrapped;
+        }
+
+        pitch = std::clamp(pitch, pitchMin, pitchMax);
+        pitchTarget = std::clamp(pitchTarget, pitchMin, pitchMax);
+
+        distance = std::clamp(distance, distanceMin, distanceMax);
+        distanceTarget = std::clamp(distanceTarget, distanceMin, distanceMax);
+    }
+
+    void Camera::reset()
+    {
+        yaw = yawStart;
+        pitch = pitchStart;
+        distance = distanceStart;
+        yawTarget = yawStart;
+        pitchTarget = pitchStart;
+        distanceTarget = distanceStart;
+
+        clampToLimits();
     }
 
     Matrix Camera::getViewMatrix(const Vector3 &position, const Quaternion &rotation) const
@@ -89,49 +146,15 @@ namespace Engine::Sim
         if (type == CameraType::Fixed)
         {
             eye = offset;
-            target = eye + direction;
+            target = offset + direction;
         }
         else if (type == CameraType::Orbit)
         {
+            eye = offset - direction * distance;
             target = offset;
-            eye = target - direction * distance;
         }
-
-
 
         return Matrix::lookAt(eye, target) * (-rotation).toMatrix() * Matrix::translation(-position);
     }
 
-    void Camera::update(double dt)
-    {
-        targetYaw += InputHandler::getAxis("cameraYaw") * lookRate * dt;
-        targetPitch += InputHandler::getAxis("cameraPitch") * lookRate * dt;
-        targetDistance -= InputHandler::getAxis("cameraZoom") * targetDistance * zoomRate * dt;
-
-        targetYaw -= InputHandler::getMouseDeltaX() * mouseSensitivity;
-        targetPitch += InputHandler::getMouseDeltaY() * mouseSensitivity;
-        targetDistance -= InputHandler::getMouseDeltaZ() * targetDistance * zoomStep;
-
-        targetYaw = yawLimited ? std::clamp(targetYaw, yawMin, yawMax) : std::remainder(targetYaw, 2.0 * std::numbers::pi);
-        targetPitch = std::clamp(targetPitch, pitchMin, pitchMax);
-        targetDistance = std::clamp(targetDistance, distanceMin, distanceMax);
-
-        const double smoothingFactor = 1.0 - std::exp(-smoothingSpeed * dt);
-
-        const double yawDifference = yawLimited ? targetYaw - yaw : std::remainder(targetYaw - yaw, 2.0 * std::numbers::pi);
-
-        yaw += yawDifference * smoothingFactor;
-        pitch += (targetPitch - pitch) * smoothingFactor;
-        distance += (targetDistance - distance) * smoothingFactor;
-
-
-        clampToLimits();
-    }
-
-    void Camera::clampToLimits()
-    {
-        yaw = yawLimited ?std::clamp(yaw, yawMin, yawMax) : std::remainder(yaw, 2.0 * std::numbers::pi);
-        pitch = std::clamp(pitch, pitchMin, pitchMax);
-        distance = std::clamp(distance, distanceMin, distanceMax);
-    }
 }
