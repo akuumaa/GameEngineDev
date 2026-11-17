@@ -112,7 +112,7 @@ namespace App
         {
             if (ship)
             {
-                simulation->unloadEntity(ship->getEntityId());
+                ship->queueDestroy();
                 ship = nullptr;
             }
 
@@ -157,7 +157,7 @@ namespace App
                 return;
             }
 
-            simulation->unloadEntity(nearest);
+            simulation->getEntity(nearest)->queueDestroy();
 
             std::cout << "  Unloaded asteroid " << nearest << ", " << simulation->getEntityCount() << " entities left" << std::endl;
         });

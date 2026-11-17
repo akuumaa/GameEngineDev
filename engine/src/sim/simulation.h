@@ -39,7 +39,6 @@ namespace Engine::Sim
         Simulation(std::unique_ptr<CommandBuffer> &commandBuffer, Renderer &renderer);
 
         std::shared_ptr<Entity> loadEntity(const std::string &filename);
-        bool unloadEntity(size_t entityId);
 
         std::shared_ptr<Entity> getEntity(size_t entityId);
         size_t getEntityCount() const { return entities.size(); }
@@ -55,5 +54,8 @@ namespace Engine::Sim
 
         size_t nextEntityId = 1;
         std::unordered_map<size_t, std::shared_ptr<Entity>> entities = {};
+
+        bool unloadEntity(size_t entityId);
+        void unloadFlaggedEntities();
     };
 }

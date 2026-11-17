@@ -81,6 +81,9 @@ namespace Engine::Sim
         }
         void setFocus(bool f) { focus = f; }
 
+        void queueDestroy() { pendingDestroy = true; }
+        bool isPendingDestroy() const { return pendingDestroy; }
+
       private:
         struct ModelInstance
         {
@@ -92,6 +95,7 @@ namespace Engine::Sim
         Vector3 position = {};
         Quaternion rotation = {};
         Vector3 scale = {1.0, 1.0, 1.0};
+        bool pendingDestroy = false;
 
         std::vector<Camera> cameras = {};
         size_t activeCamera = 0;

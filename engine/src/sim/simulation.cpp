@@ -43,6 +43,14 @@ namespace Engine::Sim
         return entity;
     }
 
+    std::shared_ptr<Entity> Simulation::getEntity(size_t entityId)
+    {
+        auto entity = entities.find(entityId);
+        if (entity == entities.end()) return nullptr;
+
+        return entity->second;
+    }
+
     bool Simulation::unloadEntity(size_t entityId)
     {
         auto entry = entities.find(entityId);
@@ -53,16 +61,24 @@ namespace Engine::Sim
         return true;
     }
 
-    std::shared_ptr<Entity> Simulation::getEntity(size_t entityId)
+    void Simulation::unloadFlaggedEntities()
     {
-        auto entity = entities.find(entityId);
-
-        if (entity == entities.end())
+        // Das muss so in zwei Loops mit der Liste, sonst löschen wir uns das Objekt auf dem wir iterieren weg
+        // Weil unloadEntity aus entities.erase(entry) aufruft und das potentiell während der Iteration ist
+        std::vector<size_t> pendingDestroyIds = {};
+        
+        for (auto &[entityId, entity] : entities)
         {
-            return nullptr;
+            if (entity->isPendingDestroy())
+            {
+                pendingDestroyIds.push_back(entityId);
+            }
         }
 
-        return entity->second;
+        for ( auto entityId : pendingDestroyIds)
+        {
+            unloadEntity(entityId);
+        }
     }
 
     void Simulation::update(double dt, double t)
@@ -78,8 +94,14 @@ namespace Engine::Sim
 
         for (auto &[entityId, entity] : entities)
         {
+            if (entity->isPendingDestroy())
+            {
+                continue;
+            }
             entity->update(dt, t);
         }
+
+        unloadFlaggedEntities();
 
         for (const auto &[entityId, entity] : entities)
         {
