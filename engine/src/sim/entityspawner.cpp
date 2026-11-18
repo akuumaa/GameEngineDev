@@ -26,9 +26,8 @@
 
 #include <cmath>
 #include <cstddef>
-#include <iostream>
 #include <numbers>
-#include <ostream>
+#include <vector>
 
 using Engine::Math::Quaternion;
 using Engine::Math::Random;
@@ -41,7 +40,7 @@ namespace Engine::Sim
         const SpawnConfig &config
     )
     {
-        std::vector<SpawnPoints> points = EntitySpawner::procGen(config);
+        std::vector<SpawnPoint> points = EntitySpawner::procGen(config);
         std::vector<size_t> spawnedIds = {};
 
         spawnedIds.reserve(points.size());
@@ -52,20 +51,41 @@ namespace Engine::Sim
         }
 
         spawnedIds.reserve(static_cast<size_t>(config.count));
-        /*
-        for (int i = 0; i < config.count; i++)
-        {
-            SpawnPoints spawnPoints = EntitySpawner::procGen(config);
 
-            size_t spawnedId = EntitySpawner::spawnAt(simulation, spawnPoints);
-            std::cout << "SpawnedID: " << spawnedId << std::endl;
-            std::cout << "EntityPath: " << spawnPoints.entityPath << std::endl;
-            spawnedIds.push_back(spawnedId);
-        }
-        */
-        for (SpawnPoints &points : points)
+        spawnedIds = EntitySpawner::spawnEntities(simulation, points);
+
+        return spawnedIds;
+    }
+
+    size_t EntitySpawner::spawnAt(
+        Simulation &simulation,
+        const SpawnPoint &spawnPoint
+    )
+    {
+        size_t spawnedId = 0;
+
+        // Instantiate Entity
+        if (auto entity = simulation.loadEntity(spawnPoint.entityPath))
         {
-            size_t spawnedId = EntitySpawner::spawnAt(simulation, points);
+            entity->setPosition(spawnPoint.position);
+            entity->setRotation(spawnPoint.rotation);
+            entity->setScale(spawnPoint.scale);
+            spawnedId = entity->getEntityId();
+        }
+        return spawnedId;
+    }
+
+    std::vector<size_t> EntitySpawner::spawnEntities(
+        Simulation &simulation,
+        const std::vector<SpawnPoint> &spawnPoint
+    )
+    {
+        std::vector<size_t> spawnedIds = {};
+        spawnedIds.reserve(spawnPoint.size());
+
+        for (const SpawnPoint &spawnPoint : spawnPoint)
+        {
+            size_t spawnedId = EntitySpawner::spawnAt(simulation, spawnPoint);
             if (spawnedId != 0)
             {
                 spawnedIds.push_back(spawnedId);
@@ -75,56 +95,15 @@ namespace Engine::Sim
         return spawnedIds;
     }
 
-    size_t EntitySpawner::spawnAt(
-        Simulation &simulation,
-        SpawnPoints &spawnPoints
-    )
-    {
-        size_t spawnedId = 0;
-
-        // Instantiate Entity
-        if (auto entity = simulation.loadEntity(spawnPoints.entityPath))
-        {
-            entity->setPosition(spawnPoints.position);
-            entity->setRotation(spawnPoints.rotation);
-            entity->setScale(spawnPoints.scale);
-            spawnedId = entity->getEntityId();
-        }
-        return spawnedId;
-    }
-
-    // std::vector<size_t> EntitySpawner::spawnAtPositions(
-    //     Simulation &simulation,
-    //     const std::string &entityPath,
-    //     const std::vector<Vector3> &positions,
-    //     const Math::Quaternion &rotation,
-    //     const Vector3 &scale
-    // )
-    // {
-    //     std::vector<size_t> spawnedIds = {};
-    //     spawnedIds.reserve(positions.size());
-
-    //     for (int i = 0; i < positions.size(); i++)
-    //     {
-    //         size_t spawnedId = EntitySpawner::spawnAt(simulation, entityPath, positions[i], rotation, scale);
-    //         if (spawnedId != 0)
-    //         {
-    //             spawnedIds.push_back(spawnedId);
-    //         }
-    //     }
-
-    //     return spawnedIds;
-    // }
-
-    std::vector<SpawnPoints> EntitySpawner::procGen(
+    std::vector<SpawnPoint> EntitySpawner::procGen(
         const SpawnConfig &config
     )
     {
-        std::vector<SpawnPoints> spawnPoints = {};
-        spawnPoints.reserve(static_cast<size_t>(config.count));
+        std::vector<SpawnPoint> spawnPoint = {};
+        spawnPoint.reserve(static_cast<size_t>(config.count));
 
         if (config.count <= 0 || config.entityPaths.empty()){
-            return spawnPoints;
+            return spawnPoint;
         };
 
 
@@ -174,15 +153,15 @@ namespace Engine::Sim
                     random.nextInt(0, static_cast<int>(config.entityPaths.size()) - 1)
                 );
             }
-            spawnPoints.push_back({
+            spawnPoint.push_back({
             config.entityPaths[pathIndex],
-            Vector3(x, y, z),
+            {Vector3(x, y, z)},
             Quaternion(yaw, pitch, roll),
             Vector3(size, size, size)
             });
     
         }
-        return spawnPoints;
+        return spawnPoint;
     }
 
 

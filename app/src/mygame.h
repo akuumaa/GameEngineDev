@@ -34,6 +34,7 @@ using Engine::Core::Application;
 using Engine::Sim::Entity;
 using Engine::Sim::SpawnConfig;
 using Engine::Sim::SpawnShape;
+using Engine::Sim::SpawnPoint;
 
 namespace App
 {
@@ -64,5 +65,21 @@ namespace App
           .randomPitchRoll = true,
           .snapToGround = false,
       };
+
+      // SpawnPoints cubeConfig = {
+      //   .entityPath = "entities/cuberef.entity",
+      //   .position = {
+      //            Vector3::forward * 25.0,
+      //            Vector3::forward * -25.0,
+      //            Vector3::left * 25.0,
+      //            Vector3::left * -25.0,
+      //            Vector3::up * 25.0,
+      //            Vector3::up * -25.0
+      //        },
+      //   .rotation = {0.0,0.0,0.0},
+      //   .scale = {1,1,1}
+      // };
+
+
     };
 }

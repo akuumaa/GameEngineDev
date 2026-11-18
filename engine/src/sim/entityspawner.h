@@ -86,13 +86,7 @@ namespace Engine::Sim
         double groundOffset = 0.0;
     };
 
-    // struct SpawnConfig {
-    //     Vector3 position = {0.0, 0.0, 0.0};
-    //     std::vector<Vector3> positions = {};
-
-    // };
-
-    struct SpawnPoints {
+    struct SpawnPoint {
         std::string entityPath = "";
         Vector3 position = {};
         Math::Quaternion rotation = {};
@@ -102,8 +96,13 @@ namespace Engine::Sim
     class EntitySpawner
     {
       private:
-        static std::vector<SpawnPoints> procGen(
+        static std::vector<SpawnPoint> procGen(
             const SpawnConfig &config
+        );
+
+        static std::vector<size_t> spawnEntities(
+            Simulation &simulation,
+            const std::vector<SpawnPoint> &spawnPoints
         );
 
       public:
@@ -111,12 +110,7 @@ namespace Engine::Sim
 
         static size_t spawnAt(
             Simulation &simulation,
-            SpawnPoints &spawnPoints
-        );
-        
-        static std::vector<size_t> spawnAtPositions(
-            Simulation &simulation,
-            SpawnPoints &spawnPoints
+            const SpawnPoint &spawnPoints
         );
 
         static std::vector<size_t> spawnProcedural(
