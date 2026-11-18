@@ -44,6 +44,14 @@ namespace Engine::Sim
         return entity;
     }
 
+    std::shared_ptr<Entity> Simulation::getEntity(size_t entityId)
+    {
+        auto entry = entities.find(entityId);
+        if (entry == entities.end()) return nullptr;
+
+        return entry->second;
+    }
+
     bool Simulation::unloadEntity(size_t entityId)
     {
         auto entry = entities.find(entityId);

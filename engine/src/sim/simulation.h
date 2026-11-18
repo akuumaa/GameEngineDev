@@ -44,6 +44,10 @@ namespace Engine::Sim
 
         void update(double dt, double t);
 
+        //! Entity Management
+        std::shared_ptr<Entity> getEntity(size_t entityId);
+        size_t getEntityCount() const { return entities.size(); }
+
       private:
         std::unique_ptr<CommandBuffer> &commandBuffer;
 

@@ -24,14 +24,20 @@
 #include "engine/src/core/inputMapper.h"
 #include "engine/src/core/inputhandler.h"
 #include "engine/src/math/vector3.h"
+#include "engine/src/math/quaternion.h"
+#include "engine/src/math/random.h"
 
 #include <GLFW/glfw3.h>
 #include <chrono>
 #include <iostream>
 #include <memory>
+#include <cmath>
+#include <numbers>
 
 using Engine::Core::InputHandler;
 using Engine::Math::Vector3;
+using Engine::Math::Quaternion;
+using Engine::Math::Random;
 
 namespace App
 {
@@ -62,21 +68,6 @@ namespace App
         }
 
         // World Setup
-        for (const Vector3 &position : {
-            Vector3::forward * 25.0,
-            Vector3::forward * -25.0,
-            Vector3::left * 25.0,
-            Vector3::left * -25.0,
-            Vector3::up * 25.0,
-            Vector3::up * -25.0
-        })
-        {
-            if (auto cube = simulation->loadEntity("entities/cuberef.entity"))
-            {
-                cube->setPosition(position);
-            }
-        }
-
         std::chrono::duration<double> startupTime =
             std::chrono::steady_clock::now() - start;
 
@@ -108,6 +99,50 @@ namespace App
                           << std::endl;
             }
         });
+
+        //! Spawn Asteroids
+        Random random(worldSeed);
+        for (int i = 0; i < asteroidCount; i++) {
+            double angle = random.nextDouble(0.0, 2.0 * std::numbers::pi);
+            double radius = random.nextDouble(fieldRadiusMin, fieldRadiusMax);
+            double height = random.nextDouble(-fieldHeight, fieldHeight);
+            double size = random.nextDouble(asteroidSizeMin, asteroidSizeMax);
+            double yaw = random.nextDouble(0.0, 2.0 * std::numbers::pi);
+            double pitch = random.nextDouble(0.0, 2.0 * std::numbers::pi);
+            double roll = random.nextDouble(0.0, 2.0 * std::numbers::pi);
+
+            if (auto asteroid = simulation->loadEntity("entities/asteroid_placeholder.entity")) {
+                asteroid->setPosition(Vector3(std::cos(angle) * radius, std::sin(angle) * radius, height));
+                asteroid->setRotation(Quaternion(yaw, pitch, roll));
+                asteroid->setScale(Vector3(size, size, size));
+                
+                asteroids.push_back(asteroid->getEntityId());
+            }
+        }
+
+        InputHandler::onAction("unloadAsteroid", [this]() {
+            if (!ship) return;
+
+            size_t nearest = 0;
+            double nearestDistance = 0.0;
+
+            for (size_t asteroidId : asteroids) {
+                auto asteroid = simulation->getEntity(asteroidId);
+                if (!asteroid) continue;
+
+                double distance = (asteroid->getPosition() - ship->getPosition()).length();
+
+                if (nearest == 0 || distance < nearestDistance) {
+                    nearestDistance = distance;
+                    nearest = asteroidId;
+                }
+            }
+
+            if (nearest == 0) return;
+            simulation->unloadEntity(nearest);
+            std::cout << "  Unloaded asteroid " << nearest << ", " << simulation->getEntityCount() << " entities left" << std::endl;
+        });
+
 
         return true;
     }
