@@ -1,5 +1,6 @@
 
 #include "app/src/physics/waterphysics.h"
+#include "engine/src/physics/physicsutils.h"
 
 #include <algorithm>
 #include <cmath>
@@ -34,6 +35,11 @@ double WaterPhysics::getVerticalVelocity() const
     return verticalVelocity;
 }
 
+double WaterPhysics::getForwardVelocity() const
+{
+    return forwardVelocity;
+}
+
 //! Vertical Physics Update
 double WaterPhysics::updateVertical(double input, double dt)
 {
@@ -43,28 +49,71 @@ double WaterPhysics::updateVertical(double input, double dt)
 
     input = std::clamp(input, -1.0, 1.0);
 
-    /** Calculate buoyany based on ballast water level
-     * * 0% = +1.0 (maximum upward buoyancy)
-     * * 50% =  0.0 (neutral buoyancy)
-     * * 100% = -1.0 (maximum downward buoyancy)
-     */
+    // Calculate accelerations and resistance
+    double buoyancy = calculateBuoyancy(dt);
+    double manualAcceleration = calculateManualAcceleration(input, dt);
+
+    double drag = PhysicsUtils::calculateDrag(
+        verticalVelocity,
+        linearDrag,
+        quadraticDrag
+    );
+
+    // Combine accelerations
+    double totalAcceleration =
+        buoyancy + manualAcceleration - drag;
+
+    updateVerticalVelocity(totalAcceleration, dt);
+
+    // Apply water drift to displacement
+    double drift = calculateWaterDrift();
+
+    return PhysicsUtils::calculateDisplacement(
+        verticalVelocity + drift,
+        dt
+    );
+}
+
+//! Buoyancy
+
+double WaterPhysics::calculateBuoyancy(double dt)
+{
+    // 0% = maximum upward buoyancy
+    // 50% = neutral buoyancy
+    // 100% = maximum downward buoyancy
     double targetBuoyancy =
         1.0 - 2.0 * (waterLevel / 100.0);
 
-    // Smoothly adjust buoyancy instead of applying it instantly
-    double response =
-        1.0 - std::exp(
-                  -dt / std::max(buoyancyResponseTime, 0.001)
-              );
+    // Smoothly adjust buoyancy
+    double response = PhysicsUtils::calculateResponse(
+        dt,
+        buoyancyResponseTime
+    );
 
     currentBuoyancy +=
         (targetBuoyancy - currentBuoyancy) * response;
 
-    // Convert buoyancy into vertical acceleration
-    double buoyancyForce = currentBuoyancy * buoyancyAcceleration;
+    // Convert buoyancy to acceleration
+    return currentBuoyancy * buoyancyAcceleration;
+}
 
-    //! Manual vertical thrust
-    // Determine input direction
+//! Manual Vertical Movement
+
+double WaterPhysics::calculateManualAcceleration(double input, double dt)
+{
+    updateAccelerationProgress(input, dt);
+
+    double curve = PhysicsUtils::calculateAccelerationCurve(
+        accelerationProgress
+    );
+
+    return input * verticalAcceleration * curve;
+}
+
+//! Acceleration Ramp
+
+void WaterPhysics::updateAccelerationProgress(double input, double dt)
+{
     double direction = 0.0;
 
     if (input > 0.0) direction = 1.0;
@@ -83,70 +132,52 @@ double WaterPhysics::updateVertical(double input, double dt)
         accelerationProgress +=
             dt / std::max(accelerationRampTime, 0.001);
 
-        accelerationProgress =
-            std::clamp(accelerationProgress, 0.0, 1.0);
+        accelerationProgress = std::clamp(
+            accelerationProgress,
+            0.0,
+            1.0
+        );
     }
+}
 
-    // Quadratic acceleration curve for smooth movement
-    double curve = accelerationProgress * accelerationProgress;
+//! Vertical Velocity Update
 
-    // Calculate manual thrust acceleration
-    double manualAcceleration = input 
-        * verticalAcceleration 
-        * curve;
-
-    //! Water Resistance
-    double drag = linearDrag 
-        * verticalVelocity 
-        + quadraticDrag 
-        * verticalVelocity 
-        * std::abs(verticalVelocity);
-
-    //! Velocity Update
-    // Combine buoyancy, manual thrust & water resistance
-    double totalAcceleration = buoyancyForce 
-        + manualAcceleration 
-        - drag;
-
-    // Integrate acceleration over delta time
-    verticalVelocity += totalAcceleration * dt;
-
-    // Limit vertical speed in both directions
-    verticalVelocity = std::clamp(
+void WaterPhysics::updateVerticalVelocity(double acceleration, double dt)
+{
+    verticalVelocity = PhysicsUtils::integrateVelocity(
         verticalVelocity,
-        -maxVerticalSpeed,
+        acceleration,
+        dt
+    );
+
+    verticalVelocity = PhysicsUtils::clampVelocity(
+        verticalVelocity,
         maxVerticalSpeed
     );
 
-    // Prevent very small residual velocities
+    // Prevent small residual velocities
     if (std::abs(verticalVelocity) < 0.001 &&
-        std::abs(totalAcceleration) < 0.001)
+        std::abs(acceleration) < 0.001)
     {
         verticalVelocity = 0.0;
     }
+}
 
-    //! Water Drift Simulation
+//! Water Drift Simulation
 
-    // Apply subtle vertical dirft near neutral buoyancy (50%)
+double WaterPhysics::calculateWaterDrift() const
+{
+    // Strongest drift near neutral buoyancy (50%)
     double neutralFactor = std::clamp(
         1.0 - std::abs(waterLevel - 50.0) / 10.0,
         0.0,
         1.0
     );
 
-    // Generate a smooth oscillating vertical drift
-    double driftVelocity =
-        std::sin(elapsedTime * waterDriftFrequency) * waterDriftStrength * neutralFactor;
-
-    //! Vertical Displacement
-    return (verticalVelocity + driftVelocity) * dt;
-    
-}
-
-// Return current forward velocity (m/s)
-double WaterPhysics::getForwardVelocity() const
-{
-    return forwardVelocity;
+    // Smooth oscillating vertical drift
+    return std::sin(elapsedTime * waterDriftFrequency)
+        * waterDriftStrength
+        * neutralFactor;
 }
 
 //! Forward Physics Update
@@ -156,18 +187,36 @@ double WaterPhysics::updateForward(double input, double dt)
 
     input = std::clamp(input, -1.0, 1.0);
 
-    // Use weaker thrust when moving backwards
-    double thrust = input * (input >= 0.0 ? forwardThrust : reverseThrust);
+    // Calculate forward thrust
+    double thrust = calculateForwardThrust(input);
 
-    //! Water Resistance
-    // v * |v| keeps the drag opposite to the direction of movement
-    double drag = forwardLinearDrag * forwardVelocity
-                + forwardQuadraticDrag * forwardVelocity * std::abs(forwardVelocity);
+    // Calculate water resistance
+    double drag = PhysicsUtils::calculateDrag(
+        forwardVelocity,
+        forwardLinearDrag,
+        forwardQuadraticDrag
+    );
 
-    //! Velocity Update
-    // No clamp: thrust and drag balance out at terminal velocity
-    forwardVelocity += (thrust - drag) * dt;
+    // Update forward velocity
+    forwardVelocity = PhysicsUtils::integrateVelocity(
+        forwardVelocity,
+        thrust - drag,
+        dt
+    );
 
-    //! Forward Displacement
-    return forwardVelocity * dt;
+    // Return forward displacement
+    return PhysicsUtils::calculateDisplacement(
+        forwardVelocity,
+        dt
+    );
+}
+
+//! Forward Thrust
+
+double WaterPhysics::calculateForwardThrust(double input) const
+{
+    // Reverse thrust is weaker than forward thrust
+    return input * (
+        input >= 0.0 ? forwardThrust : reverseThrust
+    );
 }
