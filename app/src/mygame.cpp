@@ -104,7 +104,7 @@ namespace App
         renderer->loadSkybox("models/skybox_placeholder.model");
 
         //! Sun
-        renderer->loadSun("models/sun.model", "models/lenseflare.model");
+        renderer->loadSun("models/sun.model", "models/lensflare.model");
 
         //! Spawn Asteroids
         Random random(worldSeed);

@@ -134,4 +134,11 @@ namespace Engine::Video
     {
         glDeleteProgram(programId);
     }
+
+    void Shader::setFloat(const std::string &name, const double value) {
+        int location = getLocation(name);
+        if (location < 0 ) return;
+
+        glUniform1f(location, float(value));
+    }
 }

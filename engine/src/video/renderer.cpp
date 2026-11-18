@@ -18,6 +18,7 @@
  */
 
 #include "engine/src/video/renderer.h"
+#include "engine/src/math/matrix.h"
 
 #include <GLFW/glfw3.h>
 #include <cstdint>
@@ -26,6 +27,7 @@
 #include <numbers>
 #include <stdexcept>
 #include <iostream>
+#include <algorithm>
 
 using Engine::Core::ClearCommand;
 using Engine::Core::RenderItem;
@@ -110,7 +112,7 @@ namespace Engine::Video
             model->draw(item.transform, commandBuffer->viewMatrix, projectionMatrix);
         }
 
-        if (sun && lenseflare) {
+        if (sun && lensflare) {
             uint32_t visibleSamples = 0;
             if (glIsQuery(sunQueryId)) glGetQueryObjectuiv(sunQueryId, GL_QUERY_RESULT, &visibleSamples);
 
@@ -130,13 +132,35 @@ namespace Engine::Video
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             glEnable(GL_CULL_FACE);
 
+            uint32_t referenceSamples = 960; // bei freier Sicht notieren
+
+            double sunBrightness =
+            std::clamp(
+            (double)visibleSamples / (double)referenceSamples,
+            0.0,
+            1.0
+    );
+
             std::cout << "Samples: " << visibleSamples << '\n';
+
+            lensflare->setFloat("SunBrightness", sunBrightness);
+            lensflare->setFloat("ViewportAspect", viewportAspect);
+
+            glDisable(GL_DEPTH_TEST);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
+
+            lensflare->draw(Matrix::identity(), fixedViewMatrix, projectionMatrix);
+
+            glDisable(GL_BLEND);
+            glEnable(GL_DEPTH_TEST);
+
         }
     }
 
-    void Renderer::loadSun(const std::string &sunFilename, const std::string &lenseflareFilename) {
+    void Renderer::loadSun(const std::string &sunFilename, const std::string &lensflareFilename) {
         sun = Model::create(sunFilename);
-        lenseflare = Model::create(lenseflareFilename);
+        lensflare = Model::create(lensflareFilename);
 
         glGenQueries(1, &sunQueryId);
     }

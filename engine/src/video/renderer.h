@@ -50,7 +50,7 @@ namespace Engine::Video
         void loadSkybox(const std::string &filename);
 
         //! Sun and Occlusion Query
-        void loadSun(const std::string &sunFilename, const std::string &lenseflareFilename);
+        void loadSun(const std::string &sunFilename, const std::string &lensflareFilename);
 
       private:
         const std::unique_ptr<CommandBuffer> &commandBuffer;
@@ -73,7 +73,7 @@ namespace Engine::Video
 
         //! Sun and Occlusion Query
         std::shared_ptr<Model> sun = {};
-        std::shared_ptr<Model> lenseflare = {};
+        std::shared_ptr<Model> lensflare = {};
         uint32_t sunQueryId = 0;
     };
 }

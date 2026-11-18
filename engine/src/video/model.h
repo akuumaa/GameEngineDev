@@ -43,6 +43,9 @@ namespace Engine::Video
 
         void draw(const Matrix &worldMatrix, const Matrix &viewMatrix, const Matrix &projectionMatrix) const;
 
+        //! Lens Flare
+        void setFloat(const std::string &name, double value) {floats[name] = value; }
+
       private:
         Model() = default;
         static void load(Model &model, const std::string &filename);
@@ -50,5 +53,8 @@ namespace Engine::Video
         std::vector<std::shared_ptr<Mesh>> meshes = {};
         std::shared_ptr<Shader> shader = {};
         std::map<std::string, std::shared_ptr<Texture>> textures = {};
+
+        //! Lens Flare
+        std::map<std::string, double> floats = {};
     };
 }
