@@ -20,9 +20,12 @@
 #include "engine/src/video/renderer.h"
 
 #include <GLFW/glfw3.h>
+#include <cstdint>
 #include <glad.c>
+#include <iostream>
 #include <numbers>
 #include <stdexcept>
+#include <iostream>
 
 using Engine::Core::ClearCommand;
 using Engine::Core::RenderItem;
@@ -106,6 +109,36 @@ namespace Engine::Video
             const auto &model = it->second;
             model->draw(item.transform, commandBuffer->viewMatrix, projectionMatrix);
         }
+
+        if (sun && lenseflare) {
+            uint32_t visibleSamples = 0;
+            if (glIsQuery(sunQueryId)) glGetQueryObjectuiv(sunQueryId, GL_QUERY_RESULT, &visibleSamples);
+
+            glDisable(GL_CULL_FACE);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+            glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+            glDepthMask(GL_FALSE);
+            glDepthFunc(GL_LEQUAL);
+
+            glBeginQuery(GL_SAMPLES_PASSED, sunQueryId);
+            sun->draw(Matrix::identity(), fixedViewMatrix, projectionMatrix);
+            glEndQuery(GL_SAMPLES_PASSED);
+
+            glDepthFunc(GL_LESS);
+            glDepthMask(GL_TRUE);
+            glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            glEnable(GL_CULL_FACE);
+
+            std::cout << "Samples: " << visibleSamples << '\n';
+        }
+    }
+
+    void Renderer::loadSun(const std::string &sunFilename, const std::string &lenseflareFilename) {
+        sun = Model::create(sunFilename);
+        lenseflare = Model::create(lenseflareFilename);
+
+        glGenQueries(1, &sunQueryId);
     }
 
 }
