@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "engine/src/math/quaternion.h"
 #include "engine/src/math/vector3.h"
 #include "engine/src/sim/simulation.h"
 
@@ -65,8 +66,8 @@ namespace Engine::Sim
         double scaleMin = 1.0;
         double scaleMax = 1.0;
         // TODO: Add more control for selected axes not just random true/false
-        Vector3 minRotation = {};
-        Vector3 maxRotation = {};
+        Vector3 rotationMin = {0.0, 0.0, 0.0};
+        Vector3 rotationMax = {2.0 * std::numbers::pi, 0.0, 0.0};
 
         bool randomYaw = true;
         bool randomPitchRoll = true;
@@ -74,22 +75,47 @@ namespace Engine::Sim
         // TODO: Add more control over Distance between Entities
         double distanceMin = 0.0;
 
+        // TODO: Clustering
+        double clusterRadius = 10.0;
+        int clusterCountMin = 1; 
+        int clusterCountMax = 1;
+
         bool snapToGround = false;
         double groundHeight = 0.0;
         double groundOffset = 0.0;
     };
 
+    // struct SpawnConfig {
+    //     Vector3 position = {0.0, 0.0, 0.0};
+    //     std::vector<Vector3> positions = {};
+
+    // };
+
+    struct SpawnPoints {
+        std::string entityPath = "";
+        Vector3 position = {};
+        Math::Quaternion rotation = {};
+        Vector3 scale = {};
+    };
+
     class EntitySpawner
     {
+      private:
+        static SpawnPoints procGen(
+            const SpawnConfig &config
+        );
+
       public:
         using GroundHeightFunc = std::function<double(double x, double y)>;
 
-        static std::vector<size_t> spawnAt(
-            // TODO: Spawn a singel Entity at a defined position
+        static size_t spawnAt(
+            Simulation &simulation,
+            SpawnPoints &spawnPoints
         );
         
         static std::vector<size_t> spawnAtPositions(
-            // TODO: Spawn multiple Entities at defined positions 
+            Simulation &simulation,
+            SpawnPoints &spawnPoints
         );
 
         static std::vector<size_t> spawnProcedural(

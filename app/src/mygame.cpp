@@ -63,21 +63,36 @@ namespace App
             return false;
         }
 
-        // World Setup
-        for (const Vector3 &position : {
-                 Vector3::forward * 25.0,
-                 Vector3::forward * -25.0,
-                 Vector3::left * 25.0,
-                 Vector3::left * -25.0,
-                 Vector3::up * 25.0,
-                 Vector3::up * -25.0
-             })
-        {
-            if (auto cube = simulation->loadEntity("entities/cuberef.entity"))
-            {
-                cube->setPosition(position);
-            }
-        }
+        // // World Setup
+        // for (const Vector3 &position : {
+        //          Vector3::forward * 25.0,
+        //          Vector3::forward * -25.0,
+        //          Vector3::left * 25.0,
+        //          Vector3::left * -25.0,
+        //          Vector3::up * 25.0,
+        //          Vector3::up * -25.0
+        //      })
+        // {
+        //     if (auto cube = simulation->loadEntity("entities/cuberef.entity", ))
+        //     {
+        //         cube->setPosition(position);
+        //     }
+        // }
+
+
+        // EntitySpawner::spawnAtPositions(
+        //     *simulation,
+        //     "entities/cuberef.entity",
+        //     {
+        //          Vector3::forward * 25.0,
+        //          Vector3::forward * -25.0,
+        //          Vector3::left * 25.0,
+        //          Vector3::left * -25.0,
+        //          Vector3::up * 25.0,
+        //          Vector3::up * -25.0
+        //      },
+        //      {0.0,0.0,0.0},
+        //      {1,1,1});
 
         renderer->loadSkybox("models/skybox_placeholder.model");
         
