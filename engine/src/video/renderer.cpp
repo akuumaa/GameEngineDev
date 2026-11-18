@@ -61,6 +61,11 @@ namespace Engine::Video
         models.erase(modelId);
     }
 
+        void Renderer::loadSkybox(const std::string &filename)
+    {
+        skybox = Model::create(filename);
+    }
+
     void Renderer::draw()
     {
         int width = 0;
@@ -81,6 +86,18 @@ namespace Engine::Video
         glClearColor(clear.red, clear.green, clear.blue, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        Matrix fixedViewMatrix = commandBuffer->viewMatrix;
+        fixedViewMatrix.m41 = 0.0;
+        fixedViewMatrix.m42 = 0.0;
+        fixedViewMatrix.m43 = 0.0;
+
+        if (skybox)
+        {   
+            glDepthMask(GL_FALSE); // Disable depth writing for skybox
+            skybox->draw(Matrix::identity(), fixedViewMatrix, projectionMatrix);
+            glDepthMask(GL_TRUE); // Re-enable depth writing
+        }
+
         for (const RenderItem &item : commandBuffer->renderItems)
         {
             auto it = models.find(item.modelId);
@@ -90,4 +107,5 @@ namespace Engine::Video
             model->draw(item.transform, commandBuffer->viewMatrix, projectionMatrix);
         }
     }
+
 }

@@ -100,6 +100,9 @@ namespace App
             }
         });
 
+        //! Skybox
+        renderer->loadSkybox("models/skybox_placeholder.model");
+
         //! Spawn Asteroids
         Random random(worldSeed);
         for (int i = 0; i < asteroidCount; i++) {

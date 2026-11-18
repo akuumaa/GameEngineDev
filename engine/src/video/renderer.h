@@ -45,6 +45,9 @@ namespace Engine::Video
         size_t loadModel(const std::string &filename);
         void unloadModel(size_t modelId);
 
+        //! Skybox
+        void loadSkybox(const std::string &filename);
+
       private:
         const std::unique_ptr<CommandBuffer> &commandBuffer;
 
@@ -60,5 +63,8 @@ namespace Engine::Video
         double nearPlane = 0.1;
         double farPlane = 1000.0;
         Matrix projectionMatrix = {};
+
+        //! Skybox
+        std::shared_ptr<Model> skybox = {};
     };
 }
