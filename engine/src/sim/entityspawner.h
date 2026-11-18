@@ -29,6 +29,7 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include <numbers>
 
 using Engine::Math::Vector3;
 
@@ -101,7 +102,7 @@ namespace Engine::Sim
     class EntitySpawner
     {
       private:
-        static SpawnPoints procGen(
+        static std::vector<SpawnPoints> procGen(
             const SpawnConfig &config
         );
 

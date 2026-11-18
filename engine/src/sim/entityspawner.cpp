@@ -41,14 +41,18 @@ namespace Engine::Sim
         const SpawnConfig &config
     )
     {
+        std::vector<SpawnPoints> points = EntitySpawner::procGen(config);
         std::vector<size_t> spawnedIds = {};
+
+        spawnedIds.reserve(points.size());
+
         if (config.count <= 0 || config.entityPaths.empty())
         {
             return spawnedIds;
         }
 
         spawnedIds.reserve(static_cast<size_t>(config.count));
-
+        /*
         for (int i = 0; i < config.count; i++)
         {
             SpawnPoints spawnPoints = EntitySpawner::procGen(config);
@@ -57,6 +61,15 @@ namespace Engine::Sim
             std::cout << "SpawnedID: " << spawnedId << std::endl;
             std::cout << "EntityPath: " << spawnPoints.entityPath << std::endl;
             spawnedIds.push_back(spawnedId);
+        }
+        */
+        for (SpawnPoints &points : points)
+        {
+            size_t spawnedId = EntitySpawner::spawnAt(simulation, points);
+            if (spawnedId != 0)
+            {
+                spawnedIds.push_back(spawnedId);
+            }
         }
 
         return spawnedIds;
@@ -103,68 +116,72 @@ namespace Engine::Sim
     //     return spawnedIds;
     // }
 
-    SpawnPoints EntitySpawner::procGen(
+    std::vector<SpawnPoints> EntitySpawner::procGen(
         const SpawnConfig &config
     )
     {
-        SpawnPoints spawnPoints = {};
+        std::vector<SpawnPoints> spawnPoints = {};
+        spawnPoints.reserve(static_cast<size_t>(config.count));
 
-       if (config.count <= 0 || config.entityPaths.empty()){
+        if (config.count <= 0 || config.entityPaths.empty()){
             return spawnPoints;
         };
 
 
         Random random(config.seed);
-        // Horizontal (X, Y) placement based on shape
-        double x = config.center.x;
-        double y = config.center.y;
 
-        if (config.shape == SpawnShape::CylinderRing)
+        for(int i= 0; i<config.count; i++)
         {
-            double angle = random.nextDouble(0.0, 2.0 * std::numbers::pi);
-            double radius = random.nextDouble(config.radiusMin, config.radiusMax);
-            x += std::cos(angle) * radius;
-            y += std::sin(angle) * radius;
-        }
-        else if (config.shape == SpawnShape::Box)
-        {
-            x += random.nextDouble(-config.boxExtentX, config.boxExtentX);
-            y += random.nextDouble(-config.boxExtentY, config.boxExtentY);
-        }
+            // Horizontal (X, Y) placement based on shape
+            double x = config.center.x;
+            double y = config.center.y;
 
-        // Vertical (Z) placement: free 3D volume vs. ground-snapped
-        double z = config.center.z;
-        if (config.snapToGround)
-        {
-            // TODO: Logic for snapping Generation to Groundterrain if needed
-        }
-        else
-        {
-            z += random.nextDouble(config.heightMin, config.heightMax);
-        }
+            if (config.shape == SpawnShape::CylinderRing)
+            {
+                double angle = random.nextDouble(0.0, 2.0 * std::numbers::pi);
+                double radius = random.nextDouble(config.radiusMin, config.radiusMax);
+                x += std::cos(angle) * radius;
+                y += std::sin(angle) * radius;
+            }
+            else if (config.shape == SpawnShape::Box)
+            {
+                x += random.nextDouble(-config.boxExtentX, config.boxExtentX);
+                y += random.nextDouble(-config.boxExtentY, config.boxExtentY);
+            }
 
-        // Scale & Rotation
-        double size = random.nextDouble(config.scaleMin, config.scaleMax);
-        double yaw = config.randomYaw ? random.nextDouble(0.0, 2.0 * std::numbers::pi) : 0.0;
-        double pitch = config.randomPitchRoll ? random.nextDouble(0.0, 2.0 * std::numbers::pi) : 0.0;
-        double roll = config.randomPitchRoll ? random.nextDouble(0.0, 2.0 * std::numbers::pi) : 0.0;
+            // Vertical (Z) placement: free 3D volume vs. ground-snapped
+            double z = config.center.z;
+            if (config.snapToGround)
+            {
+                // TODO: Logic for snapping Generation to Groundterrain if needed
+            }
+            else
+            {
+                z += random.nextDouble(config.heightMin, config.heightMax);
+            }
 
-        // Model / Entity selection
-        size_t pathIndex = 0;
-        if (config.entityPaths.size() > 1)
-        {
-            pathIndex = static_cast<size_t>(
-                random.nextInt(0, static_cast<int>(config.entityPaths.size()) - 1)
-            );
-        }
+            // Scale & Rotation
+            double size = random.nextDouble(config.scaleMin, config.scaleMax);
+            double yaw = config.randomYaw ? random.nextDouble(0.0, 2.0 * std::numbers::pi) : 0.0;
+            double pitch = config.randomPitchRoll ? random.nextDouble(0.0, 2.0 * std::numbers::pi) : 0.0;
+            double roll = config.randomPitchRoll ? random.nextDouble(0.0, 2.0 * std::numbers::pi) : 0.0;
 
-        spawnPoints = {
+            // Model / Entity selection
+            size_t pathIndex = 0;
+            if (config.entityPaths.size() > 1)
+            {
+                pathIndex = static_cast<size_t>(
+                    random.nextInt(0, static_cast<int>(config.entityPaths.size()) - 1)
+                );
+            }
+            spawnPoints.push_back({
             config.entityPaths[pathIndex],
             Vector3(x, y, z),
             Quaternion(yaw, pitch, roll),
             Vector3(size, size, size)
-        };
-
+            });
+    
+        }
         return spawnPoints;
     }
 
