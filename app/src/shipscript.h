@@ -51,5 +51,7 @@ namespace App
         double rollAngle = 0.0;
         double rollAngularVelocity = 0.0;
         Quaternion attitude = {};
+
+        int ballastResetCallbackId;
     };
 }

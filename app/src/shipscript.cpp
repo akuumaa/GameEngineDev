@@ -51,7 +51,7 @@ namespace App
         double pitchInput = InputHandler::getAxis("pitch");
         double yawInput = InputHandler::getAxis("yaw");
 
-        
+
         //! Roll Mechanics
         constexpr double maxRollAngle = 30.0 * (3.14159265358979323846 / 180.0); // Convert degrees to radians
         constexpr double rollSpring = 7.0; // Spring constant for roll stabilization
@@ -218,15 +218,26 @@ namespace App
 
         // Register flight assist toggle callback
         flightAssistCallbackId = InputHandler::onAction(
-            "toggleFlightAssist", 
+            "toggleFlightAssist",
             [this]()
         {
             flightAssist = !flightAssist;
-            std::cout 
-            << "+ Flight Assist: " 
-            << (flightAssist ? "ON" : "OFF") 
-            << std::endl;
-        });
+            std::cout
+                << "+ Flight Assist: "
+                << (flightAssist ? "ON" : "OFF")
+                << std::endl;
+        }
+        );
+
+        // Register ballast reset callback
+        ballastResetCallbackId = InputHandler::onAction(
+            "resetBallast",
+            [this]()
+        {
+            waterPhysics.resetWaterLevel();
+            std::cout << "+ Ballast reset to 50%" << std::endl;
+        }
+        );
     }
 
     //! Script Cleanup
@@ -235,6 +246,7 @@ namespace App
     {
         InputHandler::removeCallback(cameraCallbackId);
         InputHandler::removeCallback(flightAssistCallbackId);
+        InputHandler::removeCallback(ballastResetCallbackId);
     }
 
 }

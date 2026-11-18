@@ -1,5 +1,6 @@
 
 #include "app/src/physics/waterphysics.h"
+
 #include "engine/src/physics/physicsutils.h"
 
 #include <algorithm>
@@ -20,6 +21,11 @@ void WaterPhysics::changeWaterLevel(double input, double dt)
     setWaterLevel(
         waterLevel + input * ballastChangeRate * dt
     );
+}
+
+void WaterPhysics::resetWaterLevel()
+{
+    setWaterLevel(50.0);
 }
 
 //! Physics State Getters
@@ -175,9 +181,7 @@ double WaterPhysics::calculateWaterDrift() const
     );
 
     // Smooth oscillating vertical drift
-    return std::sin(elapsedTime * waterDriftFrequency)
-        * waterDriftStrength
-        * neutralFactor;
+    return std::sin(elapsedTime * waterDriftFrequency) * waterDriftStrength * neutralFactor;
 }
 
 //! Forward Physics Update
@@ -216,7 +220,5 @@ double WaterPhysics::updateForward(double input, double dt)
 double WaterPhysics::calculateForwardThrust(double input) const
 {
     // Reverse thrust is weaker than forward thrust
-    return input * (
-        input >= 0.0 ? forwardThrust : reverseThrust
-    );
+    return input * (input >= 0.0 ? forwardThrust : reverseThrust);
 }

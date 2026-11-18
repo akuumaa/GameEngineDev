@@ -9,7 +9,7 @@
  */
 class WaterPhysics : public WaterPhysicsConfig
 {
-public:
+  public:
     //! Ballast Control
     void setWaterLevel(double percentage);
     void changeWaterLevel(double input, double dt);
@@ -25,7 +25,10 @@ public:
     //! Ballast State
     double getWaterLevel() const;
 
-private:
+    // Reset ballast tank to neutral buoyancy (50%)
+    void resetWaterLevel();
+
+  private:
     //! Buoyancy
     double calculateBuoyancy(double dt);
 
