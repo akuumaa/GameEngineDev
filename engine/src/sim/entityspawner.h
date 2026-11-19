@@ -21,15 +21,16 @@
 #pragma once
 
 #include "engine/src/math/quaternion.h"
+#include "engine/src/math/random.h"
 #include "engine/src/math/vector3.h"
 #include "engine/src/sim/simulation.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <numbers>
 #include <string>
 #include <vector>
-#include <numbers>
 
 using Engine::Math::Vector3;
 
@@ -78,7 +79,7 @@ namespace Engine::Sim
 
         // TODO: Clustering
         double clusterRadius = 10.0;
-        int clusterCountMin = 1; 
+        int clusterCountMin = 1;
         int clusterCountMax = 1;
 
         bool snapToGround = false;
@@ -86,17 +87,18 @@ namespace Engine::Sim
         double groundOffset = 0.0;
     };
 
-    struct SpawnPoint {
+    struct SpawnPoint
+    {
         std::string entityPath = "";
         Vector3 position = {};
         Math::Quaternion rotation = {};
-        Vector3 scale = {};
+        Vector3 scale = {1.0, 1.0, 1.0};
     };
 
     class EntitySpawner
     {
       private:
-        static std::vector<SpawnPoint> procGen(
+        static std::vector<SpawnPoint> spawnPointGen(
             const SpawnConfig &config
         );
 
@@ -105,12 +107,41 @@ namespace Engine::Sim
             const std::vector<SpawnPoint> &spawnPoints
         );
 
+        static std::vector<Vector3> positionGen(
+            const SpawnConfig &config,
+            Math::Random &random
+        );
+
+        static bool isValidDistance(
+            const Vector3 &canditatePosition,
+            const std::vector<Vector3> &validPositions,
+            const double minEntityDistance
+        );
+
+        static std::vector<SpawnPoint> clusterGen(
+            const SpawnConfig &config,
+            const std::vector<Vector3> &clusterCenterPositons,
+            Math::Random &random
+
+        );
+
+        static Vector3 randomPositionInShape(
+            const SpawnConfig &config,
+            Math::Random &random
+        );
+
       public:
         using GroundHeightFunc = std::function<double(double x, double y)>;
 
         static size_t spawnAt(
             Simulation &simulation,
-            const SpawnPoint &spawnPoints
+            const SpawnPoint &spawnPoint
+        );
+
+        static std::vector<size_t> spawnAt(
+            Simulation &simulation,
+            const SpawnPoint &spawnPoint,
+            const std::vector<Vector3> &positions
         );
 
         static std::vector<size_t> spawnProcedural(

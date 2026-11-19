@@ -40,7 +40,7 @@ namespace Engine::Sim
         const SpawnConfig &config
     )
     {
-        std::vector<SpawnPoint> points = EntitySpawner::procGen(config);
+        std::vector<SpawnPoint> points = EntitySpawner::spawnPointGen(config);
         std::vector<size_t> spawnedIds = {};
 
         spawnedIds.reserve(points.size());
@@ -95,74 +95,151 @@ namespace Engine::Sim
         return spawnedIds;
     }
 
-    std::vector<SpawnPoint> EntitySpawner::procGen(
+    std::vector<SpawnPoint> EntitySpawner::spawnPointGen(
         const SpawnConfig &config
     )
     {
-        std::vector<SpawnPoint> spawnPoint = {};
-        spawnPoint.reserve(static_cast<size_t>(config.count));
+        std::vector<SpawnPoint> spawnPoints = {};
+        spawnPoints.reserve(static_cast<size_t>(config.count));
 
-        if (config.count <= 0 || config.entityPaths.empty()){
-            return spawnPoint;
+        if (config.count <= 0 || config.entityPaths.empty())
+        {
+            return spawnPoints;
         };
-
 
         Random random(config.seed);
 
-        for(int i= 0; i<config.count; i++)
+        std::vector<Vector3> clusterCenterPositions = EntitySpawner::positionGen(config, random);
+
+        spawnPoints = EntitySpawner::clusterGen(config, clusterCenterPositions, random);
+        return spawnPoints;
+    }
+
+    std::vector<Vector3> EntitySpawner::positionGen(
+        const SpawnConfig &config,
+        Random &random
+    )
+    {
+        std::vector<Vector3> validPositions = {};
+        validPositions.reserve(static_cast<size_t>(config.count));
+        constexpr int maxAttempts = 15;
+
+        for (int i = 0; i < config.count; i++)
         {
-            // Horizontal (X, Y) placement based on shape
-            double x = config.center.x;
-            double y = config.center.y;
-
-            if (config.shape == SpawnShape::CylinderRing)
+            for (int attempt = 0; attempt < maxAttempts; attempt++)
             {
-                double angle = random.nextDouble(0.0, 2.0 * std::numbers::pi);
-                double radius = random.nextDouble(config.radiusMin, config.radiusMax);
-                x += std::cos(angle) * radius;
-                y += std::sin(angle) * radius;
+                Vector3 positionCandidate = EntitySpawner::randomPositionInShape(config, random);
+                if (isValidDistance(positionCandidate, validPositions, config.distanceMin))
+                {
+                    validPositions.push_back(positionCandidate);
+                    break;
+                }
             }
-            else if (config.shape == SpawnShape::Box)
-            {
-                x += random.nextDouble(-config.boxExtentX, config.boxExtentX);
-                y += random.nextDouble(-config.boxExtentY, config.boxExtentY);
-            }
+        }
+        return validPositions;
+    }
 
-            // Vertical (Z) placement: free 3D volume vs. ground-snapped
-            double z = config.center.z;
-            if (config.snapToGround)
+    bool EntitySpawner::isValidDistance(
+        const Vector3 &positionCandidate,
+        const std::vector<Vector3> &validPositions,
+        const double minEntityDistance
+    )
+    {
+        if (minEntityDistance <= 0.0)
+        {
+            return true;
+        }
+        
+        for (const Vector3 &position : validPositions)
+        {
+            if ((positionCandidate - position).length() < minEntityDistance)
             {
-                // TODO: Logic for snapping Generation to Groundterrain if needed
+                return false;
+            }
+            return true;
+        }
+    }
+
+    Vector3 EntitySpawner::randomPositionInShape(const SpawnConfig &config, Math::Random &random)
+    {
+        // Horizontal (X, Y) placement based on shape
+        double x = config.center.x;
+        double y = config.center.y;
+
+        if (config.shape == SpawnShape::CylinderRing)
+        {
+            double angle = random.nextDouble(0.0, 2.0 * std::numbers::pi);
+            double radius = random.nextDouble(config.radiusMin, config.radiusMax);
+            x += std::cos(angle) * radius;
+            y += std::sin(angle) * radius;
+        }
+        else if (config.shape == SpawnShape::Box)
+        {
+            x += random.nextDouble(-config.boxExtentX, config.boxExtentX);
+            y += random.nextDouble(-config.boxExtentY, config.boxExtentY);
+        }
+
+        // Vertical (Z) placement: free 3D volume vs. ground-snapped
+        double z = config.center.z;
+        if (config.snapToGround)
+        {
+            // TODO: Logic for snapping Generation to Groundterrain if needed
+        }
+        else
+        {
+            z += random.nextDouble(config.heightMin, config.heightMax);
+        }
+
+        return {x, y, z};
+    }
+
+    std::vector<SpawnPoint> EntitySpawner::clusterGen(
+        const SpawnConfig &config,
+        const std::vector<Vector3> &clusterCenterPositions,
+        Random &random
+    )
+    {
+        std::vector<SpawnPoint> spawnPoints = {};
+
+        for (const Vector3 &centerPos : clusterCenterPositions)
+        {
+            std::vector<Vector3> finalPositions = {};
+
+            if (config.clusterCountMax <= 1)
+            {
+                finalPositions.push_back(centerPos);
             }
             else
             {
-                z += random.nextDouble(config.heightMin, config.heightMax);
+                // Reuse noiseGen with a mini config centered at `centerPos`!
+                SpawnConfig localClusterConfig = config;
+                localClusterConfig.center = centerPos;
+                localClusterConfig.count = random.nextInt(config.clusterCountMin, config.clusterCountMax);
+                localClusterConfig.shape = SpawnShape::CylinderRing;
+                localClusterConfig.radiusMin = 0.0;
+                localClusterConfig.radiusMax = config.clusterRadius;
+                localClusterConfig.heightMin = -config.clusterRadius * 0.5;
+                localClusterConfig.heightMax = config.clusterRadius * 0.5;
+                finalPositions = EntitySpawner::positionGen(localClusterConfig, random);
             }
-
-            // Scale & Rotation
-            double size = random.nextDouble(config.scaleMin, config.scaleMax);
-            double yaw = config.randomYaw ? random.nextDouble(0.0, 2.0 * std::numbers::pi) : 0.0;
-            double pitch = config.randomPitchRoll ? random.nextDouble(0.0, 2.0 * std::numbers::pi) : 0.0;
-            double roll = config.randomPitchRoll ? random.nextDouble(0.0, 2.0 * std::numbers::pi) : 0.0;
-
-            // Model / Entity selection
-            size_t pathIndex = 0;
-            if (config.entityPaths.size() > 1)
+            // Convert each position into a SpawnPoint (with random rotation, scale, and model)
+            for (const Vector3 &pos : finalPositions)
             {
-                pathIndex = static_cast<size_t>(
-                    random.nextInt(0, static_cast<int>(config.entityPaths.size()) - 1)
-                );
+                double size = random.nextDouble(config.scaleMin, config.scaleMax);
+                double yaw = random.nextDouble(config.rotationMin.x, config.rotationMax.x);
+                double pitch = random.nextDouble(config.rotationMin.y, config.rotationMax.y);
+                double roll = random.nextDouble(config.rotationMin.z, config.rotationMax.z);
+                size_t pathIndex = 0;
+                if (config.entityPaths.size() > 1)
+                {
+                    pathIndex = static_cast<size_t>(
+                        random.nextInt(0, static_cast<int>(config.entityPaths.size()) - 1)
+                    );
+                }
+                spawnPoints.push_back({.entityPath = config.entityPaths[pathIndex], .position = pos, .rotation = Quaternion(yaw, pitch, roll), .scale = Vector3(size, size, size)});
             }
-            spawnPoint.push_back({
-            config.entityPaths[pathIndex],
-            {Vector3(x, y, z)},
-            Quaternion(yaw, pitch, roll),
-            Vector3(size, size, size)
-            });
-    
         }
-        return spawnPoint;
+        return spawnPoints;
     }
-
 
 }

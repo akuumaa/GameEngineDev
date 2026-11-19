@@ -51,14 +51,14 @@ namespace App
       std::vector<size_t> asteroids = {};
 
       SpawnConfig fishConfig = {
-          .count = 10,
+          .count = 400,
           .entityPaths = {"entities/fish.entity"},
           .shape = SpawnShape::CylinderRing,
           .center = {0.0, 0.0, 0.0},
           .radiusMin = 0.0,
           .radiusMax = 400.0,
-          .heightMin = -20.0,
-          .heightMax = 20.0,
+          .heightMin = -60.0,
+          .heightMax = 60.0,
           .scaleMin = 0.2,
           .scaleMax = 3.0,
           .randomYaw = true,
