@@ -21,6 +21,7 @@
 
 #include <cmath>
 #include <numbers>
+#include <vector>
 
 namespace Engine::Sim
 {
@@ -64,9 +65,19 @@ namespace Engine::Sim
         commandBuffer->clear.green = 0.36f + 0.20f * std::sin(phase + 2.0f);
         commandBuffer->clear.blue = 0.40f + 0.20f * std::sin(phase + 4.0f);
 
+        std::vector<size_t> entitiesToUnload;
         for (auto &[entityId, entity] : entities)
         {
             entity->update(dt, t);
+            if (entity->isUnloadRequested())
+            {
+                entitiesToUnload.push_back(entityId);
+            }
+        }
+
+        for (size_t entityId : entitiesToUnload)
+        {
+            unloadEntity(entityId);
         }
 
         for (const auto &[entityId, entity] : entities)

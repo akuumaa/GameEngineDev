@@ -38,6 +38,10 @@ namespace App
 
       private:
       bool spawnShip();
+      bool spawnBubble(); // Spawning the Bubble
       std::shared_ptr<Entity> ship = {};
+
+      void update(double dt, double t) override;
+      double bubbleSpawnTimer = 0.0;
     };
 }

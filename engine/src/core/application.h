@@ -57,5 +57,7 @@ namespace Engine::Core
 
         std::optional<Renderer> renderer;
         std::optional<Simulation> simulation;
+
+        virtual void update(double dt, double t) {}
     };
 }

@@ -74,6 +74,9 @@ namespace Engine::Sim
         size_t getEntityId() const { return entityId; }
         void setEntityId(size_t id) { entityId = id; }
 
+        void requestUnload() { unloadRequested = true; }
+        bool isUnloadRequested() const { return unloadRequested; }
+
         void addScript(std::unique_ptr<Script> script)
         {
             script->load(*this);
@@ -89,6 +92,7 @@ namespace Engine::Sim
         };
 
         size_t entityId = 0;
+        bool unloadRequested = false;
         Vector3 position = {};
         Quaternion rotation = {};
         Vector3 scale = {1.0, 1.0, 1.0};

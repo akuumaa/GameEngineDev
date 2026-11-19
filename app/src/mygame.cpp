@@ -20,6 +20,8 @@
  */
 
 #include "app/src/mygame.h"
+
+#include "app/src/bubblescript.h"
 #include "app/src/shipscript.h"
 #include "engine/src/core/inputMapper.h"
 #include "engine/src/core/inputhandler.h"
@@ -28,6 +30,7 @@
 #include <chrono>
 #include <iostream>
 #include <memory>
+
 
 using Engine::Core::InputHandler;
 using Engine::Math::Vector3;
@@ -61,21 +64,6 @@ namespace App
         }
 
         // World Setup
-        for (const Vector3 &position : {
-            Vector3::forward * 25.0,
-            Vector3::forward * -25.0,
-            Vector3::left * 25.0,
-            Vector3::left * -25.0,
-            Vector3::up * 25.0,
-            Vector3::up * -25.0
-        })
-        {
-            if (auto cube = simulation->loadEntity("entities/cuberef.entity"))
-            {
-                cube->setPosition(position);
-            }
-        }
-
         std::chrono::duration<double> startupTime =
             std::chrono::steady_clock::now() - start;
 
@@ -85,12 +73,11 @@ namespace App
             << " s"
             << std::endl;
 
-
         //! Spawn Ship
         ok = spawnShip();
         if (!ok) return false;
 
-        //! Respawn Callback 
+        //! Respawn Callback
         // Remvoe the exsisting ship and create a new instance
         // when the respawn action is triggered
         InputHandler::onAction("respawn", [this]()
@@ -108,9 +95,16 @@ namespace App
             }
         });
 
+        //! Spawn Bubble
+        ok = spawnBubble();
+        if (!ok)
+        {
+            std::cerr << "! Failed to spawn bubble" << std::endl;
+            return false;
+        }
+
         return true;
     }
-
 
     //! Spawn Ship
     bool MyGame::spawnShip()
@@ -127,5 +121,32 @@ namespace App
         // Set ship as the active focus entity
         ship->setFocus(true);
         return true;
+    }
+
+    bool MyGame::spawnBubble()
+    {
+        auto bubble = simulation->loadEntity("entities/asteroid_placeholder.entity");
+        if (!bubble) return false;
+
+        bubble->setPosition(Vector3(5.0, 0.0, 0.0));
+        bubble->addScript(std::make_unique<BubbleScript>());
+        std::cout << "Aktive Blasen: "
+                  << BubbleScript::getActiveCount() << std::endl;
+        return true;
+    }
+
+    void MyGame::update(double dt, double t)
+    {
+        constexpr double spawnInterval = 5.0;
+        bubbleSpawnTimer += dt;
+
+        if (bubbleSpawnTimer < spawnInterval) return;
+
+        bubbleSpawnTimer = 0.0;
+
+        if (!spawnBubble())
+        {
+            std::cerr << "! Failed to spawn bubble" << std::endl;
+        }
     }
 }
