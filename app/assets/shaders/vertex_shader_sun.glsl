@@ -24,7 +24,7 @@ layout (location = 0) in vec3 VertexPosition;
 uniform mat4 ViewMatrix;
 uniform mat4 ProjectionMatrix;
 
-uniform vec3 lightDirection = normalize(vec3(-0.4, 0.6, -1.0));
+uniform vec3 lightDirection = normalize(vec3(2.0, -2.0, -1.0));
 
 void main()
 {

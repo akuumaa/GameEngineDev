@@ -2,6 +2,7 @@
     "$schema": "../../../engine/schemas/entity.schema",
     "name": "Asteroid",
     "radius": 1.0,
+    "tags": ["asteroid"],
     "models": [
         "models/asteroid.model"
     ]
