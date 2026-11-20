@@ -3,16 +3,18 @@
 */
 
 #include "app/src/world/aquariumgenerator.h"
-
 #include "engine/src/math/noise.h"
 #include "engine/src/sim/entityspawner.h"
+//#include "engine/src/math/random.h"
 
+//#include <numbers>
 #include <algorithm>
-#include <vector>
+//#include <vector>
 
 using Engine::Math::Noise;
 using Engine::Sim::EntitySpawner;
-using Engine::Sim::SpawnPoint;
+//using Engine::Sim::SpawnPoint;
+//using Engine::Math::Random;
 
 namespace App
 {
@@ -41,6 +43,7 @@ namespace App
 
     void AquariumGenerator::buildFloorBlocks(Simulation &simulation, const AquariumConfig &config, const AquariumLayout &layout)
     {
+        /*
         const FloorConfig &floor = config.floor;
         Vector3 size = layout.tank.size();
         double cellX = size.x / floor.cellsX;
@@ -49,19 +52,26 @@ namespace App
         std::vector<SpawnPoint> blocks = {};
         blocks.reserve(static_cast<size_t>(floor.cellsX * floor.cellsY));
 
+        Random random(config.seed + 3);
+
         for (int ix = 0; ix < floor.cellsX; ix++)
         {
             for (int iy = 0; iy < floor.cellsY; iy++)
             {
-                double x = layout.tank.min.x + (ix + 0.5) * cellX;
-                double y = layout.tank.min.y + (iy + 0.5) * cellY;
+                // Cell center + small random offset → no visible grid
+                double x = layout.tank.min.x + (ix + 0.5) * cellX + random.nextDouble(-0.3, 0.3) * cellX;
+                double y = layout.tank.min.y + (iy + 0.5) * cellY + random.nextDouble(-0.3, 0.3) * cellY;
                 double height = floorHeight(config, layout, x, y);
 
+                // Slightly bigger than the cell → pebbles overlap, no gaps
+                double size = random.nextDouble(0.6, 0.8);
+                double yaw = random.nextDouble(0.0, 2.0 * std::numbers::pi);
+
                 blocks.push_back({
-                    "entities/cuberef.entity",
+                    floor.entity,
                     {x, y, height * 0.5},
-                    {},
-                    {cellX * 0.5, cellY * 0.5, height * 0.5}
+                    Quaternion(yaw, 0.0, 0.0),
+                    {cellX * size, cellY * size * 0.85, height * 0.9}
                 });
             }
         }
@@ -69,6 +79,16 @@ namespace App
         for (const SpawnPoint &block : blocks)
         {
             EntitySpawner::spawnAt(simulation, block);
-        }
+        }*/
+
+        Vector3 half = layout.tank.size() * 0.5;
+        double height = config.tank.size.z * config.floor.baseRatio;
+
+        EntitySpawner::spawnAt(simulation, {
+            config.floor.entity,
+            {0.0, 0.0, height},
+            {},
+            {half.x, half.y, 1.0}
+        });
     }
 }

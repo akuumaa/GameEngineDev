@@ -53,6 +53,9 @@ namespace Engine::Video
 
         const Window &window;
 
+        //TODO function für erstellen oder holen der Models
+        //Cache definieren
+
         size_t nextModelId = 1;
         std::unordered_map<size_t, std::shared_ptr<Model>> models = {};
         std::shared_ptr<Model> skybox = {};

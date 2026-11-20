@@ -1,0 +1,8 @@
+{
+    "$schema": "../../../engine/schemas/entity.schema",
+    "name": "Aquarium Floor",
+    "tags": ["floor"],
+    "models": [
+        "models/floor.model"
+    ]
+}

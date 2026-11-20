@@ -20,5 +20,7 @@ namespace App
 
       private:
         static void buildFloorBlocks(Simulation &simulation, const AquariumConfig &config, const AquariumLayout &layout);
+
+        static void writeFloorMesh(const AquariumConfig &config, const AquariumLayout &layout, const std::string &path);
     };
 }

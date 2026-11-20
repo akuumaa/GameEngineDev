@@ -43,10 +43,12 @@ namespace Engine::Video
         if (settings.msaa) glEnable(GL_MULTISAMPLE);
 
         glEnable(GL_DEPTH_TEST);
-
+        //zeichnet nur von vorderseite
         glEnable(GL_CULL_FACE);
     }
 
+    //TODO: Pro Entity wird immer Model Created statt einmal erstellen und dann laden ..
+    //ggf. cache hinzufügen
     size_t Renderer::loadModel(const std::string &filename)
     {
         size_t modelId = nextModelId++;

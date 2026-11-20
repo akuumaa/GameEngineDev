@@ -20,19 +20,16 @@
  */
 
 #include "app/src/mygame.h"
-
 #include "app/src/shipscript.h"
 #include "engine/src/core/inputMapper.h"
 #include "engine/src/core/inputhandler.h"
-#include "engine/src/math/random.h"
 #include "engine/src/math/vector3.h"
 #include "engine/src/sim/entityspawner.h"
+#include "app/src/world/aquariumgenerator.h"
 
 #include <chrono>
-#include <cmath>
 #include <iostream>
 #include <memory>
-#include <numbers>
 
 using Engine::Core::InputHandler;
 using Engine::Math::Vector3;
@@ -69,11 +66,19 @@ namespace App
         renderer->loadSkybox("models/skybox_placeholder.model");
         renderer->loadSun("models/sun.model", "models/lensflare.model");
 
-        // TODO: Call SpawnEntities with multiple positions
-        //EntitySpawner::spawnAtPositions(*simulation, cubeConfig);
+        // aquarium config load
+        layout = AquariumLayout::from(aquariumConfig);
+        AquariumGenerator::generate(*simulation, aquariumConfig, layout);
 
-        renderer->loadSkybox("models/skybox_placeholder.model");
-        
+        // fish inside layout 
+        double waterHalfHeight = (layout.surfaceHeight - layout.floorTop) * 0.5;
+        fishConfig.shape      = SpawnShape::Box;
+        fishConfig.center     = {0.0, 0.0, layout.floorTop + waterHalfHeight};
+        fishConfig.boxExtentX = layout.tank.size().x * 0.5 - 10.0;
+        fishConfig.boxExtentY = layout.tank.size().y * 0.5 - 10.0;
+        fishConfig.heightMin  = -waterHalfHeight;
+        fishConfig.heightMax  =  waterHalfHeight;
+
         asteroids = EntitySpawner::spawnProcedural(*simulation, fishConfig);
 
         std::chrono::duration<double> startupTime =
@@ -142,7 +147,8 @@ namespace App
         if (!ship) return false;
 
         // Set initial position
-        ship->setPosition(Vector3(0.0, 0.0, 0.0));
+        //ship->setPosition(Vector3(0.0, 0.0, 0.0));
+        ship->setPosition(layout.shipSpawn);
 
         // Attach movement and physics script to the ship entity
         ship->addScript(std::make_unique<ShipScript>());

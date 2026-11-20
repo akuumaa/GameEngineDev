@@ -23,13 +23,10 @@
 #include "engine/src/core/application.h"
 #include "engine/src/sim/entity.h"
 #include "engine/src/sim/entityspawner.h"
+#include "app/src/world/aquariumconfig.h"
 
 #include <cstddef>
-#include <cstdint>
 #include <memory>
-
-#include <cstddef>
-#include <cstdint>
 #include <vector>
 
 using Engine::Core::Application;
@@ -52,6 +49,9 @@ namespace App
 
       std::vector<size_t> asteroids = {};
 
+      AquariumConfig aquariumConfig = {};
+      AquariumLayout layout = {};
+
       SpawnConfig fishConfig = {
           .count = 120,
           .entityPaths = {"entities/fish.entity"},
@@ -67,20 +67,5 @@ namespace App
           .randomPitchRoll = true,
           .snapToGround = false,
       };
-
-      // SpawnPoints cubeConfig = {
-      //   .entityPath = "entities/cuberef.entity",
-      //   .position = {
-      //            Vector3::forward * 25.0,
-      //            Vector3::forward * -25.0,
-      //            Vector3::left * 25.0,
-      //            Vector3::left * -25.0,
-      //            Vector3::up * 25.0,
-      //            Vector3::up * -25.0
-      //        },
-      //   .rotation = {0.0,0.0,0.0},
-      //   .scale = {1,1,1}
-      // };
-
     };
 }

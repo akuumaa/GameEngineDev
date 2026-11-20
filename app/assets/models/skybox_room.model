@@ -1,0 +1,11 @@
+{
+    "$schema": "../../../engine/schemas/model.schema",
+    "mesh": "meshes/skybox_room.obj",
+    "textures": {
+        "Skybox": "textures/skybox_room.png"
+    },
+    "shaders": {
+        "vertex": "shaders/vertex_shader_skybox_placeholder.glsl",
+        "fragment": "shaders/fragment_shader_skybox_placeholder.glsl"
+    }
+}

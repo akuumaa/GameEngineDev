@@ -7,6 +7,7 @@
 #include "engine/src/math/bounds.h"
 
 #include <cstdint>
+#include <string>
 
 using Engine::Math::Bounds;
 using Engine::Math::Vector3;
@@ -20,18 +21,20 @@ namespace App
 
     struct FloorConfig
     {
-        double baseRatio = 0.05;
-        double slopeRatio = 0.08;
+        double baseRatio = 0.02;
+        double slopeRatio = 0.04;
 
         double duneScale = 0.008;
-        double duneHeight = 25.0;
+        double duneHeight = 15.0;
         int duneOctaves = 4;
 
         double rippleScale = 0.08;
         double rippleHeight = 2.0;
 
-        int cellsX = 32;
-        int cellsY = 16;
+        int cellsX = 64;
+        int cellsY = 32;
+
+        std::string entity = "entities/floor.entity";
     };
 
     struct AquariumConfig
@@ -58,7 +61,7 @@ namespace App
             l.tank = {{-half.x, -half.y, 0.0}, {half.x, half.y, config.tank.size.z}};
             l.floorTop      = config.tank.size.z * config.floorMaxRatio;
             l.surfaceHeight = config.tank.size.z * config.waterFillRatio;
-            l.shipSpawn     = {0.0, 0.0, l.floorTop + (l.surfaceHeight - l.floorTop) * 0.3};
+            l.shipSpawn     = {0.0, 0.0, l.floorTop + (l.surfaceHeight - l.floorTop) * config.shipSpawnRatio};
             return l;
         }
 

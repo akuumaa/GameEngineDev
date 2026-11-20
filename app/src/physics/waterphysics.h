@@ -13,7 +13,7 @@ class WaterPhysics
     double maxVerticalSpeed = 5.0;
 
     // Maximal vertical acceleration in m/s²
-    double verticalAcceleration = 3.0;
+    double verticalAcceleration = 20.0;//3.0
 
     // Time required to reach full acceleration in seconds
     double accelerationRampTime = 2.0;
@@ -27,10 +27,10 @@ class WaterPhysics
 
     //! Forward Movement
     // Forward thrust in m/s² (results in ~12 m/s)
-    double forwardThrust = 6.96;
+    double forwardThrust = 69.0;//6.96
 
     // Reverse thrust in m/s² (results in ~7.5 m/s)
-    double reverseThrust = 3.0;
+    double reverseThrust = 25.0;//3.0;
 
     // Linear drag along the nose - lower than vertical (streamlined hull)
     double forwardLinearDrag = 0.1;

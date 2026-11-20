@@ -1,0 +1,9 @@
+{
+    "$schema": "../../../engine/schemas/entity.schema",
+    "name": "Gravel Pebble",
+    "radius": 1.0,
+    "tags": ["gravel"],
+    "models": [
+        "models/pebble.model"
+    ]
+}
