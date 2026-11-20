@@ -24,6 +24,8 @@
 #include "engine/src/sim/entity.h"
 #include "engine/src/sim/entityspawner.h"
 
+#include <cstddef>
+#include <cstdint>
 #include <memory>
 
 #include <cstddef>
@@ -51,7 +53,7 @@ namespace App
       std::vector<size_t> asteroids = {};
 
       SpawnConfig fishConfig = {
-          .count = 400,
+          .count = 120,
           .entityPaths = {"entities/fish.entity"},
           .shape = SpawnShape::CylinderRing,
           .center = {0.0, 0.0, 0.0},
@@ -79,7 +81,6 @@ namespace App
       //   .rotation = {0.0,0.0,0.0},
       //   .scale = {1,1,1}
       // };
-
 
     };
 }

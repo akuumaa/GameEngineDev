@@ -24,12 +24,15 @@
 #include "app/src/shipscript.h"
 #include "engine/src/core/inputMapper.h"
 #include "engine/src/core/inputhandler.h"
+#include "engine/src/math/random.h"
 #include "engine/src/math/vector3.h"
 #include "engine/src/sim/entityspawner.h"
 
 #include <chrono>
+#include <cmath>
 #include <iostream>
 #include <memory>
+#include <numbers>
 
 using Engine::Core::InputHandler;
 using Engine::Math::Vector3;
@@ -63,21 +66,8 @@ namespace App
             return false;
         }
 
-        // World Setup
-        for (const Vector3 &position : {
-                 Vector3::forward * 25.0,
-                 Vector3::forward * -25.0,
-                 Vector3::left * 25.0,
-                 Vector3::left * -25.0,
-                 Vector3::up * 25.0,
-                 Vector3::up * -25.0
-             })
-        {
-            if (auto cube = simulation->loadEntity("entities/cuberef.entity"))
-            {
-                cube->setPosition(position);
-            }
-        }
+        renderer->loadSkybox("models/skybox_placeholder.model");
+        renderer->loadSun("models/sun.model", "models/lensflare.model");
 
         // TODO: Call SpawnEntities with multiple positions
         //EntitySpawner::spawnAtPositions(*simulation, cubeConfig);
@@ -106,7 +96,7 @@ namespace App
         {
             if (ship)
             {
-                simulation->unloadEntity(ship->getEntityId());
+                ship->queueUnload();
                 ship = nullptr;
             }
 
@@ -115,6 +105,31 @@ namespace App
                 std::cerr << "! Failed to respawn ship"
                           << std::endl;
             }
+        });
+
+        InputHandler::onAction("unloadAsteroid", [this]()
+        {
+            if (!ship) return;
+
+            std::shared_ptr<Entity> nearest = nullptr;
+            double nearestDistance = 0.0;
+
+            for (const std::shared_ptr<Entity> &asteroid : simulation->findEntitiesWithTag("asteroid"))
+            {
+                double distance = (ship->getPosition() - asteroid->getPosition()).length();
+
+                if (!nearest || distance < nearestDistance)
+                {
+                    nearest = asteroid;
+                    nearestDistance = distance;
+                }
+            }
+
+            if (!nearest) return;
+
+            nearest->queueUnload();
+
+            std::cout << "  Queued asteroid " << nearest->getEntityId() << " for removal" << std::endl;
         });
 
         return true;

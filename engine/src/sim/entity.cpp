@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
+ * Copyright © 2026 Tom Kertels
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +21,7 @@
 #include "engine/src/sim/entity.h"
 
 #include "engine/src/core/application.h"
+#include "engine/src/math/number.h"
 
 #include <iostream>
 #include <json.hpp>
@@ -58,12 +60,14 @@ namespace Engine::Sim
             }
         }
 
-        if (config.contains("cameras"))
+        if (config.contains("tags") && config["tags"].is_array())
         {
-            for (const auto &entry : config["cameras"])
+            for (const auto &entry : config["tags"])
             {
-                Camera camera = Camera::create(entry);
-                cameras.push_back(camera);
+                if (entry.is_string())
+                {
+                    addTag(entry.get<std::string>());
+                }
             }
         }
 
@@ -71,6 +75,8 @@ namespace Engine::Sim
         {
             std::string model = {};
             Vector3 scale = {1.0, 1.0, 1.0};
+            Quaternion rotation = {};
+            Vector3 offset = {0.0, 0.0, 0.0};
 
             if (entry.is_string())
             {
@@ -84,13 +90,26 @@ namespace Engine::Sim
                 {
                     scale = {entry["scale"][0].get<double>(), entry["scale"][1].get<double>(), entry["scale"][2].get<double>()};
                 }
+
+                if (entry.contains("rotation") && entry["rotation"].is_array() && entry["rotation"].size() == 3)
+                {
+                    rotation = Quaternion(
+                        Math::Number::toRadians(entry["rotation"][0].get<double>()),
+                        Math::Number::toRadians(entry["rotation"][1].get<double>()),
+                        Math::Number::toRadians(entry["rotation"][2].get<double>()));
+                }
+
+                if (entry.contains("offset") && entry["offset"].is_array() && entry["offset"].size() == 3)
+                {
+                    offset = {entry["offset"][0].get<double>(), entry["offset"][1].get<double>(), entry["offset"][2].get<double>()};
+                }
             }
 
             if (model.empty()) continue;
 
             ModelInstance instance = {
                 .modelId = renderer.loadModel(model),
-                .transform = Matrix::scale(scale)
+                .transform = Matrix::translation(offset) * rotation.toMatrix() * Matrix::scale(scale)
             };
             models.push_back(instance);
         }

@@ -156,8 +156,8 @@ namespace Engine::Sim
             {
                 return false;
             }
-            return true;
         }
+        return true;
     }
 
     Vector3 EntitySpawner::randomPositionInShape(const SpawnConfig &config, Math::Random &random)

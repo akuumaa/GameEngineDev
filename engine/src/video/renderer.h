@@ -46,6 +46,8 @@ namespace Engine::Video
         void unloadModel(size_t modelId);
         void loadSkybox(const std::string &filename);
 
+        void loadSun(const std::string &sunFilename, const std::string &lensflareFilename);
+
       private:
         const std::unique_ptr<CommandBuffer> &commandBuffer;
 
@@ -54,6 +56,11 @@ namespace Engine::Video
         size_t nextModelId = 1;
         std::unordered_map<size_t, std::shared_ptr<Model>> models = {};
         std::shared_ptr<Model> skybox = {};
+
+        std::shared_ptr<Model> sun = {};
+        std::shared_ptr<Model> lensflare = {};
+        uint32_t sunQueryId = 0;
+        int sunPointCount = 240;
 
         int viewportWidth = 0;
         int viewportHeight = 0;

@@ -1,9 +1,12 @@
 /**
  * Copyright © 2026 Alexander Hancharenka
 */
+#pragma once
 
 #include "engine/src/math/vector3.h"
 #include "engine/src/math/bounds.h"
+
+#include <cstdint>
 
 using Engine::Math::Bounds;
 using Engine::Math::Vector3;
@@ -38,6 +41,7 @@ namespace App
         double waterFillRatio = 0.8;
         double floorMaxRatio = 0.2;
         double shipSpawnRatio = 0.3;
+        FloorConfig floor = {};
     };
     
     struct AquariumLayout

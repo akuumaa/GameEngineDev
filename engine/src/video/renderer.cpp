@@ -23,6 +23,7 @@
 #include <glad.c>
 #include <numbers>
 #include <stdexcept>
+#include <algorithm>
 
 using Engine::Core::ClearCommand;
 using Engine::Core::RenderItem;
@@ -66,6 +67,14 @@ namespace Engine::Video
         skybox = Model::create(filename);
     }
 
+    void Renderer::loadSun(const std::string &sunFilename, const std::string &lensflareFilename)
+    {
+        sun = Model::create(sunFilename);
+        lensflare = Model::create(lensflareFilename);
+
+        glGenQueries(1, &sunQueryId);
+    }
+
     void Renderer::draw()
     {
         int width = 0;
@@ -86,10 +95,17 @@ namespace Engine::Video
         glClearColor(clear.red, clear.green, clear.blue, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        Matrix fixedViewMatrix = commandBuffer->viewMatrix;
+        
+        fixedViewMatrix.m41 = 0.0;
+        fixedViewMatrix.m42 = 0.0;
+        fixedViewMatrix.m43 = 0.0;
+
         if (skybox)
         {
             glDepthMask(GL_FALSE);
-            skybox->draw(Matrix::identity(), commandBuffer->viewMatrix, projectionMatrix);
+            skybox->draw(Matrix::identity(), fixedViewMatrix, projectionMatrix);
+
             glDepthMask(GL_TRUE);
         }
 
@@ -100,6 +116,52 @@ namespace Engine::Video
 
             const auto &model = it->second;
             model->draw(item.transform, commandBuffer->viewMatrix, projectionMatrix);
+        }
+
+        if (sun && lensflare)
+        {
+            uint32_t visibleSamples = 0;
+            if (glIsQuery(sunQueryId)) glGetQueryObjectuiv(sunQueryId, GL_QUERY_RESULT, &visibleSamples);
+
+            glDisable(GL_CULL_FACE);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+            glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+            glDepthMask(GL_FALSE);
+            glDepthFunc(GL_LEQUAL);
+
+            glBeginQuery(GL_SAMPLES_PASSED, sunQueryId);
+            sun->draw(Matrix::identity(), fixedViewMatrix, projectionMatrix);
+            glEndQuery(GL_SAMPLES_PASSED);
+
+            glDepthFunc(GL_LESS);
+            glDepthMask(GL_TRUE);
+            glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            glEnable(GL_CULL_FACE);
+
+            int samplesPerPixel = 0;
+            glGetIntegerv(GL_SAMPLES, &samplesPerPixel);
+
+            samplesPerPixel = std::max(samplesPerPixel, 1);
+
+            double sunBrightness = std::clamp(
+                static_cast<double>(visibleSamples) /
+                    (static_cast<double>(sunPointCount) * samplesPerPixel),
+                0.0,
+                1.0
+            );
+
+            lensflare->setFloat("SunBrightness", sunBrightness);
+            lensflare->setFloat("ViewportAspect", viewportAspect);
+
+            glDisable(GL_DEPTH_TEST);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
+
+            lensflare->draw(Matrix::identity(), fixedViewMatrix, projectionMatrix);
+
+            glDisable(GL_BLEND);
+            glEnable(GL_DEPTH_TEST);
         }
     }
 }

@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
+ * Copyright © 2026 Tom Kertels
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +27,6 @@
 #include "engine/src/sim/camera.h"
 #include "engine/src/sim/script.h"
 #include "engine/src/video/renderer.h"
-#include "engine/src/sim/camera.h"
 
 #include <cstddef>
 #include <memory>
@@ -71,6 +71,32 @@ namespace Engine::Sim
         Vector3 getScale() { return scale; }
         void setScale(const Vector3 &s) { scale = s; }
 
+        std::vector<std::string> getTags() { return tags; }
+        void addTag(const std::string &tag) 
+        {
+            if (hasTag(tag)) return;
+            tags.push_back(tag);
+        }
+        void removeTag(const std::string &tag)
+        {
+            for (auto it = tags.begin(); it != tags.end(); ++it)
+            {
+                if (*it == tag)
+                {
+                    tags.erase(it);
+                    return;
+                }
+            }
+        }
+        bool hasTag(const std::string &tag) const
+        {
+            for (const std::string &t : tags)
+            {
+                if (t == tag) return true;
+            }
+            return false;
+        }
+
         size_t getEntityId() const { return entityId; }
         void setEntityId(size_t id) { entityId = id; }
 
@@ -80,6 +106,9 @@ namespace Engine::Sim
             scripts.push_back(std::move(script));
         }
         void setFocus(bool f) { focus = f; }
+
+        void queueUnload() { pendingUnload = true; }
+        bool isPendingUnload() const { return pendingUnload; }
 
       private:
         struct ModelInstance
@@ -92,6 +121,8 @@ namespace Engine::Sim
         Vector3 position = {};
         Quaternion rotation = {};
         Vector3 scale = {1.0, 1.0, 1.0};
+        std::vector<std::string> tags = {};
+        bool pendingUnload = false;
 
         std::vector<Camera> cameras = {};
         size_t activeCamera = 0;
