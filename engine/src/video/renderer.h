@@ -75,5 +75,6 @@ namespace Engine::Video
         std::shared_ptr<Model> sun = {};
         std::shared_ptr<Model> lensflare = {};
         uint32_t sunQueryId = 0;
+        uint32_t sunPointCount = 240;
     };
 }

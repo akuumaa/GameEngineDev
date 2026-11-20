@@ -18,16 +18,15 @@
  */
 
 #include "engine/src/video/renderer.h"
-#include "engine/src/math/matrix.h"
 
 #include <GLFW/glfw3.h>
+#include <algorithm>
 #include <cstdint>
 #include <glad.c>
 #include <iostream>
 #include <numbers>
 #include <stdexcept>
-#include <iostream>
-#include <algorithm>
+
 
 using Engine::Core::ClearCommand;
 using Engine::Core::RenderItem;
@@ -66,7 +65,7 @@ namespace Engine::Video
         models.erase(modelId);
     }
 
-        void Renderer::loadSkybox(const std::string &filename)
+    void Renderer::loadSkybox(const std::string &filename)
     {
         skybox = Model::create(filename);
     }
@@ -97,7 +96,7 @@ namespace Engine::Video
         fixedViewMatrix.m43 = 0.0;
 
         if (skybox)
-        {   
+        {
             glDepthMask(GL_FALSE); // Disable depth writing for skybox
             skybox->draw(Matrix::identity(), fixedViewMatrix, projectionMatrix);
             glDepthMask(GL_TRUE); // Re-enable depth writing
@@ -112,7 +111,8 @@ namespace Engine::Video
             model->draw(item.transform, commandBuffer->viewMatrix, projectionMatrix);
         }
 
-        if (sun && lensflare) {
+        if (sun && lensflare)
+        {
             uint32_t visibleSamples = 0;
             if (glIsQuery(sunQueryId)) glGetQueryObjectuiv(sunQueryId, GL_QUERY_RESULT, &visibleSamples);
 
@@ -132,18 +132,12 @@ namespace Engine::Video
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             glEnable(GL_CULL_FACE);
 
-            uint32_t referenceSamples = 960; // bei freier Sicht notieren
-
-            double sunBrightness =
-            std::clamp(
-            (double)visibleSamples / (double)referenceSamples,
-            0.0,
-            1.0
-    );
+            GLint sampleCount = 1;
+            glGetIntegerv(GL_SAMPLES, &sampleCount);
 
             std::cout << "Samples: " << visibleSamples << '\n';
 
-            lensflare->setFloat("SunBrightness", sunBrightness);
+            lensflare->setFloat("SunBrightness", std::clamp((double)visibleSamples / (double)(sunPointCount * sampleCount), 0.0, 1.0));
             lensflare->setFloat("ViewportAspect", viewportAspect);
 
             glDisable(GL_DEPTH_TEST);
@@ -154,11 +148,11 @@ namespace Engine::Video
 
             glDisable(GL_BLEND);
             glEnable(GL_DEPTH_TEST);
-
         }
     }
 
-    void Renderer::loadSun(const std::string &sunFilename, const std::string &lensflareFilename) {
+    void Renderer::loadSun(const std::string &sunFilename, const std::string &lensflareFilename)
+    {
         sun = Model::create(sunFilename);
         lensflare = Model::create(lensflareFilename);
 
