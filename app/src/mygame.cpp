@@ -63,7 +63,7 @@ namespace App
             return false;
         }
 
-        renderer->loadSkybox("models/skybox_placeholder.model");
+        renderer->loadSkybox("models/skybox.model");
         renderer->loadSun("models/sun.model", "models/lensflare.model");
 
         // aquarium config load

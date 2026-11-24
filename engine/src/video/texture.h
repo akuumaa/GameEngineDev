@@ -21,6 +21,7 @@
 
 #include "engine/src/core/resourcecache.h"
 
+#include <array>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -46,6 +47,8 @@ namespace Engine::Video
     {
       public:
         static std::shared_ptr<Texture> create(const std::string &filename);
+        static std::shared_ptr<Texture> createCubeMap(const std::string &filename);
+
         ~Texture();
 
         Texture(const Texture &) = delete;
@@ -53,11 +56,18 @@ namespace Engine::Video
 
         static bool readFile(TextureData &info);
         static void genTexture(Texture &texture, const TextureData &info);
+        static void genCubeMap(Texture &texture, const std::array<TextureData, 6> &faces);
         uint32_t getId() const { return textureId; };
+        uint32_t getType() const { return type; };
         
       private:
-        Texture() = default;
+        Texture(uint32_t type)
+          : type(type)
+        {
+        }
+
         uint32_t textureId = 0;
+        uint32_t type = 0;
 
         static void uploadBlocks(uint32_t target, const TextureData &data);
 

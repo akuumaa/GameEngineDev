@@ -80,6 +80,7 @@ namespace Engine::Video
             for (const auto &[uniformName, texture] : config["textures"].items())
             {
                 if (texture.is_string()) model.textures[uniformName] = Texture::create(texture.get<std::string>());
+                if (texture.is_object() && texture.value("type", "") == "CubeMap") model.textures[uniformName] = Texture::createCubeMap(texture.value("texture", ""));
             }
         }
     }
@@ -105,7 +106,7 @@ namespace Engine::Video
             if (!shader->hasUniform(uniformName)) continue;
 
             glActiveTexture(GL_TEXTURE0 + unit);
-            glBindTexture(GL_TEXTURE_2D, texture->getId());
+            glBindTexture(texture->getType(), texture->getId());
             shader->setInt(uniformName, unit);
             unit++;
         }

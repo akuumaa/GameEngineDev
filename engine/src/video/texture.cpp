@@ -41,7 +41,7 @@ namespace Engine::Video
     {
         return cache.get(filename, [filename]()
         {
-            auto texture = std::shared_ptr<Texture>(new Texture());
+            auto texture = std::shared_ptr<Texture>(new Texture(GL_TEXTURE_2D));
             TextureData textureData = { filename };
 
             bool success = readFile(textureData);
@@ -168,6 +168,71 @@ namespace Engine::Video
         std::chrono::duration<double, std::milli> genTime = std::chrono::steady_clock::now() - start;
         std::cout << "  Generating texture " + data.filename + " took " + std::to_string(genTime.count()) + " ms" << std::endl;
 
+    }
+
+    std::shared_ptr<Texture> Texture::createCubeMap(const std::string &filename)
+    {
+        return cache.get(filename, [filename]()
+        {
+            auto texture = std::shared_ptr<Texture>(new Texture(GL_TEXTURE_CUBE_MAP));
+            std::array<TextureData, 6> faces = {};
+
+            for (size_t i = 0; i < faces.size(); i++)
+            {
+                faces[i].filename = filename;
+                faces[i].filename.replace(faces[i].filename.find("*"), 1, std::to_string(i + 1));
+
+                if (!readFile(faces[i]))
+                {
+                    return texture;
+                }
+            }
+
+            genCubeMap(*texture, faces);
+            return texture;
+        });
+    }
+
+    void Texture::genCubeMap(Texture &texture, const std::array<TextureData, 6> &faces)
+    {
+        std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+
+        while (glGetError() != GL_NO_ERROR) { }
+
+        uint32_t textureId = 0;
+
+        glGenTextures(1, &textureId);
+        glActiveTexture(GL_TEXTURE15);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, textureId);
+
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, faces[0].mipMapCount - 1);
+
+        if (faces[0].format != 0)
+        {
+            for (size_t i = 0; i < faces.size(); i++)
+            {
+                uploadBlocks(GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<GLenum>(i), faces[i]);
+            }
+        }
+
+        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+        if (glGetError() != GL_NO_ERROR)
+        {
+            std::cout << "! Failed to generate cube map " + faces[0].filename << std::endl;
+            glDeleteTextures(1, &textureId);
+            textureId = 0;
+        }
+
+        texture.textureId = textureId;
+
+        std::chrono::duration<double, std::milli> genTime = std::chrono::steady_clock::now() - start;
+        std::cout << "  Generating cube map " + faces[0].filename + " took " + std::to_string(genTime.count()) + " ms" << std::endl;
     }
 
     void Texture::uploadBlocks(uint32_t target, const TextureData &data)

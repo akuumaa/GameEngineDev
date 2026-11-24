@@ -45,6 +45,8 @@ namespace Engine::Video
         glEnable(GL_DEPTH_TEST);
         //zeichnet nur von vorderseite
         glEnable(GL_CULL_FACE);
+
+        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     }
 
     size_t Renderer::loadModel(const std::string &filename)
