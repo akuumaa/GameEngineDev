@@ -22,13 +22,13 @@
 
 #include "engine/src/core/inputhandler.h"
 #include "engine/src/math/quaternion.h"
-#include "engine/src/sim/entity.h"
 #include "engine/src/math/vector3.h"
+#include "engine/src/sim/entity.h"
 
+#include <algorithm>
+#include <cmath>
 #include <iomanip>
 #include <iostream>
-#include <cmath>
-#include <algorithm>
 
 using Engine::Core::InputHandler;
 using Engine::Math::Quaternion;
@@ -51,15 +51,14 @@ namespace App
         double pitchInput = InputHandler::getAxis("pitch");
         double yawInput = InputHandler::getAxis("yaw");
 
-
         //! Roll Mechanics
-        constexpr double maxRollAngle = 30.0 * (3.14159265358979323846 / 180.0); // Convert degrees to radians
-        constexpr double rollSpring = 7.0; // Spring constant for roll stabilization
-        constexpr double rollDamping = 7.0; // Damping constant for roll stabilization
-        const bool isReturning = std::abs(rollInput) < 0.01; // Check if roll input is near zero
+        constexpr double maxRollAngle = 30.0 * (3.14159265358979323846 / 180.0);        // Convert degrees to radians
+        constexpr double rollSpring = 7.0;                                              // Spring constant for roll stabilization
+        constexpr double rollDamping = 7.0;                                             // Damping constant for roll stabilization
+        const bool isReturning = std::abs(rollInput) < 0.01;                            // Check if roll input is near zero
         const double targetRollAngle = maxRollAngle * std::clamp(rollInput, -1.0, 1.0); // Target roll angle based on input
-        const double spring = isReturning ? 3.0 : rollSpring; // Use different spring constant when returning to neutral
-        const double damping = isReturning ? 4.0 : rollDamping; // Use different damping constant when returning to neutral
+        const double spring = isReturning ? 3.0 : rollSpring;                           // Use different spring constant when returning to neutral
+        const double damping = isReturning ? 4.0 : rollDamping;                         // Use different damping constant when returning to neutral
 
         const double rollAcceleration = (targetRollAngle - rollAngle) * spring - rollAngularVelocity * damping;
         rollAngularVelocity += rollAcceleration * dt;
@@ -86,7 +85,7 @@ namespace App
         // Update ballast tank water level
         double ballastInput = InputHandler::getAxis("ballast");
 
-        waterPhysics.changeWaterLevel(ballastInput, dt);
+        waterPhysics.getBallast().changeLevel(ballastInput, dt);
 
         // Calculate vertical movement using buoyancy and water resistance
         double verticalInput = InputHandler::getAxis("thrustZ");
@@ -149,9 +148,7 @@ namespace App
         angularVelocity = angularVelocity + angularAcceleration * dt;
 
         //! Rotation Update
-        attitude = attitude
-         * Quaternion(Vector3::left, angularVelocity.y * dt)
-         * Quaternion(Vector3::up, angularVelocity.z * dt);
+        attitude = attitude * Quaternion(Vector3::left, angularVelocity.y * dt) * Quaternion(Vector3::up, angularVelocity.z * dt);
 
         attitude = Quaternion::normalize(attitude);
 
@@ -163,10 +160,7 @@ namespace App
         //! Position Update
         // Vertical movement follows world up (buoyancy), forward movement follows the nose
         Vector3 newPosition =
-            position + velocity * dt 
-            + Vector3::up * verticalMovement
-            + rotation * Vector3::forward * forwardMovement;
-        
+            position + velocity * dt + Vector3::up * verticalMovement + rotation * Vector3::forward * forwardMovement;
 
         // Apply Calculated transform
         entity.setPosition(newPosition);
@@ -180,7 +174,7 @@ namespace App
         {
             physicsDebugTimer = 0.0;
 
-            double water = waterPhysics.getWaterLevel();
+            double water = waterPhysics.getBallast().getLevel();
             double speed = waterPhysics.getVerticalVelocity();
 
             const char *movement = "Schwebt";
@@ -234,7 +228,7 @@ namespace App
             "resetBallast",
             [this]()
         {
-            waterPhysics.resetWaterLevel();
+            waterPhysics.getBallast().reset();
             std::cout << "+ Ballast reset to 50%" << std::endl;
         }
         );

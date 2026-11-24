@@ -6,34 +6,18 @@
 #include <algorithm>
 #include <cmath>
 
-//! Ballast Control
-// Set ballst water level and limit it to 0-100%
-void WaterPhysics::setWaterLevel(double percentage)
+//! Ballast Tank
+App::BallastTank &WaterPhysics::getBallast()
 {
-    waterLevel = std::clamp(percentage, 0.0, 100.0);
+    return ballast;
 }
 
-// Increase or decrease ballast water based on input and delta time
-void WaterPhysics::changeWaterLevel(double input, double dt)
+const App::BallastTank &WaterPhysics::getBallast() const
 {
-    if (dt <= 0.0) return;
-
-    setWaterLevel(
-        waterLevel + input * ballastChangeRate * dt
-    );
-}
-
-void WaterPhysics::resetWaterLevel()
-{
-    setWaterLevel(50.0);
+    return ballast;
 }
 
 //! Physics State Getters
-// Return current ballast water level (0-100%)
-double WaterPhysics::getWaterLevel() const
-{
-    return waterLevel;
-}
 
 // Return current vertical velocity (m/s)
 double WaterPhysics::getVerticalVelocity() const
@@ -56,7 +40,7 @@ double WaterPhysics::updateVertical(double input, double dt)
     input = std::clamp(input, -1.0, 1.0);
 
     // Calculate accelerations and resistance
-    double buoyancy = calculateBuoyancy(dt);
+    double buoyancy = ballast.updateBuoyancy(dt);
     double manualAcceleration = calculateManualAcceleration(input, dt);
 
     double drag = PhysicsUtils::calculateDrag(
@@ -80,70 +64,11 @@ double WaterPhysics::updateVertical(double input, double dt)
     );
 }
 
-//! Buoyancy
-
-double WaterPhysics::calculateBuoyancy(double dt)
-{
-    // 0% = maximum upward buoyancy
-    // 50% = neutral buoyancy
-    // 100% = maximum downward buoyancy
-    double targetBuoyancy =
-        1.0 - 2.0 * (waterLevel / 100.0);
-
-    // Smoothly adjust buoyancy
-    double response = PhysicsUtils::calculateResponse(
-        dt,
-        buoyancyResponseTime
-    );
-
-    currentBuoyancy +=
-        (targetBuoyancy - currentBuoyancy) * response;
-
-    // Convert buoyancy to acceleration
-    return currentBuoyancy * buoyancyAcceleration;
-}
-
 //! Manual Vertical Movement
 
 double WaterPhysics::calculateManualAcceleration(double input, double dt)
 {
-    updateAccelerationProgress(input, dt);
-
-    double curve = PhysicsUtils::calculateAccelerationCurve(
-        accelerationProgress
-    );
-
-    return input * verticalAcceleration * curve;
-}
-
-//! Acceleration Ramp
-
-void WaterPhysics::updateAccelerationProgress(double input, double dt)
-{
-    double direction = 0.0;
-
-    if (input > 0.0) direction = 1.0;
-    if (input < 0.0) direction = -1.0;
-
-    // Reset acceleration ramp when input direction changes
-    if (direction != previousDirection)
-    {
-        accelerationProgress = 0.0;
-        previousDirection = direction;
-    }
-
-    // Gradually increase acceleration while input is active
-    if (direction != 0.0)
-    {
-        accelerationProgress +=
-            dt / std::max(accelerationRampTime, 0.001);
-
-        accelerationProgress = std::clamp(
-            accelerationProgress,
-            0.0,
-            1.0
-        );
-    }
+    return verticalRamp.update(input, dt) * verticalAcceleration;
 }
 
 //! Vertical Velocity Update
@@ -175,7 +100,7 @@ double WaterPhysics::calculateWaterDrift() const
 {
     // Strongest drift near neutral buoyancy (50%)
     double neutralFactor = std::clamp(
-        1.0 - std::abs(waterLevel - 50.0) / 10.0,
+        1.0 - std::abs(ballast.getLevel() - 50.0) / 10.0,
         0.0,
         1.0
     );
