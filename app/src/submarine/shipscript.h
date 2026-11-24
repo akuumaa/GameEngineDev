@@ -60,6 +60,10 @@ namespace App
         double maxAngularVelocity = 2.0;
         double flightAssistRate = 1.5;
 
+        //! Rudders (yaw + pitch need water flowing past them)
+        double minRudderAuthority = 0.25;  // effect when standing still (0..1)
+        double rudderReferenceSpeed = 3.0; // full effect from this forward speed on
+
         //! Roll Spring
         double maxRollAngle = 30.0 * (3.14159265358979323846 / 180.0);
         double rollSpring = 7.0;
@@ -110,13 +114,14 @@ namespace App
         void applyRoll(Entity &entity);                   // roll spring
 
         double calculateForwardThrust(double input) const;
+        double calculateRudderAuthority(double forwardSpeed) const;
 
         SubmarineConfig config = {};
 
         //! Control State
         BallastTank ballast;
         InputRamp verticalRamp;
-        bool flightAssist = false; //water damping now does the job
+        bool flightAssist = false; // water damping now does the job
 
         //! Callbacks & Debug
         size_t cameraCallbackId = 0;

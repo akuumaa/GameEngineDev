@@ -129,6 +129,10 @@ namespace App
             }
         }
 
+        // Rudders work better the faster the boat moves
+        const double forwardSpeed = getBody().getLocalVelocity(rotation).x;
+        angularAcceleration = angularAcceleration * calculateRudderAuthority(forwardSpeed);
+
         getBody().addLocalForce(Vector3::left * lateralAcceleration, rotation);
         getBody().addLocalAngularAcceleration(angularAcceleration, rotation);
     }
@@ -159,6 +163,15 @@ namespace App
     {
         // Reverse thrust is weaker than forward thrust
         return input * (input >= 0.0 ? config.forwardThrust : config.reverseThrust);
+    }
+
+    double ShipScript::calculateRudderAuthority(double forwardSpeed) const
+    {
+        // 0 m/s → minRudderAuthority, from rudderReferenceSpeed on → 1.0
+        const double flow = std::abs(forwardSpeed) / std::max(config.rudderReferenceSpeed, 0.001);
+        const double minimum = std::clamp(config.minRudderAuthority, 0.0, 1.0);
+
+        return minimum + (1.0 - minimum) * std::clamp(flow, 0.0, 1.0);
     }
 
     //! Physics Debug Output
