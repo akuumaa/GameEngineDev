@@ -143,7 +143,7 @@ namespace App
     //! Spawn Ship
     bool MyGame::spawnShip()
     {
-        ship = simulation->loadEntity("entities/ship.entity");
+        ship = simulation->loadEntity("entities/ship2.entity");
         if (!ship) return false;
 
         // Set initial position

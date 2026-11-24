@@ -36,6 +36,10 @@ namespace Engine::Video
         int height = 0;
         int channels = 0;
         unsigned char *content = nullptr;
+        uint32_t format = 0;
+        int mipMapCount = 0;
+        int blockSize = 0;
+        std::vector<uint8_t> blocks;
     };
 
     class Texture
@@ -54,6 +58,8 @@ namespace Engine::Video
       private:
         Texture() = default;
         uint32_t textureId = 0;
+
+        static void uploadBlocks(uint32_t target, const TextureData &data);
 
         static inline ResourceCache<Texture> cache = {};
     };

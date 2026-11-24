@@ -24,6 +24,8 @@
 #include "engine/src/core/application.h"
 
 #include <chrono>
+#include <cstddef>
+#include <cstring>
 #include <glad/glad.h>
 #include <iostream>
 #include <iterator>
@@ -59,6 +61,42 @@ namespace Engine::Video
 
         std::vector<uint8_t> bytes{std::istreambuf_iterator<char>(*file), std::istreambuf_iterator<char>()};
 
+        if (data.filename.ends_with(".dds"))
+        {
+            std::memcpy(&data.height, bytes.data() + 12, 4);
+            std::memcpy(&data.width, bytes.data() + 16, 4);
+            std::memcpy(&data.mipMapCount, bytes.data() + 28, 4);
+            std::string fourCC(bytes.begin() + 84, bytes.begin() + 88);
+
+            if (fourCC == "DXT1")
+            {
+                data.format = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+                data.blockSize = 8;
+            }
+            else if (fourCC == "ATI1")
+            {
+                data.format = GL_COMPRESSED_RED_RGTC1;
+                data.blockSize = 8;
+            }
+            else if (fourCC == "ATI2")
+            {
+                data.format = GL_COMPRESSED_RG_RGTC2;
+                data.blockSize = 16;
+            }
+            else
+            {
+                std::cout << "! Failed to read texture " + data.filename + ": unsupported format " + fourCC << std::endl;
+                return false;
+            }
+
+            data.blocks.assign(bytes.begin() + 128, bytes.end());
+
+            std::chrono::duration<double, std::milli> readTime = std::chrono::steady_clock::now() - start;
+            std::cout << "  Reading texture " + data.filename + " took " + std::to_string(readTime.count()) + " ms" << std::endl;
+
+            return true;
+        }
+
         data.content = stbi_load_from_memory(bytes.data(), static_cast<int>(bytes.size()), &data.width, &data.height, &data.channels, 0);
         if (!data.content || data.channels == 0 || data.width == 0 || data.height == 0)
         {
@@ -90,6 +128,12 @@ namespace Engine::Video
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+        if (data.format != 0)
+        {
+            uploadBlocks(GL_TEXTURE_2D, data);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, data.mipMapCount - 1);
+        }
+
         if (data.channels == 1)
         {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, data.width, data.height, 0, GL_RED, GL_UNSIGNED_BYTE, data.content);
@@ -107,7 +151,7 @@ namespace Engine::Video
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, data.width, data.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data.content);
         }
 
-        glGenerateMipmap(GL_TEXTURE_2D);
+        if (data.format == 0) glGenerateMipmap(GL_TEXTURE_2D);
 
         stbi_image_free(data.content);
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -124,6 +168,23 @@ namespace Engine::Video
         std::chrono::duration<double, std::milli> genTime = std::chrono::steady_clock::now() - start;
         std::cout << "  Generating texture " + data.filename + " took " + std::to_string(genTime.count()) + " ms" << std::endl;
 
+    }
+
+    void Texture::uploadBlocks(uint32_t target, const TextureData &data)
+    {
+        int width = data.width;
+        int height = data.height;
+        size_t offset = 0;
+
+        for (int level = 0; level < data.mipMapCount; level++)
+        {
+            int size = ((width + 3) / 4) * ((height + 3) / 4) * data.blockSize;
+            glCompressedTexImage2D(target, level, data.format, width, height, 0, size, data.blocks.data() + offset);
+
+            offset += size;
+            width /= 2;
+            height /= 2;
+        }
     }
 
     Texture::~Texture()
