@@ -187,6 +187,9 @@ namespace Engine::Video
         }
 
         mesh.vertexCount = data.vertices.size();
+
+        std::cout << "  Mesh " << data.filename << ": " << data.vertices.size() << " vertices, " << (data.vertices.size() * sizeof(Vertex)) << " bytes" << std::endl;
+
     }
 
     void Mesh::draw() const

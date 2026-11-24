@@ -44,6 +44,8 @@ namespace Engine::Video
         void draw();
         size_t loadModel(const std::string &filename);
         void unloadModel(size_t modelId);
+        size_t getModelCount() const { return models.size(); };
+
         void loadSkybox(const std::string &filename);
 
         void loadSun(const std::string &sunFilename, const std::string &lensflareFilename);
@@ -57,7 +59,10 @@ namespace Engine::Video
         //Cache definieren
 
         size_t nextModelId = 1;
+        std::unordered_map<std::string, size_t> modelIds = {};
         std::unordered_map<size_t, std::shared_ptr<Model>> models = {};
+        std::unordered_map<size_t, size_t> modelRefCounts = {};
+        
         std::shared_ptr<Model> skybox = {};
 
         std::shared_ptr<Model> sun = {};
