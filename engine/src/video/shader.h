@@ -20,12 +20,14 @@
 #pragma once
 
 #include "engine/src/math/matrix.h"
+#include "engine/src/core/resourcecache.h"
 
 #include <cstdint>
 #include <memory>
 #include <string>
 
 using Engine::Math::Matrix;
+using Engine::Core::ResourceCache;
 
 namespace Engine::Video
 {
@@ -63,5 +65,7 @@ namespace Engine::Video
         int getLocation(const std::string &name);
 
         uint32_t programId = 0;
+
+        static inline ResourceCache<Shader> cache = {};
     };
 }

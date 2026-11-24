@@ -19,11 +19,31 @@
 
 #pragma once
 
+#include <functional>
+#include <memory>
+#include <string>
+#include <unordered_map>
+
 namespace Engine::Core
 {
     template<class T>
     class ResourceCache
     {
-      
+      public:
+        std::shared_ptr<T> get(const std::string &key, std::function<std::shared_ptr<T>()> factory)
+        {
+            auto entry = cache.find(key);
+            if (entry != cache.end())
+            {
+                std::shared_ptr<T> resource = entry->second.lock();
+                if (resource) return resource;
+            }
+            std::shared_ptr<T> resource = factory();
+            cache[key] = resource;
+            return resource;
+        }
+
+      private:
+        std::unordered_map<std::string, std::weak_ptr<T>> cache = {};
     };
 }

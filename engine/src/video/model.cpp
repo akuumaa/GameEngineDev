@@ -86,7 +86,7 @@ namespace Engine::Video
 
     void Model::draw(const Matrix &worldMatrix, const Matrix &viewMatrix, const Matrix &projectionMatrix) const
     {
-        if (!shader) return;
+        if (!shader || shader->getId() == 0) return;
 
         glUseProgram(shader->getId());
 

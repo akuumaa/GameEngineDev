@@ -37,14 +37,17 @@ namespace Engine::Video
 {
     std::shared_ptr<Texture> Texture::create(const std::string &filename)
     {
-        auto texture = std::shared_ptr<Texture>(new Texture());
-        TextureData textureData = { filename };
+        return cache.get(filename, [filename]()
+        {
+            auto texture = std::shared_ptr<Texture>(new Texture());
+            TextureData textureData = { filename };
 
-        bool success = readFile(textureData);
-        if (!success) return texture;
+            bool success = readFile(textureData);
+            if (!success) return texture;
 
-        genTexture(*texture, textureData);
-        return texture;
+            genTexture(*texture, textureData);
+            return texture;
+        });
     }
 
     bool Texture::readFile(TextureData &data)
