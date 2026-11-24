@@ -22,11 +22,13 @@
 
 #include "engine/src/core/application.h"
 #include "engine/src/sim/entity.h"
+#include "engine/src/physics/physicsworld.h"
 
 #include <memory>
 
 using Engine::Core::Application;
 using Engine::Sim::Entity;
+using Engine::Physics::PhysicsWorld;
 
 namespace App
 {
@@ -39,5 +41,6 @@ namespace App
       private:
       bool spawnShip();
       std::shared_ptr<Entity> ship = {};
+      std::shared_ptr<PhysicsWorld> physicsWorld = {};
     };
 }

@@ -1,4 +1,4 @@
-#include "app/src/physics/ballasttank.h"
+#include "app/src/submarine/ballasttank.h"
 
 #include "engine/src/physics/physicsutils.h"
 
@@ -37,8 +37,9 @@ namespace App
         // 0% = maximum upward buoyancy
         // 50% = neutral buoyancy
         // 100% = maximum downward buoyancy
-        double targetBuoyancy =
-            1.0 - 2.0 * (level / 100.0);
+        double offset = 1.0 - 2.0 * (level / 100.0);
+
+        double targetFactor = 1.0 + offset * settings.maxDeviation;
 
         // Smoothly adjust buoyancy
         double response = PhysicsUtils::calculateResponse(
@@ -46,11 +47,16 @@ namespace App
             settings.responseTime
         );
 
-        currentBuoyancy +=
-            (targetBuoyancy - currentBuoyancy) * response;
+      bouyancyFactor +=
+        (targetFactor - bouyancyFactor) * response;
+ 
 
-        // Convert buoyancy to acceleration
-        return currentBuoyancy * settings.buoyancyAcceleration;
+    return bouyancyFactor;
+    }
+
+    double BallastTank::getBuoyancyFactor() const
+    {
+        return bouyancyFactor;
     }
 
     //! State

@@ -6,11 +6,12 @@ namespace App
     {
         double changeRate = 25.0;           // % per second (was ballastChangeRate)
         double responseTime = 1.5;          // inertia of buoyancy (was buoyancyResponseTime)
-        double buoyancyAcceleration = 5.0;  // max buoyancy acceleration (was buoyancyAcceleration)
+        double maxDeviation = 1.0;
     };
 
     /**
-     * Ballast Tank - water level and resulting buoyancy
+     * Ballast Tank - water level and resulting buoyancy factor
+     * (gravity and buoyancy themselves are applied by the PhysicsWorld)
      */
     class BallastTank
     {
@@ -28,8 +29,9 @@ namespace App
         void reset();
 
         //! Buoyancy
-        // Smoothly follow the water level, return buoyancy acceleration
+        // Smoothly follow the water level, return buoyancy factor
         double updateBuoyancy(double dt);
+        double getBuoyancyFactor() const;
 
         //! State
         double getLevel() const;
@@ -38,6 +40,6 @@ namespace App
         BallastSettings settings = {};
 
         double level = 50.0;
-        double currentBuoyancy = 0.0;
+        double bouyancyFactor = 1.0;
     };
 }

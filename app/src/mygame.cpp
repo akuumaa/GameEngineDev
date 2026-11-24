@@ -20,7 +20,8 @@
  */
 
 #include "app/src/mygame.h"
-#include "app/src/shipscript.h"
+
+#include "app/src/submarine/shipscript.h"
 #include "engine/src/core/inputMapper.h"
 #include "engine/src/core/inputhandler.h"
 #include "engine/src/math/vector3.h"
@@ -62,13 +63,13 @@ namespace App
 
         // World Setup
         for (const Vector3 &position : {
-            Vector3::forward * 25.0,
-            Vector3::forward * -25.0,
-            Vector3::left * 25.0,
-            Vector3::left * -25.0,
-            Vector3::up * 25.0,
-            Vector3::up * -25.0
-        })
+                 Vector3::forward * 25.0,
+                 Vector3::forward * -25.0,
+                 Vector3::left * 25.0,
+                 Vector3::left * -25.0,
+                 Vector3::up * 25.0,
+                 Vector3::up * -25.0
+             })
         {
             if (auto cube = simulation->loadEntity("entities/cuberef.entity"))
             {
@@ -85,12 +86,17 @@ namespace App
             << " s"
             << std::endl;
 
+        //! Physics World
+        // Water environment for all physics bodies
+        physicsWorld = std::make_shared<PhysicsWorld>();
+        physicsWorld->setGravity(Vector3::up * -5.0); // game feel, not 9.81
+        // physicsWorld->setWaterSurface(80.0);        // optional: z of the water surface
 
         //! Spawn Ship
         ok = spawnShip();
         if (!ok) return false;
 
-        //! Respawn Callback 
+        //! Respawn Callback
         // Remvoe the exsisting ship and create a new instance
         // when the respawn action is triggered
         InputHandler::onAction("respawn", [this]()
@@ -111,7 +117,6 @@ namespace App
         return true;
     }
 
-
     //! Spawn Ship
     bool MyGame::spawnShip()
     {
@@ -122,7 +127,7 @@ namespace App
         ship->setPosition(Vector3(0.0, 0.0, 0.0));
 
         // Attach movement and physics script to the ship entity
-        ship->addScript(std::make_unique<ShipScript>());
+        ship->addScript(std::make_unique<ShipScript>(physicsWorld));
 
         // Set ship as the active focus entity
         ship->setFocus(true);
