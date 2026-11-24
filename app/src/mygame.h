@@ -23,6 +23,8 @@
 #include "engine/src/core/application.h"
 #include "engine/src/sim/entity.h"
 
+#include <cstddef>
+#include <cstdint>
 #include <memory>
 
 using Engine::Core::Application;
@@ -40,6 +42,14 @@ namespace App
       bool spawnShip();
       bool spawnBubble(); // Spawning the Bubble
       std::shared_ptr<Entity> ship = {};
+
+      uint32_t worldSeed = 1337;
+      int asteroidCount = 10;
+      double fieldRadiusMin = 80.0;
+      double fieldRadiusMax = 400.0;
+      double fieldHeight = 60.0;
+      double asteroidSizeMin = 2.0;
+      double asteroidSizeMax = 12.0;
 
       void update(double dt, double t) override;
       double bubbleSpawnTimer = 0.0;

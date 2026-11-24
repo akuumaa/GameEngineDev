@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
+ * Copyright © 2026 Tom Kertels
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,9 +40,48 @@ namespace Engine::Sim
 
         size_t entityId = nextEntityId++;
         entity->setEntityId(entityId);
-        entities[entityId] = entity;
+        pendingLoadEntities.push_back(entity);
 
         return entity;
+    }
+
+    std::shared_ptr<Entity> Simulation::getEntity(size_t entityId)
+    {
+        for (auto &entity : pendingLoadEntities)
+        {
+            if (entity->getEntityId() == entityId)
+            {
+                return entity;
+            }
+        }
+
+        auto entity = entities.find(entityId);
+        if (entity == entities.end()) return nullptr;
+
+        return entity->second;
+    }
+
+    std::vector<std::shared_ptr<Entity>> Simulation::findEntitiesWithTag(const std::string &tag) const
+    {
+        std::vector<std::shared_ptr<Entity>> result = {};
+
+        for (const auto &entity : pendingLoadEntities)
+        {
+            if (entity->hasTag(tag) && !entity->isPendingUnload())
+            {
+                result.push_back(entity);
+            }
+        }
+
+        for (const auto &[entityId, entity] : entities)
+        {
+            if (entity->hasTag(tag) && !entity->isPendingUnload())
+            {
+                result.push_back(entity);
+            }
+        }
+
+        return result;
     }
 
     bool Simulation::unloadEntity(size_t entityId)
@@ -52,6 +92,35 @@ namespace Engine::Sim
         entry->second->unload(renderer);
         entities.erase(entry);
         return true;
+    }
+
+    void Simulation::loadPendingEntities()
+    {
+        for (auto &entity : pendingLoadEntities)
+        {
+            entities[entity->getEntityId()] = entity;
+        }
+        pendingLoadEntities.clear();
+    }
+
+    void Simulation::unloadFlaggedEntities()
+    {
+        // Das muss so in zwei Loops mit der Liste, sonst löschen wir uns das Objekt auf dem wir iterieren weg
+        // Weil unloadEntity intern entities.erase() aufruft und das potentiell während der Iteration ist
+        std::vector<size_t> pendingUnloadIds = {};
+        
+        for (auto &[entityId, entity] : entities)
+        {
+            if (entity->isPendingUnload())
+            {
+                pendingUnloadIds.push_back(entityId);
+            }
+        }
+
+        for ( auto entityId : pendingUnloadIds)
+        {
+            unloadEntity(entityId);
+        }
     }
 
     void Simulation::update(double dt, double t)
@@ -68,6 +137,10 @@ namespace Engine::Sim
         std::vector<size_t> entitiesToUnload;
         for (auto &[entityId, entity] : entities)
         {
+            if (entity->isPendingUnload())
+            {
+                continue;
+            }
             entity->update(dt, t);
             if (entity->isUnloadRequested())
             {
@@ -79,6 +152,9 @@ namespace Engine::Sim
         {
             unloadEntity(entityId);
         }
+
+        loadPendingEntities();
+        unloadFlaggedEntities();
 
         for (const auto &[entityId, entity] : entities)
         {
