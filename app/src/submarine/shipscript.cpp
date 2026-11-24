@@ -96,7 +96,7 @@ namespace App
         double lateralAcceleration = lateralInput * config.thrust;
         Vector3 angularAcceleration = {
             0.0, // Roll is handled separately
-            pitchInput * config.angularThrust,
+            pitchInput * config.pitchThrust,
             yawInput * config.angularThrust
         };
 

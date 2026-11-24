@@ -41,10 +41,10 @@ namespace App
     {
         BodyProperties body;
         body.mass = 1.0;
-        body.linearDrag = {0.1, 0.0, 0.25};     // x: forwardLinearDrag, y: none (like before), z: linearDrag
-        body.quadraticDrag = {0.04, 0.0, 0.08}; // x: forwardQuadraticDrag, z: quadraticDrag
-        body.angularDrag = {0.0, 0.0, 0.0};     // like before: rotation is only damped by flight assist
-        body.rightingStrength = 0.0;            // like before: no self-righting
+        body.linearDrag = {0.1, 0.6, 0.25};     // x: forwardLinearDrag, y: none (like before), z: linearDrag
+        body.quadraticDrag = {0.04, 0.3, 0.08}; // x: forwardQuadraticDrag, z: quadraticDrag
+        body.angularDrag = {2.0, 2.0, 2.0};     // like before: rotation is only damped by flight assist
+        body.rightingStrength = 1.5;            // like before: no self-righting
         body.maxLocalSpeed = {0.0, 0.0, 5.0};   // was maxVerticalSpeed
         return body;
     }
@@ -53,8 +53,9 @@ namespace App
     struct SubmarineConfig
     {
         //! Maneuvering (lateral + rotation)
-        double thrust = 20.0;
-        double angularThrust = 2.0;
+        double thrust = 1.5;
+        double angularThrust = 1.2;
+        double pitchThrust = 0.5;
         double maxVelocity = 20.0;
         double maxAngularVelocity = 2.0;
         double flightAssistRate = 1.5;
@@ -115,7 +116,7 @@ namespace App
         //! Control State
         BallastTank ballast;
         InputRamp verticalRamp;
-        bool flightAssist = true;
+        bool flightAssist = false; //water damping now does the job
 
         //! Callbacks & Debug
         size_t cameraCallbackId = 0;
