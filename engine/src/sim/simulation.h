@@ -2,6 +2,7 @@
  * Game Engine Development
  * Technische Hochschule Mittelhessen
  * Copyright © 2021-2026 Tobias Reimann
+ * Copyright © 2026 Tom Kertels
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +28,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 using Engine::Core::CommandBuffer;
 using Engine::Video::Renderer;
@@ -39,11 +41,18 @@ namespace Engine::Sim
         Simulation(std::unique_ptr<CommandBuffer> &commandBuffer, Renderer &renderer);
 
         std::shared_ptr<Entity> loadEntity(const std::string &filename);
-        bool unloadEntity(size_t entityId);
+
+        std::shared_ptr<Entity> getEntity(size_t entityId);
+        std::vector<std::shared_ptr<Entity>> findEntitiesWithTag(const std::string &tag) const;
+        size_t getEntityCount() const { return entities.size(); }
 
         void update(double dt, double t);
 
       private:
+        void loadPendingEntities();
+        void unloadFlaggedEntities();
+        bool unloadEntity(size_t entityId);
+
         std::unique_ptr<CommandBuffer> &commandBuffer;
 
         Renderer &renderer;
@@ -52,5 +61,6 @@ namespace Engine::Sim
 
         size_t nextEntityId = 1;
         std::unordered_map<size_t, std::shared_ptr<Entity>> entities = {};
+        std::vector<std::shared_ptr<Entity>> pendingLoadEntities = {};
     };
 }
