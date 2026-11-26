@@ -44,7 +44,7 @@ namespace App
       std::shared_ptr<Entity> ship = {};
 
       uint32_t worldSeed = 1337;
-      int asteroidCount = 10;
+      int asteroidCount = 250;
       double fieldRadiusMin = 80.0;
       double fieldRadiusMax = 400.0;
       double fieldHeight = 60.0;

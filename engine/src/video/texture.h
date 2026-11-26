@@ -24,6 +24,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <vector>
 
 using Engine::Core::ResourceCache;
 
@@ -36,6 +37,10 @@ namespace Engine::Video
         int height = 0;
         int channels = 0;
         unsigned char *content = nullptr;
+        uint32_t format = 0;
+        int mipMapCount = 0;
+        int blockSize = 0;
+        std::vector<uint8_t> blocks;
     };
 
     class Texture
@@ -56,5 +61,7 @@ namespace Engine::Video
         uint32_t textureId = 0;
 
         static inline ResourceCache<Texture> cache = {};
+
+        static void uploadBlocks(uint32_t target, const TextureData &data);
     };
 }

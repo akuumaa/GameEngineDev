@@ -18,12 +18,13 @@
  */
 
 #include "engine/src/video/renderer.h"
+#include "engine/src/video/model.h"
 
 #include <GLFW/glfw3.h>
+#include <algorithm>
 #include <glad.c>
 #include <numbers>
 #include <stdexcept>
-#include <algorithm>
 
 using Engine::Core::ClearCommand;
 using Engine::Core::RenderItem;
@@ -49,8 +50,22 @@ namespace Engine::Video
 
     size_t Renderer::loadModel(const std::string &filename)
     {
+
+        auto entry = modelIds.find(filename);
+
+        if (entry != modelIds.end())
+        {
+            if (models.contains(entry->second))
+            {
+                modelRefCounts[entry->second]++;
+                return entry->second;
+            }
+        };
+
         size_t modelId = nextModelId++;
+        modelRefCounts[modelId] = 1;
         models[modelId] = Model::create(filename);
+        modelIds[filename] = modelId;
 
         return modelId;
     }
@@ -59,7 +74,13 @@ namespace Engine::Video
     {
         if (!models.contains(modelId)) return;
 
+        auto &refCount = modelRefCounts[modelId];
+        --refCount;
+
+        if(refCount > 0) return;
+
         models.erase(modelId);
+        modelRefCounts.erase(modelId);
     }
 
     void Renderer::loadSkybox(const std::string &filename)
@@ -96,7 +117,7 @@ namespace Engine::Video
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         Matrix fixedViewMatrix = commandBuffer->viewMatrix;
-        
+
         fixedViewMatrix.m41 = 0.0;
         fixedViewMatrix.m42 = 0.0;
         fixedViewMatrix.m43 = 0.0;

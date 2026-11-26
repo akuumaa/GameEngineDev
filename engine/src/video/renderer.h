@@ -26,6 +26,7 @@
 #include "engine/src/video/model.h"
 
 #include <cstddef>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -46,6 +47,7 @@ namespace Engine::Video
         void unloadModel(size_t modelId);
         void loadSkybox(const std::string &filename);
         void loadSun(const std::string &sunFilename, const std::string &lensflareFilename);
+        size_t getModelCount() const { return models.size(); };
 
       private:
         const std::unique_ptr<CommandBuffer> &commandBuffer;
@@ -53,7 +55,9 @@ namespace Engine::Video
         const Window &window;
 
         size_t nextModelId = 1;
+        std::unordered_map<std::string, size_t> modelIds = {};
         std::unordered_map<size_t, std::shared_ptr<Model>> models = {};
+        std::unordered_map<size_t, size_t> modelRefCounts = {};
 
         std::shared_ptr<Model> skybox = {};
         std::shared_ptr<Model> sun = {};

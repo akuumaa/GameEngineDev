@@ -84,7 +84,7 @@ namespace App
             double pitch = random.nextDouble(0.0, 2.0 * std::numbers::pi);
             double roll = random.nextDouble(0.0, 2.0 * std::numbers::pi);
 
-            if (auto asteroid = simulation->loadEntity("entities/asteroid_placeholder.entity"))
+            if (auto asteroid = simulation->loadEntity("entities/asteroid.entity"))
             {
                 asteroid->setPosition(Vector3(std::cos(angle) * radius, std::sin(angle) * radius, height));
                 asteroid->setRotation(Quaternion(yaw, pitch, roll));
@@ -146,7 +146,7 @@ namespace App
 
             nearest->queueUnload();
 
-            std::cout << "  Queued asteroid " << nearest->getEntityId() << " for removal" << std::endl;
+            std::cout << "  Unloaded asteroid " << nearest << ", " << simulation->getEntityCount() << " entities and " << renderer->getModelCount() << " models left" << std::endl;
         });
 
         //! Spawn Bubble
@@ -163,7 +163,7 @@ namespace App
     //! Spawn Ship
     bool MyGame::spawnShip()
     {
-        ship = simulation->loadEntity("entities/ship.entity");
+        ship = simulation->loadEntity("entities/ship2.entity");
         if (!ship) return false;
 
         // Set initial position
@@ -179,7 +179,7 @@ namespace App
 
     bool MyGame::spawnBubble()
     {
-        auto bubble = simulation->loadEntity("entities/asteroid_placeholder.entity");
+        auto bubble = simulation->loadEntity("entities/asteroid.entity");
         if (!bubble) return false;
 
         bubble->setPosition(Vector3(5.0, 0.0, 0.0));
