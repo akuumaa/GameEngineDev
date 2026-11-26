@@ -25,7 +25,7 @@ layout (location = 1) in vec2 TextureCoordinate;
 uniform mat4 ViewMatrix;
 uniform mat4 ProjectionMatrix;
 
-uniform vec3 lightDirection = normalize(vec3(-0.4, 0.6, -1.0));
+uniform vec3 lightDirection = normalize(vec3(2.0, -2.0, -1.0));
 
 out VertexShaderOutput {
     vec2 TextureCoordinate;

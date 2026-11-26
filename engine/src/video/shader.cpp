@@ -126,6 +126,14 @@ namespace Engine::Video
         glUniform1i(location, value);
     }
 
+    void Shader::setFloat(const std::string &name, double value)
+    {
+        int location = getLocation(name);
+        if (location < 0) return;
+
+        glUniform1f(location, (float)value);
+    }
+
     void Shader::setMatrix(const std::string &name, const Matrix &value)
     {
         int location = getLocation(name);

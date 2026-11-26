@@ -1,6 +1,7 @@
 {
     "$schema": "../../../engine/schemas/entity.schema",
     "name": "Asteroid",
+    "tags": ["asteroid"],
     "models": [
         "models/asteroid_placeholder.model"
     ]

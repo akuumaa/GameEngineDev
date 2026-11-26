@@ -15,6 +15,14 @@
       "type": "number",
       "description": "Radius of the entity's collision sphere around its origin, before the entity is scaled. 0 turns collisions off."
     },
+    "tags": {
+      "type": "array",
+      "description": "Tags are arbitrary strings that can be used to identify entities. They are unique, and an entity can have multiple tags.",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
     "models": {
       "type": "array",
       "description": "The models this entity is drawn with. A plain string is the shorthand for a model without a scale.",
@@ -32,6 +40,18 @@
                 "pattern": "^models\\/(.+)\\.model$"
               },
               "scale": {
+                "type": "array",
+                "items": { "type": "number" },
+                "minItems": 3,
+                "maxItems": 3
+              },
+              "rotation": {
+                "type": "array",
+                "items": { "type": "number" },
+                "minItems": 4,
+                "maxItems": 4
+              },
+              "offset": {
                 "type": "array",
                 "items": { "type": "number" },
                 "minItems": 3,
@@ -61,15 +81,17 @@
           },
           "offset": {
             "type": "array",
+            "description": "Position of the model relative to the entity origin, before the entity is scaled.",
             "items": { "type": "number" },
             "minItems": 3,
             "maxItems": 3
           },
           "rotation": {
             "type": "array",
+            "description": "Rotation of the model inside the entity in degrees: [yaw, pitch, roll].",
             "items": { "type": "number" },
-            "minItems": 2,
-            "maxItems": 2
+            "minItems": 3,
+            "maxItems": 3
           },
           "yawLimit": {
             "type": "array",

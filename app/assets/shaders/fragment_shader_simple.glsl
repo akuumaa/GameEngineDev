@@ -36,7 +36,7 @@ uniform sampler2D R;
 uniform sampler2D O;
 uniform sampler2D EEE;
 
-uniform vec3 lightDirection = normalize(vec3(-0.4, 0.6, -1.0));
+uniform vec3 lightDirection = normalize(vec3(2.0, -2.0, -1.0));
 uniform vec3 lightColor = vec3(1.0);
 uniform float ambient = 0.25;
 
