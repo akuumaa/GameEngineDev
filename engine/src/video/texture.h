@@ -19,9 +19,13 @@
 
 #pragma once
 
+#include "engine/src/core/resourcecache.h"
+
 #include <cstdint>
 #include <memory>
 #include <string>
+
+using Engine::Core::ResourceCache;
 
 namespace Engine::Video
 {
@@ -50,5 +54,7 @@ namespace Engine::Video
       private:
         Texture() = default;
         uint32_t textureId = 0;
+
+        static inline ResourceCache<Texture> cache = {};
     };
 }

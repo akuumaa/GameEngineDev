@@ -17,11 +17,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <memory>
 #define STB_IMAGE_IMPLEMENTATION
 
-#include "engine/src/video/texture.h"
-
 #include "engine/src/core/application.h"
+#include "engine/src/video/texture.h"
 
 #include <glad/glad.h>
 #include <iostream>
@@ -29,20 +29,24 @@
 #include <stb_image.h>
 #include <vector>
 
+
 using Engine::Core::Application;
 
 namespace Engine::Video
 {
     std::shared_ptr<Texture> Texture::create(const std::string &filename)
     {
-        auto texture = std::shared_ptr<Texture>(new Texture());
-        TextureData textureData = { filename };
+        return cache.get(filename, [filename]()
+        {
+            auto texture = std::shared_ptr<Texture>(new Texture());
+            TextureData textureData = {filename};
 
-        bool success = readFile(textureData);
-        if (!success) return texture;
+            bool success = readFile(textureData);
+            if (!success) return texture;
 
-        genTexture(*texture, textureData);
-        return texture;
+            genTexture(*texture, textureData);
+            return texture;
+        });
     }
 
     bool Texture::readFile(TextureData &data)
@@ -65,7 +69,9 @@ namespace Engine::Video
 
     void Texture::genTexture(Texture &texture, const TextureData &data)
     {
-        while (glGetError() != GL_NO_ERROR) { }
+        while (glGetError() != GL_NO_ERROR)
+        {
+        }
 
         uint32_t textureId = 0;
 

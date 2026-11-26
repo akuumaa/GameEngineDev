@@ -33,15 +33,18 @@ namespace Engine::Video
 {
     std::shared_ptr<Mesh> Mesh::create(const std::string &filename)
     {
-        auto mesh = std::shared_ptr<Mesh>(new Mesh());
-        MeshData data = { filename };
+        return cache.get(filename, [filename]()
+        {
+            auto mesh = std::shared_ptr<Mesh>(new Mesh());
+            MeshData data = {filename};
 
-        bool success = readFile(data);
-        if (!success) return mesh;
+            bool success = readFile(data);
+            if (!success) return mesh;
 
-        createMesh(*mesh, data);
+            createMesh(*mesh, data);
 
-        return mesh;
+            return mesh;
+        });
     }
 
     bool Mesh::readFile(MeshData &data)
@@ -155,7 +158,9 @@ namespace Engine::Video
 
     void Mesh::createMesh(Mesh &mesh, MeshData &data)
     {
-        while (glGetError() != GL_NO_ERROR) { }
+        while (glGetError() != GL_NO_ERROR)
+        {
+        }
 
         glGenVertexArrays(1, &mesh.vertexArrayId);
         glBindVertexArray(mesh.vertexArrayId);

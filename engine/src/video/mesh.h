@@ -20,6 +20,7 @@
 #pragma once
 
 #include "engine/src/math/vertex.h"
+#include "engine/src/core/resourcecache.h"
 
 #include <array>
 #include <cstddef>
@@ -29,6 +30,7 @@
 #include <vector>
 
 using Engine::Math::Vertex;
+using Engine::Core::ResourceCache;
 
 namespace Engine::Video
 {
@@ -64,5 +66,7 @@ namespace Engine::Video
         uint32_t vertexArrayId = 0;
         uint32_t vertexBufferId = 0;
         size_t vertexCount = 0;
+
+        static inline ResourceCache<Mesh> cache = {};
     };
 }
