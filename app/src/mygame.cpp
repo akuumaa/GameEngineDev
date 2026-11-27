@@ -28,6 +28,8 @@
 #include "engine/src/sim/entityspawner.h"
 #include "app/src/world/aquariumgenerator.h"
 #include "app/src/submarine/shipscript.h"
+#include "app/src/bubblescript.h"
+#include "engine/src/math/random.h"
 
 #include <chrono>
 #include <iostream>
@@ -97,6 +99,31 @@ namespace App
         physicsWorld = std::make_shared<PhysicsWorld>();
         physicsWorld->setGravity(Vector3::up * -5.0); // game feel, not 9.81
         physicsWorld->setWaterSurface(layout.surfaceHeight);
+
+        //! Bubbles: fixed pool per air stone, placed from the world seed
+        const BubbleConfig &bubbles = aquariumConfig.bubbles;
+        std::vector<Vector3> bubblers = AquariumGenerator::placeBubblers(aquariumConfig, layout);
+        Engine::Math::Random bubbleRandom(aquariumConfig.seed + 5);   // sizes
+
+        for (size_t b = 0; b < bubblers.size(); b++)
+        {
+            for (int k = 0; k < bubbles.bubblesPerBubbler; k++)
+            {
+                // Spread start heights over the column → no burst at the start
+                double height = (layout.surfaceHeight - bubblers[b].z) * k / bubbles.bubblesPerBubbler;
+                double size = bubbleRandom.nextDouble(bubbles.sizeMin, bubbles.sizeMax);
+
+                if (auto bubble = simulation->loadEntity("entities/bubble.entity"))
+                {
+                    bubble->setPosition(bubblers[b] + Vector3::up * height);
+                    bubble->setScale({size, size, size});
+                    bubble->addScript(std::make_unique<BubbleScript>(
+                        physicsWorld, bubblers[b], layout.surfaceHeight,
+                        aquariumConfig.seed + 100 + static_cast<uint32_t>(b * 1000 + k),   // unique per bubble
+                        bubbles.jitter));
+                }
+            }
+        }
         //! Spawn Ship
         ok = spawnShip();
         if (!ok) return false;

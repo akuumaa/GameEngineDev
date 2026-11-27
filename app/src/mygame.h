@@ -25,6 +25,7 @@
 #include "engine/src/sim/entityspawner.h"
 #include "app/src/world/aquariumconfig.h"
 #include "engine/src/physics/physicsworld.h"
+#include "engine/src/math/random.h"
 
 #include <cstddef>
 #include <memory>
@@ -46,29 +47,29 @@ namespace App
         bool init();
 
       private:
-      bool spawnShip();
-      std::shared_ptr<Entity> ship = {};
+        bool spawnShip();
+        std::shared_ptr<Entity> ship = {};
 
-      std::vector<size_t> asteroids = {};
-      std::shared_ptr<PhysicsWorld> physicsWorld = {};
+        std::vector<size_t> asteroids = {};
+        std::shared_ptr<PhysicsWorld> physicsWorld = {};
 
-      AquariumConfig aquariumConfig = {};
-      AquariumLayout layout = {};
+        AquariumConfig aquariumConfig = {};
+        AquariumLayout layout = {};
 
-      SpawnConfig fishConfig = {
-          .count = 250,
-          .entityPaths = {"entities/fish.entity"},
-          .shape = SpawnShape::CylinderRing,
-          .center = {0.0, 0.0, 0.0},
-          .radiusMin = 0.0,
-          .radiusMax = 400.0,
-          .heightMin = -60.0,
-          .heightMax = 60.0,
-          .scaleMin = 0.2,
-          .scaleMax = 3.0,
-          .randomYaw = true,
-          .randomPitchRoll = true,
-          .snapToGround = false,
-      };
+        SpawnConfig fishConfig = {
+            .count = 250,
+            .entityPaths = {"entities/fish.entity"},
+            .shape = SpawnShape::CylinderRing,
+            .center = {0.0, 0.0, 0.0},
+            .radiusMin = 0.0,
+            .radiusMax = 400.0,
+            .heightMin = -60.0,
+            .heightMax = 60.0,
+            .scaleMin = 0.2,
+            .scaleMax = 3.0,
+            .randomYaw = true,
+            .randomPitchRoll = true,
+            .snapToGround = false,
+        };
     };
 }

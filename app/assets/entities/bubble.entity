@@ -1,0 +1,9 @@
+{
+    "$schema": "../../../engine/schemas/entity.schema",
+    "name": "Bubble",
+    "radius": 1.0,
+    "tags": ["bubble"],
+    "models": [
+        "models/bubble.model"
+    ]
+}

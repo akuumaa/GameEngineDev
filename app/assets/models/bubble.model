@@ -1,0 +1,15 @@
+{
+    "$schema": "../../../engine/schemas/model.schema",
+    "mesh": "meshes/bubble.obj",
+    "textures": {
+        "AAA": "textures/bubble_albedo.png",
+        "NN": "textures/black.png",
+        "R": "textures/black.png",
+        "O": "textures/white.png",
+        "EEE": "textures/bubble_emission.png"
+    },
+    "shaders": {
+        "vertex": "shaders/vertex_shader_simple.glsl",
+        "fragment": "shaders/fragment_shader_simple.glsl"
+    }
+}

@@ -37,6 +37,16 @@ namespace App
         std::string entity = "entities/floor.entity";
     };
 
+    struct BubbleConfig
+    {
+        int bubblerCount = 3;           /// air stones, placed from the world seed
+        int bubblesPerBubbler = 12;     /// pool size per air stone (reused, never deleted)
+        double margin = 40.0;           /// keep air stones away from the glass
+        double jitter = 4.0;            /// random offset around the air stone
+        double sizeMin = 1.0;
+        double sizeMax = 3.0;
+    };
+
     struct AquariumConfig
     {
         uint32_t seed = 1337;
@@ -45,6 +55,7 @@ namespace App
         double floorMaxRatio = 0.2;
         double shipSpawnRatio = 0.3;
         FloorConfig floor = {};
+        BubbleConfig bubbles = {};
     };
     
     struct AquariumLayout

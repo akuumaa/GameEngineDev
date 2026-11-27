@@ -5,22 +5,39 @@
 #include "app/src/world/aquariumgenerator.h"
 #include "engine/src/math/noise.h"
 #include "engine/src/sim/entityspawner.h"
-//#include "engine/src/math/random.h"
+#include "engine/src/math/random.h"
 
 //#include <numbers>
 #include <algorithm>
-//#include <vector>
+#include <vector>
 
 using Engine::Math::Noise;
 using Engine::Sim::EntitySpawner;
 //using Engine::Sim::SpawnPoint;
-//using Engine::Math::Random;
+using Engine::Math::Random;
 
 namespace App
 {
     void AquariumGenerator::generate(Simulation &simulation, const AquariumConfig &config, const AquariumLayout &layout)
     {
         buildFloorBlocks(simulation, config, layout);
+    }
+
+    std::vector<Vector3> AquariumGenerator::placeBubblers(const AquariumConfig &config, const AquariumLayout &layout)
+    {
+        const BubbleConfig &bubbles = config.bubbles;
+        Random random(config.seed + 4);   // own seed layer for air stones
+
+        std::vector<Vector3> positions = {};
+        positions.reserve(static_cast<size_t>(bubbles.bubblerCount));
+
+        for (int i = 0; i < bubbles.bubblerCount; i++)
+        {
+            double x = random.nextDouble(layout.tank.min.x + bubbles.margin, layout.tank.max.x - bubbles.margin);
+            double y = random.nextDouble(layout.tank.min.y + bubbles.margin, layout.tank.max.y - bubbles.margin);
+            positions.push_back({x, y, floorHeight(config, layout, x, y)});   // on the sand
+        }
+        return positions;
     }
 
     double AquariumGenerator::floorHeight(const AquariumConfig &config, const AquariumLayout &layout, double x, double y)
