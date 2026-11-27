@@ -202,7 +202,7 @@ namespace App
         if (!bubble) return false;
 
         bubble->setPosition(Vector3(5.0, 0.0, 0.0));
-        bubble->addScript(std::make_unique<BubbleScript>());
+        bubble->addScript(std::make_unique<BubbleScript>(physicsWorld));
         std::cout << "Aktive Blasen: "
                   << BubbleScript::getActiveCount() << std::endl;
         return true;

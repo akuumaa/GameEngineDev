@@ -1,14 +1,17 @@
 #include "app/src/bubblescript.h"
 
-#include "engine/src/math/vector3.h"
-#include "engine/src/sim/entity.h"
-
 
 namespace App
 {
-    void BubbleScript::update(Entity &entity, double dt, double t)
+
+    BubbleScript::BubbleScript(std::shared_ptr<const PhysicsWorld> world)
+        : RigidBodyScript(std::move(world))
     {
-        constexpr double riseSpeed = 0.5;
+        getBody().getProperties().buoyancyFactor = 1.1;
+    }
+
+    void BubbleScript::afterPhysics(Entity &entity, double dt, double t)
+    {
         constexpr double lifetime = 10.0;
 
         age += dt;
@@ -18,10 +21,7 @@ namespace App
             entity.requestUnload();
             return;
         }
-
-        Vector3 position = entity.getPosition();
-        position = position + Vector3::up * (riseSpeed * dt);
-        entity.setPosition(position);
+        
     }
 
     std::size_t BubbleScript::activeCount = 0;
