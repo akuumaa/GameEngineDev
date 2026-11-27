@@ -31,18 +31,23 @@ namespace Engine::Video
 {
     std::shared_ptr<Shader> Shader::create(const std::string &vertexShaderFile, const std::string &fragmentShaderFile)
     {
-        auto shader = std::shared_ptr<Shader>(new Shader());
-        ShaderData vertexShaderData = { GL_VERTEX_SHADER, vertexShaderFile };
-        ShaderData fragmentShaderData = { GL_FRAGMENT_SHADER, fragmentShaderFile };
+        std::string key = vertexShaderFile + "|" + fragmentShaderFile;
 
-        bool success = readFile(vertexShaderData) && readFile(fragmentShaderData);
-        if (!success) return shader;
+        return cache.get(key, [vertexShaderFile, fragmentShaderFile]()
+        {
+            auto shader = std::shared_ptr<Shader>(new Shader());
+            ShaderData vertexShaderData = { GL_VERTEX_SHADER, vertexShaderFile };
+            ShaderData fragmentShaderData = { GL_FRAGMENT_SHADER, fragmentShaderFile };
 
-        success = compileShader(vertexShaderData) && compileShader(fragmentShaderData);
-        if (!success) return shader;
+            bool success = readFile(vertexShaderData) && readFile(fragmentShaderData);
+            if (!success) return shader;
 
-        linkProgram(*shader, vertexShaderData, fragmentShaderData);
-        return shader;
+            success = compileShader(vertexShaderData) && compileShader(fragmentShaderData);
+            if (!success) return shader;
+
+            linkProgram(*shader, vertexShaderData, fragmentShaderData);
+            return shader;
+        });
     }
 
     bool Shader::readFile(ShaderData &data)

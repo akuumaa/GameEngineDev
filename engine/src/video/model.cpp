@@ -80,13 +80,14 @@ namespace Engine::Video
             for (const auto &[uniformName, texture] : config["textures"].items())
             {
                 if (texture.is_string()) model.textures[uniformName] = Texture::create(texture.get<std::string>());
+                if (texture.is_object() && texture.value("type", "") == "CubeMap") model.textures[uniformName] = Texture::createCubeMap(texture.value("texture", ""));
             }
         }
     }
 
     void Model::draw(const Matrix &worldMatrix, const Matrix &viewMatrix, const Matrix &projectionMatrix) const
     {
-        if (!shader) return;
+        if (!shader || shader->getId() == 0) return;
 
         glUseProgram(shader->getId());
 
@@ -105,7 +106,7 @@ namespace Engine::Video
             if (!shader->hasUniform(uniformName)) continue;
 
             glActiveTexture(GL_TEXTURE0 + unit);
-            glBindTexture(GL_TEXTURE_2D, texture->getId());
+            glBindTexture(texture->getType(), texture->getId());
             shader->setInt(uniformName, unit);
             unit++;
         }

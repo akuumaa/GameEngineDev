@@ -33,15 +33,18 @@ namespace Engine::Video
 {
     std::shared_ptr<Mesh> Mesh::create(const std::string &filename)
     {
-        auto mesh = std::shared_ptr<Mesh>(new Mesh());
-        MeshData data = { filename };
+        return cache.get(filename, [filename]()
+        {
+            auto mesh = std::shared_ptr<Mesh>(new Mesh());
+            MeshData data = { filename };
 
-        bool success = readFile(data);
-        if (!success) return mesh;
+            bool success = readFile(data);
+            if (!success) return mesh;
 
-        createMesh(*mesh, data);
+            createMesh(*mesh, data);
 
-        return mesh;
+            return mesh;
+        });
     }
 
     bool Mesh::readFile(MeshData &data)
@@ -184,6 +187,9 @@ namespace Engine::Video
         }
 
         mesh.vertexCount = data.vertices.size();
+
+        std::cout << "  Mesh " << data.filename << ": " << data.vertices.size() << " vertices, " << (data.vertices.size() * sizeof(Vertex)) << " bytes" << std::endl;
+
     }
 
     void Mesh::draw() const

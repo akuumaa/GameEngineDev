@@ -65,25 +65,14 @@ namespace App
             return false;
         }
 
-
-        // World Setup
-        /*for (const Vector3 &position : {
-                 Vector3::forward * 25.0,
-                 Vector3::forward * -25.0,
-                 Vector3::left * 25.0,
-                 Vector3::left * -25.0,
-                 Vector3::up * 25.0,
-                 Vector3::up * -25.0
-             })
-        */
-        renderer->loadSkybox("models/skybox_placeholder.model");
+        renderer->loadSkybox("models/skybox.model");
         renderer->loadSun("models/sun.model", "models/lensflare.model");
 
         // aquarium config load
         layout = AquariumLayout::from(aquariumConfig);
         AquariumGenerator::generate(*simulation, aquariumConfig, layout);
 
-        // fish inside layout 
+        // TODO in richtige COnfig bringen fish inside layout 
         double waterHalfHeight = (layout.surfaceHeight - layout.floorTop) * 0.5;
         fishConfig.shape      = SpawnShape::Box;
         fishConfig.center     = {0.0, 0.0, layout.floorTop + waterHalfHeight};
@@ -137,13 +126,13 @@ namespace App
             std::shared_ptr<Entity> nearest = nullptr;
             double nearestDistance = 0.0;
 
-            for (const std::shared_ptr<Entity> &asteroid : simulation->findEntitiesWithTag("asteroid"))
+            for (const std::shared_ptr<Entity> &fish : simulation->findEntitiesWithTag("fish"))
             {
-                double distance = (ship->getPosition() - asteroid->getPosition()).length();
+                double distance = (ship->getPosition() - fish->getPosition()).length();
 
                 if (!nearest || distance < nearestDistance)
                 {
-                    nearest = asteroid;
+                    nearest = fish;
                     nearestDistance = distance;
                 }
             }
@@ -152,7 +141,10 @@ namespace App
 
             nearest->queueUnload();
 
-            std::cout << "  Queued asteroid " << nearest->getEntityId() << " for removal" << std::endl;
+            std::cout << "  Queued fish " << nearest->getEntityId() << " for removal" 
+            << simulation->getEntityCount() << " entities, "
+            << renderer->getModelCount() << " models"
+            << std::endl;
         });
 
         return true;
@@ -165,7 +157,6 @@ namespace App
         if (!ship) return false;
 
         // Set initial position
-        //ship->setPosition(Vector3(0.0, 0.0, 0.0));
         ship->setPosition(layout.shipSpawn);
 
         // Attach movement and physics script to the ship entity

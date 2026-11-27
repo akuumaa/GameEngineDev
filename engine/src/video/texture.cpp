@@ -24,6 +24,8 @@
 #include "engine/src/core/application.h"
 
 #include <chrono>
+#include <cstddef>
+#include <cstring>
 #include <glad/glad.h>
 #include <iostream>
 #include <iterator>
@@ -37,14 +39,17 @@ namespace Engine::Video
 {
     std::shared_ptr<Texture> Texture::create(const std::string &filename)
     {
-        auto texture = std::shared_ptr<Texture>(new Texture());
-        TextureData textureData = { filename };
+        return cache.get(filename, [filename]()
+        {
+            auto texture = std::shared_ptr<Texture>(new Texture(GL_TEXTURE_2D));
+            TextureData textureData = { filename };
 
-        bool success = readFile(textureData);
-        if (!success) return texture;
+            bool success = readFile(textureData);
+            if (!success) return texture;
 
-        genTexture(*texture, textureData);
-        return texture;
+            genTexture(*texture, textureData);
+            return texture;
+        });
     }
 
     bool Texture::readFile(TextureData &data)
@@ -55,6 +60,42 @@ namespace Engine::Video
         if (!file) return false;
 
         std::vector<uint8_t> bytes{std::istreambuf_iterator<char>(*file), std::istreambuf_iterator<char>()};
+
+        if (data.filename.ends_with(".dds"))
+        {
+            std::memcpy(&data.height, bytes.data() + 12, 4);
+            std::memcpy(&data.width, bytes.data() + 16, 4);
+            std::memcpy(&data.mipMapCount, bytes.data() + 28, 4);
+            std::string fourCC(bytes.begin() + 84, bytes.begin() + 88);
+
+            if (fourCC == "DXT1")
+            {
+                data.format = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+                data.blockSize = 8;
+            }
+            else if (fourCC == "ATI1")
+            {
+                data.format = GL_COMPRESSED_RED_RGTC1;
+                data.blockSize = 8;
+            }
+            else if (fourCC == "ATI2")
+            {
+                data.format = GL_COMPRESSED_RG_RGTC2;
+                data.blockSize = 16;
+            }
+            else
+            {
+                std::cout << "! Failed to read texture " + data.filename + ": unsupported format " + fourCC << std::endl;
+                return false;
+            }
+
+            data.blocks.assign(bytes.begin() + 128, bytes.end());
+
+            std::chrono::duration<double, std::milli> readTime = std::chrono::steady_clock::now() - start;
+            std::cout << "  Reading texture " + data.filename + " took " + std::to_string(readTime.count()) + " ms" << std::endl;
+
+            return true;
+        }
 
         data.content = stbi_load_from_memory(bytes.data(), static_cast<int>(bytes.size()), &data.width, &data.height, &data.channels, 0);
         if (!data.content || data.channels == 0 || data.width == 0 || data.height == 0)
@@ -87,6 +128,12 @@ namespace Engine::Video
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+        if (data.format != 0)
+        {
+            uploadBlocks(GL_TEXTURE_2D, data);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, data.mipMapCount - 1);
+        }
+
         if (data.channels == 1)
         {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, data.width, data.height, 0, GL_RED, GL_UNSIGNED_BYTE, data.content);
@@ -104,7 +151,7 @@ namespace Engine::Video
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, data.width, data.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data.content);
         }
 
-        glGenerateMipmap(GL_TEXTURE_2D);
+        if (data.format == 0) glGenerateMipmap(GL_TEXTURE_2D);
 
         stbi_image_free(data.content);
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -121,6 +168,88 @@ namespace Engine::Video
         std::chrono::duration<double, std::milli> genTime = std::chrono::steady_clock::now() - start;
         std::cout << "  Generating texture " + data.filename + " took " + std::to_string(genTime.count()) + " ms" << std::endl;
 
+    }
+
+    std::shared_ptr<Texture> Texture::createCubeMap(const std::string &filename)
+    {
+        return cache.get(filename, [filename]()
+        {
+            auto texture = std::shared_ptr<Texture>(new Texture(GL_TEXTURE_CUBE_MAP));
+            std::array<TextureData, 6> faces = {};
+
+            for (size_t i = 0; i < faces.size(); i++)
+            {
+                faces[i].filename = filename;
+                faces[i].filename.replace(faces[i].filename.find("*"), 1, std::to_string(i + 1));
+
+                if (!readFile(faces[i]))
+                {
+                    return texture;
+                }
+            }
+
+            genCubeMap(*texture, faces);
+            return texture;
+        });
+    }
+
+    void Texture::genCubeMap(Texture &texture, const std::array<TextureData, 6> &faces)
+    {
+        std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+
+        while (glGetError() != GL_NO_ERROR) { }
+
+        uint32_t textureId = 0;
+
+        glGenTextures(1, &textureId);
+        glActiveTexture(GL_TEXTURE15);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, textureId);
+
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, faces[0].mipMapCount - 1);
+
+        if (faces[0].format != 0)
+        {
+            for (size_t i = 0; i < faces.size(); i++)
+            {
+                uploadBlocks(GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<GLenum>(i), faces[i]);
+            }
+        }
+
+        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+        if (glGetError() != GL_NO_ERROR)
+        {
+            std::cout << "! Failed to generate cube map " + faces[0].filename << std::endl;
+            glDeleteTextures(1, &textureId);
+            textureId = 0;
+        }
+
+        texture.textureId = textureId;
+
+        std::chrono::duration<double, std::milli> genTime = std::chrono::steady_clock::now() - start;
+        std::cout << "  Generating cube map " + faces[0].filename + " took " + std::to_string(genTime.count()) + " ms" << std::endl;
+    }
+
+    void Texture::uploadBlocks(uint32_t target, const TextureData &data)
+    {
+        int width = data.width;
+        int height = data.height;
+        size_t offset = 0;
+
+        for (int level = 0; level < data.mipMapCount; level++)
+        {
+            int size = ((width + 3) / 4) * ((height + 3) / 4) * data.blockSize;
+            glCompressedTexImage2D(target, level, data.format, width, height, 0, size, data.blocks.data() + offset);
+
+            offset += size;
+            width /= 2;
+            height /= 2;
+        }
     }
 
     Texture::~Texture()

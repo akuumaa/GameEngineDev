@@ -2,6 +2,7 @@
     "$schema": "../../../engine/schemas/entity.schema",
     "name": "Fish",
     "radius": 1.2,
+    "tags": ["fish"],
     "models": [
         "models/fish.model"
     ]

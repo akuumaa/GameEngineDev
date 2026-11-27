@@ -194,14 +194,14 @@ namespace App
         else if (speed < -0.05)
             movement = "Sinkt";
 
-        std::cout << std::fixed << std::setprecision(2)
+        /*std::cout << std::fixed << std::setprecision(2)
                   << "[Wasserphysik] "
                   << "Ballast: " << water << "% | "
                   << "Vertikal: " << speed << " m/s | "
                   << "Forward: " << forward << " m/s | "
                   << "Pos: " << entity.getPosition().x << ", " << entity.getPosition().z << " | "
                   << "Status: " << movement
-                  << std::endl;
+                  << std::endl;*/
     }
 
     //! Script Initialization

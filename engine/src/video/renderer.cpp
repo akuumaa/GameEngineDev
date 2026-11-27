@@ -45,14 +45,25 @@ namespace Engine::Video
         glEnable(GL_DEPTH_TEST);
         //zeichnet nur von vorderseite
         glEnable(GL_CULL_FACE);
+
+        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     }
 
-    //TODO: Pro Entity wird immer Model Created statt einmal erstellen und dann laden ..
-    //ggf. cache hinzufügen
     size_t Renderer::loadModel(const std::string &filename)
     {
+        // Already loaded AND still alive → share it
+        auto it = modelIds.find(filename);
+        if (it != modelIds.end() && models.contains(it->second))
+        {
+            modelRefCounts[it->second]++;
+            return it->second;
+        }
+
+        // First time, or unloaded in the meantime → load (again)
         size_t modelId = nextModelId++;
         models[modelId] = Model::create(filename);
+        modelIds[filename] = modelId;
+        modelRefCounts[modelId] = 1;
 
         return modelId;
     }
@@ -61,7 +72,12 @@ namespace Engine::Video
     {
         if (!models.contains(modelId)) return;
 
-        models.erase(modelId);
+        modelRefCounts[modelId]--;
+        if (modelRefCounts[modelId] <= 0)
+        {
+            models.erase(modelId);
+            modelRefCounts.erase(modelId);
+        }
     }
 
     void Renderer::loadSkybox(const std::string &filename)

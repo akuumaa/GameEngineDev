@@ -56,7 +56,7 @@ namespace App
       AquariumLayout layout = {};
 
       SpawnConfig fishConfig = {
-          .count = 120,
+          .count = 250,
           .entityPaths = {"entities/fish.entity"},
           .shape = SpawnShape::CylinderRing,
           .center = {0.0, 0.0, 0.0},

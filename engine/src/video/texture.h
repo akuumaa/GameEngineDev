@@ -19,9 +19,14 @@
 
 #pragma once
 
+#include "engine/src/core/resourcecache.h"
+
+#include <array>
 #include <cstdint>
 #include <memory>
 #include <string>
+
+using Engine::Core::ResourceCache;
 
 namespace Engine::Video
 {
@@ -32,12 +37,18 @@ namespace Engine::Video
         int height = 0;
         int channels = 0;
         unsigned char *content = nullptr;
+        uint32_t format = 0;
+        int mipMapCount = 0;
+        int blockSize = 0;
+        std::vector<uint8_t> blocks;
     };
 
     class Texture
     {
       public:
         static std::shared_ptr<Texture> create(const std::string &filename);
+        static std::shared_ptr<Texture> createCubeMap(const std::string &filename);
+
         ~Texture();
 
         Texture(const Texture &) = delete;
@@ -45,10 +56,21 @@ namespace Engine::Video
 
         static bool readFile(TextureData &info);
         static void genTexture(Texture &texture, const TextureData &info);
+        static void genCubeMap(Texture &texture, const std::array<TextureData, 6> &faces);
         uint32_t getId() const { return textureId; };
+        uint32_t getType() const { return type; };
         
       private:
-        Texture() = default;
+        Texture(uint32_t type)
+          : type(type)
+        {
+        }
+
         uint32_t textureId = 0;
+        uint32_t type = 0;
+
+        static void uploadBlocks(uint32_t target, const TextureData &data);
+
+        static inline ResourceCache<Texture> cache = {};
     };
 }

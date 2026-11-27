@@ -3,7 +3,7 @@
     "name": "Ship",
     "radius": 1.45,
     "models": [
-        "models/ship.model",
+        "models/ship2.model",
         {
             "model": "models/ship-canopy.model",
             "offset": [0.0, 0.0, 3.0],
