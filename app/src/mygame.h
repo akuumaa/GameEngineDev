@@ -22,6 +22,7 @@
 
 #include "engine/src/core/application.h"
 #include "engine/src/sim/entity.h"
+#include "engine/src/physics/physicsworld.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -29,6 +30,7 @@
 
 using Engine::Core::Application;
 using Engine::Sim::Entity;
+using Engine::Physics::PhysicsWorld;
 
 namespace App
 {
@@ -42,6 +44,8 @@ namespace App
       bool spawnShip();
       std::shared_ptr<Entity> ship = {};
 
+      std::shared_ptr<PhysicsWorld> physicsWorld = {};
+
       uint32_t worldSeed = 1337;
       int asteroidCount = 10;
       double fieldRadiusMin = 80.0;
@@ -49,5 +53,6 @@ namespace App
       double fieldHeight = 60.0;
       double asteroidSizeMin = 2.0;
       double asteroidSizeMax = 12.0;
+
     };
 }
