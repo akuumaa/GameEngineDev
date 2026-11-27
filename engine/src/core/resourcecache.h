@@ -36,8 +36,10 @@ namespace Engine::Core
             if (entry != cache.end())
             {
                 std::shared_ptr<T> resource = entry->second.lock();
+                //liefert einen shared_ptr oder leer
                 if (resource) return resource;
             }
+            //wenn ressource tot neuladen
             std::shared_ptr<T> resource = factory();
             cache[key] = resource;
             return resource;

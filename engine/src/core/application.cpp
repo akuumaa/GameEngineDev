@@ -117,7 +117,7 @@ namespace Engine::Core
                 
                 // InputHandler Updating
                 InputHandler::update();
-
+                update(dt, t);
                 simulation->update(dt, t);
                 std::swap(frontCommandBuffer, backCommandBuffer);
                 renderer->draw();

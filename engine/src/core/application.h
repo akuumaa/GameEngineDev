@@ -47,7 +47,8 @@ namespace Engine::Core
 
       protected:
         Settings settings;
-
+        // Called once per frame before the simulation update. Games override this
+        virtual void update(double dt, double t) {}
         static inline std::string assetRoot = {};
 
         std::unique_ptr<CommandBuffer> frontCommandBuffer;

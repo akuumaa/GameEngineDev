@@ -247,7 +247,7 @@ namespace Engine::Video
             glCompressedTexImage2D(target, level, data.format, width, height, 0, size, data.blocks.data() + offset);
 
             offset += size;
-            width /= 2;
+            width /= 2; // kann 0 werden 
             height /= 2;
         }
     }
