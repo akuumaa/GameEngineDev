@@ -14,8 +14,13 @@
             "keys": ["TAB"],
             "buttons": [2]
         },
+
+        "resetBallast": {
+            "keys": ["B"]
+        },
         "unloadAsteroid": {
             "keys": ["X"],
+
             "buttons": [3]
         }
     },

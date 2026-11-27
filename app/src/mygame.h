@@ -24,6 +24,7 @@
 #include "engine/src/sim/entity.h"
 #include "engine/src/sim/entityspawner.h"
 #include "app/src/world/aquariumconfig.h"
+#include "engine/src/physics/physicsworld.h"
 
 #include <cstddef>
 #include <memory>
@@ -34,6 +35,7 @@ using Engine::Sim::Entity;
 using Engine::Sim::SpawnConfig;
 using Engine::Sim::SpawnShape;
 using Engine::Sim::SpawnPoint;
+using Engine::Physics::PhysicsWorld;
 
 namespace App
 {
@@ -48,6 +50,7 @@ namespace App
       std::shared_ptr<Entity> ship = {};
 
       std::vector<size_t> asteroids = {};
+      std::shared_ptr<PhysicsWorld> physicsWorld = {};
 
       AquariumConfig aquariumConfig = {};
       AquariumLayout layout = {};
