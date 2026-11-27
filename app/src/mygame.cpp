@@ -21,8 +21,9 @@
 
 #include "app/src/mygame.h"
 
+#include "app/src/submarine/shipscript.h"
+
 #include "app/src/bubblescript.h"
-#include "app/src/shipscript.h"
 #include "engine/src/core/inputMapper.h"
 #include "engine/src/core/inputhandler.h"
 #include "engine/src/math/quaternion.h"
@@ -69,12 +70,24 @@ namespace App
             return false;
         }
 
+
+        // World Setup
+        for (const Vector3 &position : {
+                 Vector3::forward * 25.0,
+                 Vector3::forward * -25.0,
+                 Vector3::left * 25.0,
+                 Vector3::left * -25.0,
+                 Vector3::up * 25.0,
+                 Vector3::up * -25.0
+             })
+
         renderer->loadSkybox("models/skybox_placeholder.model");
         renderer->loadSun("models/sun.model", "models/lensflare.model");
 
         Random random(worldSeed);
 
         for (int i = 0; i < asteroidCount; i++)
+
         {
             double angle = random.nextDouble(0.0, 2.0 * std::numbers::pi);
             double radius = random.nextDouble(fieldRadiusMin, fieldRadiusMax);
@@ -101,6 +114,12 @@ namespace App
             << startupTime.count()
             << " s"
             << std::endl;
+
+        //! Physics World
+        // Water environment for all physics bodies
+        physicsWorld = std::make_shared<PhysicsWorld>();
+        physicsWorld->setGravity(Vector3::up * -5.0); // game feel, not 9.81
+        // physicsWorld->setWaterSurface(80.0);        // optional: z of the water surface
 
         //! Spawn Ship
         ok = spawnShip();
@@ -170,7 +189,7 @@ namespace App
         ship->setPosition(Vector3(0.0, 0.0, 0.0));
 
         // Attach movement and physics script to the ship entity
-        ship->addScript(std::make_unique<ShipScript>());
+        ship->addScript(std::make_unique<ShipScript>(physicsWorld));
 
         // Set ship as the active focus entity
         ship->setFocus(true);

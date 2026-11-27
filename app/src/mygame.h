@@ -22,6 +22,7 @@
 
 #include "engine/src/core/application.h"
 #include "engine/src/sim/entity.h"
+#include "engine/src/physics/physicsworld.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -29,6 +30,7 @@
 
 using Engine::Core::Application;
 using Engine::Sim::Entity;
+using Engine::Physics::PhysicsWorld;
 
 namespace App
 {
@@ -42,6 +44,8 @@ namespace App
       bool spawnShip();
       bool spawnBubble(); // Spawning the Bubble
       std::shared_ptr<Entity> ship = {};
+
+      std::shared_ptr<PhysicsWorld> physicsWorld = {};
 
       uint32_t worldSeed = 1337;
       int asteroidCount = 250;
